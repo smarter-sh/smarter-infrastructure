@@ -1,0 +1,71 @@
+version: 2
+updates:
+  - package-ecosystem: "terraform"
+    directory: "/aws/"
+    schedule:
+      interval: "weekly"
+    target-branch: "alpha"
+    open-pull-requests-limit: 10
+    labels:
+      - "dependencies"
+      - "automated pr"
+    assignees:
+      - "lpm0073"
+    reviewers:
+      - "lpm0073"
+      - "kentfuka"
+  - package-ecosystem: "pip"
+    directory: "/smarter"
+    schedule:
+      interval: "weekly"
+    target-branch: "alpha"
+    labels:
+      - "dependencies"
+      - "python"
+      - "automated pr"
+    assignees:
+      - "lpm0073"
+    reviewers:
+      - "lpm0073"
+      - "kentfuka"
+  - package-ecosystem: "npm"
+    directory: "/smarter/smarter/apps/chatapp/reactapp"
+    labels:
+      - "dependencies"
+      - "javascript"
+      - "automated pr"
+    schedule:
+      interval: "weekly"
+    target-branch: "alpha"
+    assignees:
+      - "lpm0073"
+    reviewers:
+      - "lpm0073"
+      - "kentfuka"
+  - package-ecosystem: "npm"
+    directory: "/"
+    labels:
+      - "dependencies"
+      - "javascript"
+      - "automated pr"
+    schedule:
+      interval: "weekly"
+    target-branch: "alpha"
+    assignees:
+      - "lpm0073"
+    reviewers:
+      - "lpm0073"
+      - "kentfuka"
+  - package-ecosystem: "github-actions"
+    directory: "/.github"
+    labels:
+      - "dependencies"
+      - "automated pr"
+    schedule:
+      interval: "weekly"
+    target-branch: "alpha"
+    assignees:
+      - "lpm0073"
+    reviewers:
+      - "lpm0073"
+      - "kentfuka"

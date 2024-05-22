@@ -1,0 +1,63 @@
+# -----------------------------------
+# Smarter.sh Environment Variables
+#
+# Python:
+# We need to explicitly set the PYTHONPATH
+# for Pylint so that it can find the smarter module
+# in your local file system when running pylint, flake8, or Cornflakes
+# from inside of VS Code. This is unrelated to actually
+# running the Django app from Docker, which sets the
+# PYTHONPATH in the Dockerfile.
+# -----------------------------------
+
+################################################################
+# For local development
+################################################################
+ENVIRONMENT=local
+PYTHONPATH=./venv:./smarter
+
+SMTP_SENDER=alpha.platform.smarter.sh
+SMTP_PASSWORD=SET-ME-PLEASE
+SMTP_USERNAME=SET-ME-PLEASE
+
+GOOGLE_MAPS_API_KEY=SET-ME-PLEASE
+
+MAILCHIMP_API_KEY=SET-ME-PLEASE
+MAILCHIMP_LIST_ID=SET-ME-PLEASE
+
+PINECONE_API_KEY=SET-ME-PLEASE
+PINECONE_ENVIRONMENT=SET-ME-PLEASE
+
+OPENAI_API_KEY=SET-ME-PLEASE
+
+
+################################################################
+# For AWS, Helm, and Terraform
+################################################################
+ROOT_DOMAIN=smarter.sh
+
+# AWS settings
+AWS_REGION=SET-ME-PLEASE
+AWS_PROFILE=SET-ME-PLEASE
+AWS_ACCOUNT_ID=SET-ME-PLEASE
+
+# -----------------------------------
+# FOR TESTING HELM CHARTS
+# Kubernetes secrets - smarter-platform-alpha
+# -----------------------------------
+NAMESPACE=SET-ME-PLEASE
+MYSQL_HOST=SET-ME-PLEASE
+MYSQL_PORT="3306"
+SMARTER_MYSQL_DATABASE=SET-ME-PLEASE
+SMARTER_MYSQL_PASSWORD=SET-ME-PLEASE
+SMARTER_MYSQL_USERNAME=SET-ME-PLEASE
+MYSQL_ROOT_USERNAME=SET-ME-PLEASE
+MYSQL_ROOT_PASSWORD=SET-ME-PLEASE
+SECRET_KEY=SET-ME-PLEASE
+SMARTER_LOGIN_URL=SET-ME-PLEASE
+SMARTER_ADMIN_PASSWORD=SET-ME-PLEASE
+SMARTER_ADMIN_USERNAME=SET-ME-PLEASE
+SMARTER_DOCKER_IMAGE=SET-ME-PLEASE
+SMTP_SENDER=SET-ME-PLEASE
+SMTP_PASSWORD=SET-ME-PLEASE
+SMTP_USERNAME=SET-ME-PLEASE
