@@ -14,6 +14,27 @@ data "aws_route53_zone" "root_domain" {
   name = var.root_domain
 }
 
+# -----------------------------------------------------------------------------
+# Root Domain: smarter.sh
+#
+# we need to create a CNAME that cert-manager can use to follow
+# the ACME challenge to its actual hosted zone.
+# see:
+#   https://letsencrypt.org/docs/challenge-types/
+#   https://www.eff.org/deeplinks/2018/02/technical-deep-dive-securing-automation-acme-dns-challenge-validation
+# -----------------------------------------------------------------------------
+resource "aws_route53_record" "environment_platform_domain_acme_challenge_cname" {
+  zone_id = data.aws_route53_zone.root_domain.zone_id
+  name    = local.acme_challenge_record_name
+  type    = "CNAME"
+  ttl     = "600"
+  records = [local.environment_platform_domain]
+}
+
+
+# -----------------------------------------------------------------------------
+# environment Domain: alpha.platform.smarter.sh, beta.platform.smarter.sh, etc.
+# -----------------------------------------------------------------------------
 resource "aws_route53_zone" "environment_platform_domain" {
   name = local.environment_platform_domain
   tags = local.tags
@@ -26,7 +47,6 @@ resource "aws_route53_record" "environment_platform_domain-ns" {
   ttl     = "600"
   records = aws_route53_zone.environment_platform_domain.name_servers
 }
-
 
 resource "aws_route53_record" "naked" {
   zone_id = aws_route53_zone.environment_platform_domain.id
@@ -69,14 +89,4 @@ resource "aws_route53_record" "environment_platform_domain_amazonses_dkim_record
   type    = "CNAME"
   ttl     = "600"
   records = ["${aws_ses_domain_dkim.environment_platform_domain.dkim_tokens[count.index]}.dkim.amazonses.com"]
-}
-
-# create a CNAME that cert-manager can use to follow
-# the ACME challenge to its actual hosted zone.
-resource "aws_route53_record" "environment_platform_domain_acme_challenge_cname" {
-  zone_id = data.aws_route53_zone.root_domain.zone_id
-  name    = local.acme_challenge_record_name
-  type    = "CNAME"
-  ttl     = "300"
-  records = [local.environment_platform_domain]
 }
