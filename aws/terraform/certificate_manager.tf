@@ -23,13 +23,15 @@ module "acm_environment_platform_domain" {
     aws = aws.us-east-1
   }
 
-  domain_name       = local.environment_platform_domain
+  domain_name       = local.cdn_domain_name
   zone_id           = aws_route53_zone.environment_platform_domain.id
   validation_method = "DNS"
 
-  subject_alternative_names = [
-    "*.${local.environment_platform_domain}",
-  ]
+  # mcdaniel: we're only using this for the CDN, so we don't need the wildcard cert.
+  #
+  # subject_alternative_names = [
+  #   "*.${local.environment_platform_domain}",
+  # ]
 
   wait_for_validation = true
 

@@ -1,3 +1,7 @@
+locals {
+  acme_challenge_record_name = "_acme-challenge.${local.environment_platform_domain}"
+}
+
 # route53 environment-specific dns record
 data "kubernetes_service" "ingress_nginx_controller" {
   metadata {
@@ -36,17 +40,19 @@ resource "aws_route53_record" "naked" {
   }
 }
 
-resource "aws_route53_record" "wildcard" {
-  zone_id = aws_route53_zone.environment_platform_domain.id
-  name    = "*.${local.environment_platform_domain}"
-  type    = "A"
+# mcdaniel: I don't think we need this wildcard record.
+#
+# resource "aws_route53_record" "wildcard" {
+#   zone_id = aws_route53_zone.environment_platform_domain.id
+#   name    = "*.${local.environment_platform_domain}"
+#   type    = "A"
 
-  alias {
-    name                   = data.kubernetes_service.ingress_nginx_controller.status.0.load_balancer.0.ingress.0.hostname
-    zone_id                = data.aws_elb_hosted_zone_id.main.id
-    evaluate_target_health = true
-  }
-}
+#   alias {
+#     name                   = data.kubernetes_service.ingress_nginx_controller.status.0.load_balancer.0.ingress.0.hostname
+#     zone_id                = data.aws_elb_hosted_zone_id.main.id
+#     evaluate_target_health = true
+#   }
+# }
 
 resource "aws_route53_record" "aws_ses_domain_identity" {
   zone_id = aws_route53_zone.environment_platform_domain.zone_id
@@ -63,4 +69,14 @@ resource "aws_route53_record" "environment_platform_domain_amazonses_dkim_record
   type    = "CNAME"
   ttl     = "600"
   records = ["${aws_ses_domain_dkim.environment_platform_domain.dkim_tokens[count.index]}.dkim.amazonses.com"]
+}
+
+# create a CNAME that cert-manager can use to follow
+# the ACME challenge to its actual hosted zone.
+resource "aws_route53_record" "environment_platform_domain_acme_challenge_cname" {
+  zone_id = data.aws_route53_zone.root_domain.zone_id
+  name    = local.acme_challenge_record_name
+  type    = "CNAME"
+  ttl     = "300"
+  records = [local.environment_platform_domain]
 }

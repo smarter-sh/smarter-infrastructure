@@ -3,13 +3,13 @@
 
 locals {
   s3_bucket_domain = "${local.s3_bucket_name}.s3.${var.aws_region}.amazonaws.com"
-  cdn_name         = "cdn.${local.environment_platform_domain}"
+  cdn_domain_name  = "cdn.${local.environment_platform_domain}"
 }
 
 # see ./route53.tf for creation of data.aws_route53_zone.environment_platform_domain.id
 resource "aws_route53_record" "cdn_environment_platform_domain" {
   zone_id = aws_route53_zone.environment_platform_domain.id
-  name    = local.cdn_name
+  name    = local.cdn_domain_name
   type    = "A"
 
   alias {
@@ -25,7 +25,7 @@ module "cdn_environment_platform_domain" {
   source  = "terraform-aws-modules/cloudfront/aws"
   version = "~> 3.2"
 
-  aliases = [local.cdn_name]
+  aliases = [local.cdn_domain_name]
 
   comment             = "Smarter CDN"
   enabled             = true
