@@ -9,6 +9,6 @@ resource "kubernetes_manifest" "platform_ingress" {
   }))
 
   depends_on = [
-    aws_route53_zone.environment_platform_domain
+    data.aws_route53_zone.environment_platform_domain
   ]
 }

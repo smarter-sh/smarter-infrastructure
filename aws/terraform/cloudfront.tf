@@ -8,7 +8,7 @@ locals {
 
 # see ./route53.tf for creation of data.aws_route53_zone.environment_platform_domain.id
 resource "aws_route53_record" "cdn_environment_platform_domain" {
-  zone_id = aws_route53_zone.environment_platform_domain.id
+  zone_id = data.aws_route53_zone.environment_platform_domain.id
   name    = local.cdn_domain_name
   type    = "A"
 

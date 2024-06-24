@@ -24,7 +24,7 @@ module "acm_environment_platform_domain" {
   }
 
   domain_name       = local.cdn_domain_name
-  zone_id           = aws_route53_zone.environment_platform_domain.id
+  zone_id           = data.aws_route53_zone.environment_platform_domain.id
   validation_method = "DNS"
 
   # mcdaniel: we're only using this for the CDN, so we don't need the wildcard cert.
