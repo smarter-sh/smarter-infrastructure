@@ -1,8 +1,6 @@
-locals {
-  acme_challenge_record_name = "_acme-challenge.${local.environment_platform_domain}"
-}
-
-# route53 environment-specific dns record
+# -----------------------------------------------------------------------------
+# From Kubernetes shared infrastructure, managed by openedx_devops repo
+# -----------------------------------------------------------------------------
 data "kubernetes_service" "ingress_nginx_controller" {
   metadata {
     name      = "common-ingress-nginx-controller"
@@ -10,20 +8,33 @@ data "kubernetes_service" "ingress_nginx_controller" {
   }
 }
 data "aws_elb_hosted_zone_id" "main" {}
+
+# -----------------------------------------------------------------------------
+# root Domain: smarter.sh
+# this is created manually in the AWS Route53 console
+# -----------------------------------------------------------------------------
 data "aws_route53_zone" "root_domain" {
   name = var.root_domain
 }
 
+# -----------------------------------------------------------------------------
+# api Domain: alpha.platform.smarter.sh, beta.platform.smarter.sh, etc.
+# this is managed by smarter via a manage.py command that runs during deployments
+# -----------------------------------------------------------------------------
 data "aws_route53_zone" "api" {
   name    = local.environment_api_domain
 }
 
+# -----------------------------------------------------------------------------
+# environment Domain: alpha.platform.smarter.sh, beta.platform.smarter.sh, etc.
+# this is managed by smarter via a manage.py command that runs during deployments
+# -----------------------------------------------------------------------------
 data "aws_route53_zone" "environment_platform_domain" {
   name    = local.environment_platform_domain
 }
 
 # -----------------------------------------------------------------------------
-# environment Domain: alpha.platform.smarter.sh, beta.platform.smarter.sh, etc.
+# AWS SES domain identity verification records
 # -----------------------------------------------------------------------------
 resource "aws_route53_record" "aws_ses_domain_identity" {
   zone_id = data.aws_route53_zone.environment_platform_domain.zone_id
