@@ -41,3 +41,12 @@ resource "aws_route53_record" "environment_platform_domain_amazonses_dkim_record
   ttl     = "600"
   records = ["${aws_ses_domain_dkim.environment_platform_domain.dkim_tokens[count.index]}.dkim.amazonses.com"]
 }
+
+resource "aws_route53_record" "environment_platform_domain_amazonses_dmarc_record" {
+  zone_id = data.aws_route53_zone.environment_platform_domain.zone_id
+  name    = "_dmarc.${local.environment_platform_domain}"
+  type    = "TXT"
+  ttl     = "600"
+  records = ["v=DMARC1;p=quarantine;rua=mailto:my_dmarc_report@${var.root_domain}"]
+}
+
