@@ -36,6 +36,16 @@ Smarter is cost effective when running at scale. It is extensible and architecte
 - Go lang
 - GitHub Actions
 
+## To taint secrets
+
+
+terragrunt taint random_password.mysql_smarter
+terragrunt taint random_password.smarter_admin_password
+terragrunt taint random_password.django_secret_key
+terragrunt taint aws_iam_access_key.smtp_user
+terragrunt apply
+
+
 ## Designed by for prompt engineers
 
 Smarter provides design teams with a web console, and a convenient yaml manifest-based command-line interface for Windows, macOS, and Linux.
