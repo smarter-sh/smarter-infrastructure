@@ -16,6 +16,8 @@ locals {
     aws_profile                = get_env("AWS_PROFILE", "default")
     aws_region                 = get_env("AWS_REGION", "us-east-2")
     root_domain                = get_env("ROOT_DOMAIN", "smarter.sh")
+    mysql_root_username        = get_env("MYSQL_ROOT_USERNAME", "SET-ME-PLEASE")
+    mysql_root_password        = get_env("MYSQL_ROOT_PASSWORD", "SET-ME-PLEASE")
 
     shared_resource_identifier = "smarter"
     eks_cluster_name           = "apps-hosting-service"
@@ -51,6 +53,8 @@ inputs = {
     root_domain                = local.root_domain
     shared_resource_identifier = local.shared_resource_identifier
     eks_cluster_name           = local.eks_cluster_name
+    mysql_root_username        = local.mysql_root_username
+    mysql_root_password        = local.mysql_root_password
     mysql_host                 = local.mysql_host
     mysql_port                 = local.mysql_port
     tags                       = local.tags

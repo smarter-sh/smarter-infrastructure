@@ -67,3 +67,13 @@ variable "mysql_port" {
   type        = string
   default     = "3306"
 }
+
+variable "mysql_root_username" {
+  description = "root username of the existing MySQL database"
+  type        = string
+  default     = "root"
+}
+variable "mysql_root_password" {
+  description = "root password of the existing MySQL database"
+  type        = string
+}

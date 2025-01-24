@@ -9,6 +9,32 @@
 # 3. horizontal scaling policy
 # 4. vertical scaling policy
 # 9. mysql secret
+resource "random_password" "mysql_root" {
+  length           = 16
+  special          = true
+  override_special = "_%@"
+  keepers = {
+    version = "1"
+  }
+}
+
+resource "kubernetes_secret" "mysql_root" {
+  metadata {
+    name      = "mysql-root"
+    namespace = local.environment_namespace
+  }
+
+  data = {
+    MYSQL_ROOT_USERNAME   = var.mysql_root_username
+    MYSQL_ROOT_PASSWORD   = var.mysql_root_password
+    MYSQL_HOST            = var.mysql_host
+    MYSQL_PORT            = var.mysql_port
+  }
+
+  depends_on = [kubernetes_namespace.smarter]
+}
+
+
 
 resource "random_password" "mysql_smarter" {
   length           = 16
