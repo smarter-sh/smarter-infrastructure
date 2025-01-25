@@ -7,6 +7,14 @@ output "root_domain" {
   value = var.root_domain
 }
 
+output "mysql_host" {
+  value = var.mysql_host
+}
+
+output "mysql_port" {
+  value = var.mysql_port
+}
+
 output "mysql_root_user" {
   value = var.mysql_root_username
 }
