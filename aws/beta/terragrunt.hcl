@@ -12,7 +12,7 @@ locals {
   # environment vars
   environment           = "beta"
   platform_subdomain    = "${local.environment}.platform"
-  api_subdomain         = "api.${local.platform_subdomain}"
+  api_subdomain         = "${local.environment}.api"
 }
 
 # Terragrunt will copy the Terraform configurations specified by the source parameter, along with any files in the

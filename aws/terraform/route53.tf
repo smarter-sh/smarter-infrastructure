@@ -18,7 +18,7 @@ data "aws_route53_zone" "root_domain" {
 }
 
 # -----------------------------------------------------------------------------
-# api Domain: alpha.platform.smarter.sh, beta.platform.smarter.sh, etc.
+# api Domain: alpha.api.smarter.sh, beta.api.smarter.sh, etc.
 # this is managed by smarter via a manage.py command that runs during deployments
 # -----------------------------------------------------------------------------
 data "aws_route53_zone" "api" {
