@@ -17,10 +17,9 @@ module "environment_storage" {
       allowed_methods = ["GET", "POST", "PUT", "HEAD"]
       allowed_origins = [
         "https://${local.environment_platform_domain}",
-        "https://${local.environment_platform_domain}",
-
         "http://${local.environment_platform_domain}",
-        "http://${local.environment_platform_domain}",
+        "http://http://localhost:8000",
+        "http://127.0.0.1:8000",
       ]
       allowed_headers = ["*"]
       expose_headers = [
