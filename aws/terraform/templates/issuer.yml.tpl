@@ -18,4 +18,3 @@ spec:
           route53:
             region: ${aws_region}
             hostedZoneID: ${hosted_zone_id}
-            ambientCredentials: true
