@@ -49,5 +49,4 @@ spec:
   tls:
     - hosts:
         - ${domain}
-        - "*.${domain}"
       secretName: ${domain}-tls
