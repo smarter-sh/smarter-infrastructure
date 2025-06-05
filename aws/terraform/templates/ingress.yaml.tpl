@@ -32,16 +32,6 @@ spec:
                   number: 8000
             path: /
             pathType: Prefix
-    - host: "*.${domain}"
-      http:
-        paths:
-          - backend:
-              service:
-                name: ${service_name}
-                port:
-                  number: 8000
-            path: /
-            pathType: Prefix
   # -----------------------------------------------------
   # automagically create tls/ssl cert via cert-manager
   # https://cert-manager.io/docs/usage/ingress/
