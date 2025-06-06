@@ -9,12 +9,24 @@ module "environment_storage" {
   object_ownership         = "ObjectWriter"
   tags                     = local.tags
 
-  # attach_policy = true
-  # policy        = data.aws_iam_policy_document.bucket_policy.json
-
+  attach_policy = true
+  policy = data.aws_iam_policy_document.public_ui_chat.json
 
   versioning = {
     enabled = false
+  }
+}
+
+data "aws_iam_policy_document" "public_ui_chat" {
+  statement {
+    sid     = "AllowPublicReadForUiChat"
+    effect  = "Allow"
+    actions = ["s3:GetObject"]
+    principals {
+      type        = "*"
+      identifiers = ["*"]
+    }
+    resources = ["arn:aws:s3:::${local.s3_bucket_name}/ui-chat/*"]
   }
 }
 
