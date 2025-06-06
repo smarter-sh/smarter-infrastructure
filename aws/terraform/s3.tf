@@ -1,6 +1,6 @@
 module "environment_storage" {
   source  = "terraform-aws-modules/s3-bucket/aws"
-  version = "~> 4.1"
+  version = "~> 4.10"
 
   bucket                   = local.s3_bucket_name
   block_public_acls        = false
@@ -12,24 +12,7 @@ module "environment_storage" {
   # attach_policy = true
   # policy        = data.aws_iam_policy_document.bucket_policy.json
 
-  cors_rule = [
-    {
-      allowed_methods = ["GET", "POST", "PUT", "HEAD"]
-      allowed_origins = [
-        "https://${local.environment_platform_domain}",
-        "http://${local.environment_platform_domain}",
-        "http://http://localhost:8000",
-        "http://127.0.0.1:8000",
-      ]
-      allowed_headers = ["*"]
-      expose_headers = [
-        "Access-Control-Allow-Origin",
-        "Access-Control-Allow-Method",
-        "Access-Control-Allow-Header"
-      ]
-      max_age_seconds = 3000
-    }
-  ]
+
   versioning = {
     enabled = false
   }

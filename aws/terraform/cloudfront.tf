@@ -20,10 +20,26 @@ resource "aws_route53_record" "cdn_environment_platform_domain" {
 
 }
 
+resource "aws_cloudfront_response_headers_policy" "cors" {
+  name = "CORS-Allow-Origin"
+  cors_config {
+    access_control_allow_origins {
+      items = ["*"]
+    }
+    access_control_allow_headers {
+      items = ["*"]
+    }
+    access_control_allow_methods {
+      items = ["GET", "HEAD", "OPTIONS"]
+    }
+    access_control_allow_credentials = false
+    origin_override = true
+  }
+}
 
 module "cdn_environment_platform_domain" {
   source  = "terraform-aws-modules/cloudfront/aws"
-  version = "~> 3.2"
+  version = "~> 4.1"
 
   aliases = [local.cdn_domain_name]
 
@@ -36,7 +52,7 @@ module "cdn_environment_platform_domain" {
 
   origin = {
     s3_bucket = {
-      domain_name = "${local.s3_bucket_domain}"
+      domain_name = local.s3_bucket_domain
     }
   }
 
@@ -48,6 +64,20 @@ module "cdn_environment_platform_domain" {
     cached_methods  = ["GET", "HEAD"]
     compress        = true
     query_string    = true
+
+    # Legacy cache key and origin request settings
+    cache_policy_id           = null
+    origin_request_policy_id  = null
+
+    forwarded_values = {
+      query_string = true
+      headers      = ["Origin"]
+      cookies = {
+        forward = "none"
+      }
+    }
+
+    response_headers_policy_id = aws_cloudfront_response_headers_policy.cors.id
   }
 
   ordered_cache_behavior = [
@@ -60,6 +90,19 @@ module "cdn_environment_platform_domain" {
       cached_methods  = ["GET", "HEAD"]
       compress        = true
       query_string    = true
+
+      cache_policy_id           = null
+      origin_request_policy_id  = null
+
+      forwarded_values = {
+        query_string = true
+        headers      = ["Origin"]
+        cookies = {
+          forward = "none"
+        }
+      }
+
+      response_headers_policy_id = aws_cloudfront_response_headers_policy.cors.id
     }
   ]
 
