@@ -34,6 +34,21 @@ data "aws_route53_zone" "environment_platform_domain" {
 }
 
 # -----------------------------------------------------------------------------
+# marketing site DNS A record
+# -----------------------------------------------------------------------------
+resource "aws_route53_record" "marketing_site" {
+  zone_id = data.aws_route53_zone.root_domain.zone_id
+  name    = local.environment_marketing_domain
+  type    = "A"
+  alias {
+    name                   = module.cdn_reactjs_environment_domain.cloudfront_distribution_domain_name
+    zone_id                = module.cdn_reactjs_environment_domain.cloudfront_distribution_hosted_zone_id
+    evaluate_target_health = false
+  }
+}
+
+
+# -----------------------------------------------------------------------------
 # AWS SES domain identity verification records
 # -----------------------------------------------------------------------------
 resource "aws_route53_record" "aws_ses_domain_identity" {
