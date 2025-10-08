@@ -22,9 +22,11 @@ metadata:
     nginx.ingress.kubernetes.io/compute-full-forwarded-for: "true"
     nginx.ingress.kubernetes.io/use-proxy-protocol: "true"
     nginx.ingress.kubernetes.io/proxy-real-ip-cidr: "0.0.0.0/0"
+    nginx.ingress.kubernetes.io/use-proxy-protocol: "true"
   name: ${domain}
   namespace: ${environment_namespace}
 spec:
+  ingressClassName: "default"
   rules:
     - host: ${domain}
       http:
