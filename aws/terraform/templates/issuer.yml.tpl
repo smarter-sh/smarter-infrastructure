@@ -12,7 +12,7 @@ spec:
     solvers:
       - http01:
           ingress:
-            class: nginx
+            class: default
       - dns01:
           # hosted Zone ID for for the environment domain.
           route53:
