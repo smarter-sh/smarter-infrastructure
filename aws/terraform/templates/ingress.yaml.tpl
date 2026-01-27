@@ -3,7 +3,6 @@ kind: Ingress
 metadata:
   annotations:
     cert-manager.io/cluster-issuer: ${cluster_issuer}
-    kubernetes.io/ingress.class: nginx
     nginx.ingress.kubernetes.io/enable-cors: "true"
     nginx.ingress.kubernetes.io/cors-allow-origin: "https://${platform_domain}, https://${api_domain}, https://*.${api_domain}, http://${platform_domain}, http://${api_domain}, http://*.${api_domain}"
     nginx.ingress.kubernetes.io/cors-allow-methods: "PUT, GET, POST, OPTIONS, DELETE"
@@ -26,7 +25,7 @@ metadata:
   name: ${domain}
   namespace: ${environment_namespace}
 spec:
-  ingressClassName: "default"
+  ingressClassName: "nginx"
   rules:
     - host: ${domain}
       http:
