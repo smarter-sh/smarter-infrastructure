@@ -29,7 +29,7 @@ locals {
     mysql_port                 = "3306"
     tags = {
       "smarter"                   = "true",
-      "ubc"                       = "true",
+      "cost_code"                 = get_env("COST_CODE", "smarter"),
       "terraform"                 = "true",
       "platform_name"             = local.platform_name,
       "platform_region"           = local.platform_region,
