@@ -20,12 +20,7 @@ resource "aws_iam_role" "AmazonEKS_CoreDNS_Role" {
       }
     ]
   })
-  tags = merge(
-    local.tags,
-    {
-      "smarter"  = "true",
-    }
-  )
+  tags = local.tags
 }
 
 ## CoreDNS does not require an AWS managed policy by default.

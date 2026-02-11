@@ -32,37 +32,33 @@ locals {
   partition = data.aws_partition.current.partition
 
 
-  tags = merge(
-    var.tags,
-    {
-      "smarter"  = "true",
-    }
-  )
+  tags = var.tags
 
   # complete list of instance types with
   #   - x86_64 / amd64 cpu architecture (and ARM64 for t4g)
   #   - Memory >= 8 GiB
   #   - vCPU == 2
   amd64_instance_types = [
-        "t3.xlarge",
-        "t3.large",
-        "m5.large",
-        "m5.xlarge",
-        "c5.large",
-        "c5.xlarge",
-        "t3.2xlarge",
+    "t3.large",
+    "t3a.large",
+    "m5a.large",
+    "m6a.large",
+    "m5.large",
+    "m4.large",
+    "m5.large",
+    "c5.large",
   ]
   graviton_instance_types = [
-        "t4g.large",
-        "c6g.large",
-        "m6g.large",
-        "r6g.large",
-        "c7g.large",
-        "m7g.large",
-        "r7g.large",
-        "c8g.large",
-        "r8g.large",
-        "m8g.large"
+    "t4g.large",
+    "c6g.large",
+    "m6g.large",
+    "r6g.large",
+    "c7g.large",
+    "m7g.large",
+    "r7g.large",
+    "c8g.large",
+    "r8g.large",
+    "m8g.large"
   ]
   instance_types_graviton_preferred = local.graviton_instance_types
 
@@ -156,12 +152,7 @@ module "eks" {
     }
   }
 
-  tags = merge(
-    local.tags,
-    {
-      "smarter"  = "true",
-    }
-  )
+  tags = local.tags
 
   addons = {
     # aws-eks-pod-identity-agent = {
@@ -219,11 +210,6 @@ module "eks" {
 
 
   eks_managed_node_groups = {
-
-
-
-
-
     amd64 = {
       capacity_type     = "SPOT"
       enable_monitoring = false
@@ -242,11 +228,7 @@ module "eks" {
       # mcdaniel nov-2025
       # leaving this as AMD64 chipsets until all openedx instances are removed from the cluster.
       # ami_type         = "AL2023_ARM_64_STANDARD"
-      instance_types    = [
-            "t3.large",
-            "m5.large",
-            "c5.large",
-      ]
+      instance_types    = local.amd64_instance_types
       subnet_ids        = [element(var.private_subnet_ids, 0)]
 
       # Configure containerd to transparently redirect Docker Hub to ECR pull-through cache
@@ -296,7 +278,7 @@ EOF
         # Tag node group resources for Karpenter auto-discovery
         # NOTE - if creating multiple security groups with this module, only tag the
         # security group that Karpenter should utilize with the following tag
-        { Name = "eks-${var.shared_resource_identifier}-arm64" },
+        { Name = "eks-${var.shared_resource_identifier}-amd64" },
       )
     }
   }
@@ -328,24 +310,14 @@ resource "aws_iam_policy" "ecr_pull_through_cache" {
     ]
   })
 
-  tags = merge(
-    local.tags,
-    {
-      "smarter"  = "true"
-    }
-  )
+  tags = local.tags
 }
 
 resource "aws_secretsmanager_secret" "dockerhub_credentials" {
   name        = "ecr-pullthroughcache/docker-hub"
   description = "Docker Hub credentials for ECR pull-through cache"
 
-  tags = merge(
-    local.tags,
-    {
-      "smarter"  = "true"
-    }
-  )
+  tags = local.tags
 }
 
 resource "aws_secretsmanager_secret_version" "dockerhub_credentials" {
@@ -430,9 +402,6 @@ resource "aws_security_group" "worker_group_mgmt" {
   tags = merge(
     local.tags,
     { Name = "eks-${var.shared_resource_identifier}-worker_group_mgmt" },
-    {
-      "smarter"  = "true"
-    }
   )
 }
 
@@ -457,9 +426,6 @@ resource "aws_security_group" "all_worker_mgmt" {
   tags = merge(
     local.tags,
     { Name = "eks-${var.shared_resource_identifier}-all_worker_mgmt" },
-    {
-      "smarter"  = "true"
-    }
   )
 }
 

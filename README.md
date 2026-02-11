@@ -36,6 +36,17 @@ Smarter is cost effective when running at scale. It is extensible and architecte
 - Go lang
 - GitHub Actions
 
+## Usage
+
+You should first review aws/global.hcl and aws/terragrunt.hcl, and edit as needed. Values in aws/global.hcl of the form `get_env("AWS_REGION", "ca-central-1")`
+can be overriden with environment variables. Example: `export AWS_REGION=us-east-1`. You can also optional create a .env file with multiple values, and then use the single command, `set -a; source .env; set +a`.
+
+```console
+cd aws/prod/
+terragrunt run-all init
+terragrunt run-all apply
+```
+
 ## To taint secrets
 
 

@@ -28,12 +28,7 @@ resource "aws_iam_role" "AmazonEKS_VPC_CNI_Role" {
       }
     ]
   })
-  tags = merge(
-    local.tags,
-    {
-      "smarter"  = "true",
-    }
-  )
+  tags = local.tags
 }
 
 resource "aws_iam_role_policy_attachment" "aws_vpc_cni_policy" {

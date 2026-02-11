@@ -4,12 +4,7 @@ data "aws_route53_zone" "root_domain" {
 
 resource "aws_route53_zone" "services_subdomain" {
   name = var.services_subdomain
-  tags = merge(
-    local.tags,
-    {
-      "smarter"  = "true"
-    }
-  )
+  tags = local.tags
 }
 
 

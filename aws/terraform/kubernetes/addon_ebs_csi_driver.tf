@@ -39,12 +39,7 @@ resource "aws_iam_role" "AmazonEKS_EBS_CSI_DriverRole" {
       }
     ]
   })
-  tags = merge(
-    local.tags,
-    {
-      "smarter"  = "true",
-    }
-  )
+  tags = local.tags
 }
 
 # 3. Attach the required AWS managed policy to the role

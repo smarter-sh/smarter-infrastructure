@@ -109,3 +109,15 @@ variable "tags" {
   type        = map(string)
   default     = {}
 }
+
+variable "intra_subnets" {
+  description = "A list of intra subnets inside the VPC"
+  type        = list(string)
+  default     = []
+}
+
+variable "intra_subnet_tags" {
+  description = "Additional tags for the intra subnets"
+  type        = map(string)
+  default     = {}
+}

@@ -32,6 +32,8 @@ module "vpc" {
   azs                    = var.azs
   public_subnets         = var.public_subnets
   private_subnets        = var.private_subnets
+  intra_subnets          = var.intra_subnets
+  intra_subnet_tags      = var.intra_subnet_tags
   database_subnets       = var.database_subnets
   elasticache_subnets    = var.elasticache_subnets
   enable_ipv6            = var.enable_ipv6
@@ -42,13 +44,6 @@ module "vpc" {
   public_subnet_tags     = var.public_subnet_tags
   private_subnet_tags    = var.private_subnet_tags
 
-  tags = merge(
-    local.tags,
-    {
-      "smarter"  = "true"
-    }
-  )
-
-
+  tags = local.tags
 }
 

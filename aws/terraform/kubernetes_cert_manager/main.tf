@@ -69,12 +69,7 @@ resource "aws_iam_policy" "cert_manager_policy" {
     ]
   })
 
-  tags = merge(
-    local.tags,
-    {
-      "smarter"  = "true"
-    }
-  )
+  tags = local.tags
 }
 
 
