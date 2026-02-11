@@ -4,7 +4,6 @@ locals {
   aws_region      = local.global_vars.locals.aws_region
   aws_account_id  = local.global_vars.locals.aws_account_id
   platform_name   = local.global_vars.locals.shared_resource_identifier
-  platform_region = local.aws_region
 }
 
 # Generate an AWS provider block
@@ -25,21 +24,24 @@ EOF
 remote_state {
   backend = "s3"
   config = {
-    encrypt        = true
+    encrypt        = false
     bucket         = "${local.aws_account_id}-terraform-tfstate-${local.platform_name}"
     key            = "${path_relative_to_include()}/terraform.tfstate"
     region         = local.aws_region
-    dynamodb_table = "${local.platform_name}-terraform-lock"
     s3_bucket_tags = {
       Terraform       = "true"
+      Smarter         = "true"
+      UBC             = "true"
       Platform        = local.platform_name
-      Platform-Region = local.platform_region
+      Platform-Region = local.aws_region
     }
     dynamodb_table_tags = {
       owner           = "terragrunt"
       name            = "Terraform lock table"
+      Smarter         = "true"
+      UBC             = "true"
       Platform        = local.platform_name
-      Platform_Region = local.platform_region
+      Platform_Region = local.aws_region
     }
   }
   generate = {

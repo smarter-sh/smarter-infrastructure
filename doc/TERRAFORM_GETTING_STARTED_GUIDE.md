@@ -105,10 +105,10 @@ vim terraform/terraform.tf
 
 ```terraform
   backend "s3" {
-    bucket         = "012345678912-tfstate-openai"
-    key            = "openai/terraform.tfstate"
+    bucket         = "012345678912-tfstate-platform-name"
+    key            = "platform-name/terraform.tfstate"
     region         = "us-east-1"
-    dynamodb_table = "012345678912-tfstate-lock-openai"
+    use_lock_table = true
     profile        = "default"
     encrypt        = false
   }
@@ -123,7 +123,7 @@ vim terraform/terraform.tfvars
 Required inputs are as follows:
 
 ```terraform
-account_id           = "012345678912"
+aws_account_id           = "012345678912"
 aws_region           = "us-east-1"
 aws_profile          = "default"
 ```
@@ -132,8 +132,8 @@ aws_profile          = "default"
 
 The Terraform modules in this repo rely extensively on calls to other third party Terraform modules published and maintained by [AWS](https://registry.terraform.io/namespaces/terraform-aws-modules). These modules will be downloaded by Terraform so that these can be executed locally from your computer. Noteworth examples of such third party modules include:
 
-- [terraform-aws-modules/s3](https://registry.terraform.io/modules/terraform-aws-modules/s3-bucket/aws/latest)
-- [terraform-aws-modules/dynamodb](https://registry.terraform.io/modules/terraform-aws-modules/dynamodb-table/aws/latest)
+- [terraform-aws-modules/s3](https://registry.terraform.io/terraform/terraform-aws-modules/s3-bucket/aws/latest)
+- [terraform-aws-modules/dynamodb](https://registry.terraform.io/terraform/terraform-aws-modules/dynamodb-table/aws/latest)
 
 ```console
 cd terraform
@@ -178,15 +178,3 @@ AWS_S3_BUCKET="${AWS_ACCOUNT}-tfstate-${AWS_ENVIRONMENT}"
 AWS_DYNAMODB_TABLE="${AWS_ACCOUNT}-tfstate-lock-${AWS_ENVIRONMENT}"
 ```
 
-To delete the DynamoDB table
-
-```console
-aws dynamodb delete-table --region $AWS_REGION --table-name $AWS_DYNAMODB_TABLE
-```
-
-To delete the AWS S3 bucket
-
-```console
-aws s3 rm s3://$AWS_S3_BUCKET --recursive
-aws s3 rb s3://$AWS_S3_BUCKET --force
-```

@@ -11,15 +11,13 @@ locals {
 
   # environment vars
   environment           = "prod"
-  platform_subdomain    = "platform"
-  api_subdomain         = "api"
 }
 
 # Terragrunt will copy the Terraform configurations specified by the source parameter, along with any files in the
 # working directory, into a temporary folder, and execute your Terraform commands in that folder.
 
 terraform {
-  source = "..//terraform"
+  source = "../../terraform/smarter"
 }
 
 # Include all settings from the root terragrunt.hcl file
@@ -32,7 +30,5 @@ inputs = merge(
   local.global_vars.locals,
   {
     environment           = local.environment
-    platform_subdomain    = local.platform_subdomain
-    api_subdomain         = local.api_subdomain
   }
 )

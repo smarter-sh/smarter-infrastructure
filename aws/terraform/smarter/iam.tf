@@ -25,7 +25,7 @@ resource "aws_iam_access_key" "smtp_user" {
 
 resource "aws_iam_policy" "ses_sender" {
   name        = "${local.environment_namespace}_ses_sender"
-  description = "Cookiecutter: allow sending e-mails via Simple Email Service"
+  description = "Smarter: allow sending e-mails via Simple Email Service"
   policy      = data.aws_iam_policy_document.ses_sender.json
   tags        = local.tags
 }
