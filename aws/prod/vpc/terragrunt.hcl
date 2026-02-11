@@ -53,13 +53,13 @@ inputs = {
   namespace          = local.namespace
   name               = "${local.resource_name}"
   cidr               = "192.168.0.0/20"
-  azs                = ["${local.aws_region}a", "${local.aws_region}b", "${local.aws_region}c"]
+  azs                = ["${local.aws_region}a", "${local.aws_region}b", "${local.aws_region}d"]
 
   database_subnets    = ["192.168.1.0/24", "192.168.2.0/24"]
   elasticache_subnets = ["192.168.3.0/24", "192.168.4.0/24"]
   public_subnets      = ["192.168.5.0/24", "192.168.6.0/24", "192.168.7.0/24"]
-  private_subnets     = ["192.168.8.0/23", "192.168.10.0/23", "192.168.12.0/23"]
-  intra_subnets      =  ["192.168.14.0/24", "192.168.15.0/24", "192.168.16.0/24"]
+  private_subnets     = ["192.168.8.0/24", "192.168.9.0/24", "192.168.10.0/24"]
+  intra_subnets       = ["192.168.11.0/24", "192.168.12.0/24", "192.168.13.0/24"]
 
   enable_ipv6          = false
   enable_dns_hostnames = true
