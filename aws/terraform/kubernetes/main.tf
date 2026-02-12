@@ -99,14 +99,19 @@ module "eks" {
   version                         = "~> 21"
   name                            = var.namespace
   kubernetes_version              = var.kubernetes_cluster_version
-  endpoint_private_access         = true
-  endpoint_public_access          = true
   vpc_id                          = var.vpc_id
-  subnet_ids                      = var.private_subnet_ids
+  subnet_ids                      = var.private_subnets
+  control_plane_subnet_ids        = var.private_subnets
+
+  # endpoint_private_access         = true
+  # endpoint_public_access          = true
   create_cloudwatch_log_group     = false
-  enable_irsa                     = true
+  # enable_irsa                     = true
   authentication_mode             = "API_AND_CONFIG_MAP"
   cloudwatch_log_group_class      = "INFREQUENT_ACCESS"
+  create_iam_role = true
+  enable_cluster_creator_admin_permissions = true
+  tags = local.tags
 
   # NOTE:
   # larger organizations might want to change these two settings
@@ -132,10 +137,8 @@ module "eks" {
 
   # add the bastion IAM user to aws-auth.mapUsers so that
   # kubectl and k9s work from inside the bastion server by default.
-  create_iam_role = true
 
   # Cluster access entry
-  # enable_cluster_creator_admin_permissions = true
   access_entries = {
     bastion = {
       kubernetes_groups = []
@@ -152,29 +155,19 @@ module "eks" {
     }
   }
 
-  tags = local.tags
 
   addons = {
-    # aws-eks-pod-identity-agent = {
-    # }
-    vpc-cni = {
-      service_account_role_arn = aws_iam_role.AmazonEKS_VPC_CNI_Role.arn
-      configuration_values = jsonencode({
-        env = {
-          WARM_IP_TARGET      = "2"
-          MINIMUM_IP_TARGET   = "5"
-        }
-      })
-    }
-    coredns = {
-      service_account_role_arn = aws_iam_role.AmazonEKS_CoreDNS_Role.arn
-    }
-    kube-proxy = {
-    }
+      coredns                = {}
+      eks-pod-identity-agent = {
+        before_compute = true
+      }
+      kube-proxy             = {}
+      vpc-cni                = {
+        before_compute = true
+      }
     aws-ebs-csi-driver = {
       service_account_role_arn = aws_iam_role.AmazonEKS_EBS_CSI_DriverRole.arn
     }
-
   }
 
   node_security_group_additional_rules = {
@@ -214,8 +207,9 @@ module "eks" {
       capacity_type     = "SPOT"
       enable_monitoring = false
       cluster_enabled_log_types = []
-      min_size          = 2
-      max_size          = 10
+      min_size          = var.arm64_group_min_size
+      max_size          = var.arm64_group_max_size
+      desired_size      = var.arm64_group_min_size
 
 
       node_repair_config = {
@@ -229,7 +223,7 @@ module "eks" {
       # leaving this as AMD64 chipsets until all openedx instances are removed from the cluster.
       # ami_type         = "AL2023_ARM_64_STANDARD"
       instance_types    = local.amd64_instance_types
-      subnet_ids        = [element(var.private_subnet_ids, 0)]
+      subnet_ids        = var.private_subnets
 
       # Configure containerd to transparently redirect Docker Hub to ECR pull-through cache
       # Pods continue using docker.io/image:tag - no manifest changes needed
@@ -242,7 +236,7 @@ module "eks" {
         cat > /etc/containerd/certs.d/docker.io/hosts.toml <<'EOF'
 server = "https://registry-1.docker.io"
 
-[host."https://${data.aws_caller_identity.current.aws_account_id}.dkr.ecr.${data.aws_region.current.region}.amazonaws.com/docker-hub"]
+[host."https://${data.aws_caller_identity.current.account_id}.dkr.ecr.${data.aws_region.current.region}.amazonaws.com/docker-hub"]
   capabilities = ["pull", "resolve"]
 
 [host."https://registry-1.docker.io"]
@@ -251,6 +245,10 @@ EOF
       EOT
 
       iam_role_additional_policies = {
+        AmazonEKSWorkerNodePolicy         = "arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy"
+        AmazonEKS_CNI_Policy              = "arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy"
+        AmazonEC2ContainerRegistryReadOnly = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
+
         # Required by Karpenter
         AmazonSSMManagedInstanceCore = "arn:${local.partition}:iam::aws:policy/AmazonSSMManagedInstanceCore"
 
@@ -352,7 +350,7 @@ resource "aws_ecr_pull_through_cache_rule" "dockerhub" {
 # Certificate Manager Route53 Update Policy
 #==============================================================================
 resource "aws_iam_policy" "MANUAL_route53_update_records" {
-  name        = "eks-route53-cert-manager"
+  name        = "eks-route53-cert-manager-${var.namespace}"
   description = "Allow cert-manager on EKS nodes to manage Route53 DNS records"
   policy      = jsonencode({
     Version = "2012-10-17"
@@ -383,57 +381,11 @@ resource "aws_iam_policy" "MANUAL_route53_update_records" {
   })
 }
 
-resource "aws_security_group" "worker_group_mgmt" {
-  name_prefix = "${var.namespace}-eks_hosting_group_mgmt"
-  description = "smarter: Ingress CLB worker group management"
-  vpc_id      = var.vpc_id
-
-  ingress {
-    description = "smarter: Ingress CLB"
-    from_port   = 22
-    to_port     = 22
-    protocol    = "tcp"
-
-    cidr_blocks = [
-      "10.0.0.0/8",
-    ]
-  }
-
-  tags = merge(
-    local.tags,
-    { Name = "eks-${var.shared_resource_identifier}-worker_group_mgmt" },
-  )
-}
-
-resource "aws_security_group" "all_worker_mgmt" {
-  name_prefix = "${var.namespace}-eks_all_worker_management"
-  description = "smarter: Ingress CLB worker management"
-  vpc_id      = var.vpc_id
-
-  ingress {
-    description = "smarter: Ingress CLB"
-    from_port   = 22
-    to_port     = 22
-    protocol    = "tcp"
-
-    cidr_blocks = [
-      "10.0.0.0/8",
-      "172.16.0.0/12",
-      "192.168.0.0/16",
-    ]
-  }
-
-  tags = merge(
-    local.tags,
-    { Name = "eks-${var.shared_resource_identifier}-all_worker_mgmt" },
-  )
-}
-
 
 resource "kubernetes_namespace_v1" "namespace-shared" {
   metadata {
     name = var.namespace
   }
-  #depends_on = [module.eks]
+  depends_on = [module.eks]
 }
 

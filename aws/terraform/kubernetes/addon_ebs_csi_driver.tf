@@ -20,7 +20,7 @@ data "aws_iam_policy" "AmazonEBSCSIDriverPolicy" {
 
 # 2. Create the IAM role.
 resource "aws_iam_role" "AmazonEKS_EBS_CSI_DriverRole" {
-  name = "AmazonEKS_EBS_CSI_DriverRole"
+  name = "AmazonEKS_EBS_CSI_DriverRole-${var.namespace}"
   assume_role_policy = jsonencode({
     "Version" : "2012-10-17",
     "Statement" : [

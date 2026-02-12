@@ -30,7 +30,7 @@ variable "vpc_id" {
   type = string
 }
 
-variable "private_subnet_ids" {
+variable "private_subnets" {
   type = list(string)
 }
 
@@ -111,4 +111,8 @@ variable "arm64_group_max_size" {
 variable "arm64_group_desired_size" {
   type    = number
   default = 2
+}
+
+variable "iam_admin_user_arn" {
+    type = string
 }

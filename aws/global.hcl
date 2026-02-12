@@ -12,13 +12,14 @@ locals {
     ###############################################################################
     # AWS CLI parameters
     ###############################################################################
+    iam_admin_user_arn         = get_env("IAM_ADMIN_USER_ARN", "SET-ME-IN-DOT-ENV")
     api_subdomain              = "api"
-    aws_account_id             = get_env("AWS_ACCOUNT_ID", "SET-ME-PLEASE")
+    aws_account_id             = get_env("AWS_ACCOUNT_ID", "SET-ME-IN-DOT-ENV")
     aws_profile                = get_env("AWS_PROFILE", "default")
     aws_region                 = get_env("AWS_REGION", "ca-central-1")
     root_domain                = get_env("ROOT_DOMAIN", "smarter.sh")
-    mysql_root_username        = get_env("MYSQL_ROOT_USERNAME", "SET-ME-PLEASE")
-    mysql_root_password        = get_env("MYSQL_ROOT_PASSWORD", "SET-ME-PLEASE")
+    mysql_root_username        = get_env("MYSQL_ROOT_USERNAME", "SET-ME-IN-DOT-ENV")
+    mysql_root_password        = get_env("MYSQL_ROOT_PASSWORD", "SET-ME-IN-DOT-ENV")
 
     platform_region            = "ca"
     shared_resource_identifier = "ubc"
@@ -47,23 +48,6 @@ locals {
 
     shared_resource_namespace  = "${local.shared_resource_identifier}-${local.aws_region}-${local.shared_resource_identifier}"
     services_subdomain         = "${local.shared_resource_identifier}.${local.root_domain}"
-
-    #----------------------------------------------------------------------------
-    # AWS Elastic Kubernetes service
-    # Scaling options
-    #
-    # see: https://aws.amazon.com/ec2/instance-types/
-    #----------------------------------------------------------------------------
-    kubernetes_cluster_version = "1.35"
-    eks_create_kms_key         = false
-    arm64_group_min_size       = 3
-    arm64_group_max_size       = 10
-
-    eks_service_group_instance_type = "t3.large"
-
-    eks_arm64_group_min_size      = 2
-    eks_arm64_group_max_size      = 20
-    eks_hosting_group_instance_type = "t3.large"
 
 }
 

@@ -15,18 +15,26 @@ locals {
   arm64_group_min_size     = local.stack_vars.locals.eks_arm64_group_min_size
   arm64_group_max_size     = local.stack_vars.locals.eks_arm64_group_max_size
 
+  iam_admin_user_arn       = local.global_vars.locals.iam_admin_user_arn
+
   # Extract out common variables for reuse
   env                        = local.stack_vars.locals.stack
   namespace                  = local.stack_vars.locals.stack_namespace
   root_domain                = local.global_vars.locals.root_domain
   platform_name              = local.global_vars.locals.shared_resource_identifier
   platform_region            = local.global_vars.locals.platform_region
-  aws_account_id                 = local.global_vars.locals.aws_account_id
+  aws_account_id             = local.global_vars.locals.aws_account_id
   aws_region                 = local.global_vars.locals.aws_region
   shared_resource_identifier = local.global_vars.locals.shared_resource_identifier
   kubernetes_cluster_version         = local.stack_vars.locals.kubernetes_cluster_version
   eks_create_kms_key         = local.stack_vars.locals.eks_create_kms_key
-  bastion_iam_arn            = "arn:aws:iam::${local.aws_account_id}:user/system/bastion-user/${local.namespace}-bastion"
+
+  # mcdaniel: FIX NOTE
+  # we need to make a hard decision about whether or not we need to create a
+  # bastion server for each cluster, or if we can get by with one bastion
+  # server that has access to all clusters.
+  # bastion_iam_arn            = "arn:aws:iam::${local.aws_account_id}:user/system/bastion-user/${local.namespace}-bastion"
+  bastion_iam_arn            = "arn:aws:iam::090511222473:user/system/bastion-user/apps-hosting-service-bastion"
   bastion_iam_username       = "${local.namespace}-bastion"
 
   tags = merge(
@@ -67,13 +75,14 @@ include {
 
 # These are the variables we have to pass in to use the module specified in the terragrunt configuration above
 inputs = {
-  aws_account_id                 = local.aws_account_id
+  iam_admin_user_arn         = local.iam_admin_user_arn
+  aws_account_id             = local.aws_account_id
   shared_resource_identifier = local.shared_resource_identifier
   aws_region                 = local.aws_region
   root_domain                = local.root_domain
   namespace                  = local.namespace
-  private_subnet_ids         = dependency.vpc.outputs.private_subnets
-  public_subnet_ids          = dependency.vpc.outputs.public_subnets
+  private_subnets            = dependency.vpc.outputs.private_subnets
+  public_subnets             = dependency.vpc.outputs.public_subnets
   vpc_id                     = dependency.vpc.outputs.vpc_id
   kubernetes_cluster_version = local.kubernetes_cluster_version
   eks_create_kms_key         = local.eks_create_kms_key
