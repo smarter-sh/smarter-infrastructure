@@ -5,14 +5,14 @@
 # date: Feb-2022
 #
 # usage: create stack-level parameters, exposed to all
-#        Terragrunt modules in this enironment.
+#        Terragrunt modules in this environment.
 #------------------------------------------------------------------------------
 locals {
   global_vars = read_terragrunt_config(find_in_parent_folders("global.hcl"))
 
   stack           = local.global_vars.locals.shared_resource_identifier
   stack_namespace = "${local.global_vars.locals.platform_name}-${local.global_vars.locals.shared_resource_identifier}-${local.global_vars.locals.platform_region}"
-  tags = {}
+  tags            = {}
 
   #----------------------------------------------------------------------------
   # AWS Elastic Kubernetes service
@@ -22,20 +22,21 @@ locals {
   #----------------------------------------------------------------------------
   kubernetes_cluster_version = "1.35"
   eks_create_kms_key         = false
-  eks_node_group_min_size       = 3
-  eks_node_group_max_size       = 10
-
-  amd64_instance_types = [
+  eks_node_group_min_size    = 3
+  eks_node_group_max_size    = 10
+  # The smarter Docker container is built for both AMD64 and ARM64 architectures,
+  # so we can use either type of instance. AMD64 is the more common of the two,
+  # so this is our default.
+  amd64_instance_types       = [
     "t3.large",
     "t3a.large",
     "m5a.large",
     "m6a.large",
     "m5.large",
     "m4.large",
-    "m5.large",
     "c5.large",
   ]
-  graviton_instance_types = [
+  graviton_instance_types    = [
     "t4g.large",
     "c6g.large",
     "m6g.large",
@@ -48,5 +49,4 @@ locals {
     "m8g.large"
   ]
   eks_node_group_instance_types = local.amd64_instance_types
-
 }

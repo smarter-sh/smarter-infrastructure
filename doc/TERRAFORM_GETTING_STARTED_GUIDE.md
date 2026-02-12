@@ -177,4 +177,3 @@ AWS_ENVIRONMENT=openai   # any valid string. Keep it short
 AWS_S3_BUCKET="${AWS_ACCOUNT}-tfstate-${AWS_ENVIRONMENT}"
 AWS_DYNAMODB_TABLE="${AWS_ACCOUNT}-tfstate-lock-${AWS_ENVIRONMENT}"
 ```
-

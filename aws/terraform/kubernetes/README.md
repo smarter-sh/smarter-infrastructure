@@ -33,7 +33,7 @@ Terraform
 module](https://registry.terraform.io/terraform/terraform-aws-modules/eks/aws/latest)
 to create a fully configured Kubernetes Cluster within the custom VPC.
 AWS EKS Terraform module is widely supported and adopted, with more than
-250 open source code contributers, and more than 10 million downloads
+250 open source code contributors, and more than 10 million downloads
 from the Terraform registry as of March, 2022.
 
 ## How it works
@@ -44,4 +44,3 @@ managed service, meaning that AWS is responsible for up-time, and they
 apply periodic system updates and security patches automatically.
 
 ![EKS Diagram](doc/diagram-eks.png){width="100.0%"}
-

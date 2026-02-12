@@ -167,7 +167,7 @@ module "eks" {
     ingress_self_all = {
       description = "smarter: Node to node all ports/protocols"
       protocol    = "-1"
-      from_port   = 0       # FIX NOTE: this is a security vunerability.
+      from_port   = 0       # FIX NOTE: this is a security vulnerability.
       to_port     = 0       # Ideally this should be narrowed to the IP address of the
                             # nginx ingress controller's load balancer.
       type        = "ingress"
@@ -204,6 +204,8 @@ module "eks" {
       min_size          = var.eks_node_group_min_size
       max_size          = var.eks_node_group_max_size
       desired_size      = var.eks_node_group_min_size
+      instance_types    = var.eks_node_group_instance_types
+      subnet_ids        = var.private_subnets
 
 
       node_repair_config = {
@@ -213,11 +215,6 @@ module "eks" {
         }
       }
 
-      # mcdaniel nov-2025
-      # leaving this as AMD64 chipsets until all openedx instances are removed from the cluster.
-      # ami_type         = "AL2023_ARM_64_STANDARD"
-      instance_types    = var.eks_node_group_instance_types
-      subnet_ids        = var.private_subnets
 
       # Configure containerd to transparently redirect Docker Hub to ECR pull-through cache
       # Pods continue using docker.io/image:tag - no manifest changes needed
@@ -390,4 +387,3 @@ resource "kubernetes_namespace_v1" "namespace-shared" {
   }
   depends_on = [module.eks]
 }
-

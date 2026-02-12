@@ -47,7 +47,7 @@ Review the following files. Adjust as necessary.
 ## Usage
 
 You should first review aws/global.hcl and aws/terragrunt.hcl, and edit as needed. Values in aws/global.hcl of the form `get_env("AWS_REGION", "ca-central-1")`
-can be overriden with environment variables. Example: `export AWS_REGION=us-east-1`. You can also optional create a .env file with multiple values, and then use the single command, `set -a; source .env; set +a`.
+can be overridden with environment variables. Example: `export AWS_REGION=us-east-1`. You can also optional create a .env file with multiple values, and then use the single command, `set -a; source .env; set +a`.
 
 ```console
 cd aws/prod/
@@ -57,13 +57,11 @@ terragrunt run-all apply
 
 ## To taint secrets
 
-
 terragrunt taint random_password.mysql_smarter
 terragrunt taint random_password.smarter_admin_password
 terragrunt taint random_password.django_secret_key
 terragrunt taint aws_iam_access_key.smtp_user
 terragrunt apply
-
 
 ## Designed by for prompt engineers
 

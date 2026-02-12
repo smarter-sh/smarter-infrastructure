@@ -22,4 +22,3 @@ output "mysql_root_user" {
 output "mysql_root_password" {
   value = var.mysql_root_password
 }
-

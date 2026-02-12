@@ -82,4 +82,3 @@ module "cert_manager_irsa" {
   role_policy_arns              = [aws_iam_policy.cert_manager_policy.arn]
   oidc_fully_qualified_subjects = ["system:serviceaccount:${var.cert_manager_namespace}:cert-manager"]
 }
-

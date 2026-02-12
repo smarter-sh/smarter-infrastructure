@@ -16,6 +16,6 @@ installCRDs: true
 extraArgs:
   # Needed for bug: https://github.com/cert-manager/cert-manager/issues/5515#issuecomment-1479054700
   - --enable-certificate-owner-ref=true
-  # https://stackoverflow.com/questions/60989753/cert-manager-is-failing-with-waiting-for-dns-01-challenge-propagation-could-not  
+  # https://stackoverflow.com/questions/60989753/cert-manager-is-failing-with-waiting-for-dns-01-challenge-propagation-could-not
   - --dns01-recursive-nameservers-only
   - --dns01-recursive-nameservers=8.8.8.8:53,1.1.1.1:53

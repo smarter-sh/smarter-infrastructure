@@ -30,4 +30,3 @@ resource "kubernetes_manifest" "issuer_api" {
     kubernetes_manifest.platform_ingress,
   ]
 }
-

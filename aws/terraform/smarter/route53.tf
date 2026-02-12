@@ -75,4 +75,3 @@ resource "aws_route53_record" "environment_platform_domain_amazonses_dmarc_recor
   ttl     = "600"
   records = ["v=DMARC1;p=quarantine;rua=mailto:my_dmarc_report@${var.root_domain}"]
 }
-

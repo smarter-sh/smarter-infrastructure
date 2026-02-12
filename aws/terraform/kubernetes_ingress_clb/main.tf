@@ -93,4 +93,3 @@ resource "helm_release" "ingress_nginx_controller" {
   ]
 
 }
-
