@@ -15,6 +15,7 @@ locals {
   namespace          = "kube-system"
   root_domain        = local.global_vars.locals.root_domain
   services_subdomain = local.global_vars.locals.services_subdomain
+  aws_region         = local.global_vars.locals.aws_region
 
   tags = merge(
     local.stack_vars.locals.tags,
@@ -77,4 +78,5 @@ inputs = {
   root_domain        = local.root_domain
   services_subdomain = local.services_subdomain
   tags               = local.tags
+  aws_region         = local.aws_region
 }

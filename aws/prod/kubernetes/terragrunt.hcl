@@ -29,6 +29,7 @@ locals {
   eks_node_group_min_size    = local.stack_vars.locals.eks_node_group_min_size
   eks_node_group_max_size    = local.stack_vars.locals.eks_node_group_max_size
   eks_node_group_instance_types = local.stack_vars.locals.eks_node_group_instance_types
+  unique_id                   = local.global_vars.locals.unique_id
 
   # mcdaniel: FIX NOTE
   # we need to make a hard decision about whether or not we need to create a
@@ -43,6 +44,7 @@ locals {
     local.global_vars.locals.tags,
     {
     "create_kms_key" = local.stack_vars.locals.eks_create_kms_key,
+    "unique_id"      = local.unique_id,
     }
   )
 }
@@ -85,6 +87,7 @@ inputs = {
   aws_region                 = local.aws_region
   root_domain                = local.root_domain
   namespace                  = local.namespace
+  cluster_name               = local.namespace
   private_subnets            = dependency.vpc.outputs.private_subnets
   public_subnets             = dependency.vpc.outputs.public_subnets
   vpc_id                     = dependency.vpc.outputs.vpc_id
@@ -96,6 +99,7 @@ inputs = {
 
   eks_node_group_min_size     = local.eks_node_group_min_size
   eks_node_group_max_size     = local.eks_node_group_max_size
+  unique_id                   = local.unique_id
 
   # -------------------------------------------------------------------------
   # NOTE: uncomment if you are using KMS encryption for EKS secrets and want
@@ -104,10 +108,12 @@ inputs = {
   # so they can authenticate to the cluster and manage the KMS key.
   # ADD MORE CLUSTER ADMIN USER IAM ACCOUNTS TO THE AWS KMS KEY OWNER LIST:
   # -------------------------------------------------------------------------
-  # kms_key_owners = [
-  #   "${local.bastion_iam_arn}",
-  #   "arn:aws:iam::${local.aws_account_id}:user/mcdaniel",
-  #   "arn:aws:iam::${local.aws_account_id}:user/bob_marley",
-  # ]
+  kms_key_owners = [
+    "${local.bastion_iam_arn}",
+    "arn:aws:iam::${local.aws_account_id}:user/mcdaniel",
+  ]
+  cluster_admin_users = [
+    "arn:aws:iam::${local.aws_account_id}:user/mcdaniel",
+  ]
 
 }

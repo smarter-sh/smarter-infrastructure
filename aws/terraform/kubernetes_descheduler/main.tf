@@ -43,8 +43,6 @@ resource "helm_release" "descheduler" {
   repository = "https://kubernetes-sigs.github.io/descheduler/"
   chart      = "descheduler"
 
-  version = "~> 0.27"
-
   values = [
     local.templatefile_descheduler_values
   ]

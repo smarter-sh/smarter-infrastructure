@@ -22,6 +22,10 @@ variable "namespace" {
   type = string
 }
 
+variable "cluster_name" {
+  type = string
+}
+
 variable "aws_region" {
   type = string
 }
@@ -121,4 +125,18 @@ variable "eks_node_group_instance_types" {
   description = "List of instance types for the EKS node group."
   type        = list(string)
   default     = ["t3.large", "m5.large", "c5.large"]
+}
+
+variable "cluster_admin_users" {
+  description = "List of IAM user ARNs to be added as cluster admins in the aws-auth configmap and KMS key owner list (if KMS encryption is enabled for EKS secrets)."
+  type        = list(string)
+  default     = []
+
+}
+
+
+variable "unique_id" {
+  description = "A unique identifier to force resource recreation when needed. This can be set to a random string or a timestamp to ensure that resources are recreated when this value changes."
+  type        = string
+  default     = ""
 }

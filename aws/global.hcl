@@ -7,6 +7,24 @@
 # usage: create global parameters, exposed to all
 #        Terragrunt modules in this repository.
 #------------------------------------------------------------------------------
+generate "random_string" {
+  path      = "random_string.auto.tf"
+  if_exists = "overwrite_terragrunt"
+  contents  = <<EOF
+resource "random_string" "unique_id" {
+  length  = 8
+  upper   = true
+  lower   = true
+  number  = true
+  special = false
+}
+
+output "unique_id" {
+  value = random_string.unique_id.result
+}
+EOF
+}
+
 locals {
 
     ###############################################################################
@@ -48,6 +66,7 @@ locals {
 
     shared_resource_namespace  = "${local.shared_resource_identifier}-${local.aws_region}-${local.shared_resource_identifier}"
     services_subdomain         = "${local.shared_resource_identifier}.${local.root_domain}"
+    unique_id                   = random_string.unique_id.result
 
 }
 

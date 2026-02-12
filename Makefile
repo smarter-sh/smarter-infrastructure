@@ -3,11 +3,13 @@ include .env
 export PATH := /usr/local/bin:$(PATH)
 export
 
+# assuming that some version -- ANY version -- of python is available in the path
+# anything should do.
 ifeq ($(OS),Windows_NT)
     PYTHON := python.exe
     ACTIVATE_VENV := venv\Scripts\activate
 else
-    PYTHON := python3.13
+    PYTHON := python
     ACTIVATE_VENV := source venv/bin/activate
 endif
 PIP := $(PYTHON) -m pip
@@ -30,6 +32,9 @@ init:
 
 clean:
 	make terraform-clean
+
+kubeconfig-update:
+	aws eks update-kubeconfig --region ca-central-1 --name smarter-ubc-ca
 
 
 # ---------------------------------------------------------

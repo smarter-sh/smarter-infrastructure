@@ -31,44 +31,6 @@ locals {
   tags = var.tags
 }
 
-# NOTE:
-# Use **ONLY** if you want to enable Kubernetes secrets encryption with a
-# customer-managed KMS key. This has irreversible consequences and should
-# be used with caution. If you enable this, you will need to uncomment
-# the `encryption_config` block in the `module "eks"` configuration below,
-# and the `aws_kms_key` resource definition. If you do not enable this,
-# Kubernetes secrets will be encrypted with an AWS-managed KMS key by
-# default, which is sufficient for most use cases.
-#
-data "aws_iam_policy_document" "kms_basic" {
-  statement {
-    actions   = ["kms:*"]
-    resources = ["*"]
-    principals {
-      type        = "AWS"
-      identifiers = ["arn:aws:iam::${var.aws_account_id}:root"]
-    }
-  }
-}
-resource "aws_kms_key" "eks_secrets" {
-
-  description = "${var.namespace} KMS key for EKS secrets encryption"
-  deletion_window_in_days = 7 # minimum allowed by AWS for customer-managed keys
-  enable_key_rotation     = true
-  policy                  = data.aws_iam_policy_document.kms_basic.json
-}
-# we need to hash the KMS key name in order to ensure general uniqueness, because
-# KMS keys have a mandatory wait period of at least 7 days
-# for deletions. Hence, if you ever intend to delete and recreate this key,
-# in a shorter time period then you need to ensure the new key has a different name.
-resource "random_id" "eks_secrets" {
-  byte_length = 32
-}
-
-resource "aws_kms_alias" "eks_secrets" {
-  name          = "alias/eks/${var.namespace}-${random_id.eks_secrets.hex}"
-  target_key_id = aws_kms_key.eks_secrets.key_id
-}
 
 module "eks" {
   source                          = "terraform-aws-modules/eks/aws"
@@ -82,25 +44,16 @@ module "eks" {
   authentication_mode             = "API_AND_CONFIG_MAP"
   cloudwatch_log_group_class      = "INFREQUENT_ACCESS"
 
-  name                            = var.namespace
+  name                            = var.cluster_name
   kubernetes_version              = var.kubernetes_cluster_version
   vpc_id                          = var.vpc_id
   subnet_ids                      = var.private_subnets
   control_plane_subnet_ids        = var.private_subnets
-
-  # BUG NOTE: uncommenting this has the effective of REQUIRING KMS configuration
-  # objects, regardless of the value of `eks_create_kms_key`. This is a Terraform bug.
-  create_kms_key                  = var.eks_create_kms_key # default is false - use with caution
+  kms_key_administrators          = var.kms_key_owners
   kms_key_owners                  = var.kms_key_owners
-  encryption_config               = {
-    resources = ["secrets"]
-    provider_key_arn = "arn:aws:kms:ca-central-1:090511222473:key/e9c77fc2-2933-4590-a82c-ebc9f7a88c73"
-  } # replace with the scaffolding below if you ARE using KMS encryption.
-  # encryption_config = {
-  #     resources = ["secrets"]
-  #     provider_key_arn = aws_kms_key.eks_secrets[0].arn
-  # }
-
+  kms_key_users                   = var.kms_key_owners
+  kms_key_aliases                 = ["eks/${var.cluster_name}-${var.unique_id}"]
+  kms_key_description             = "eks ${var.cluster_name} cluster encryption key"
   tags = local.tags
 
   compute_config = {
@@ -120,9 +73,6 @@ module "eks" {
   #
   # audit your AWS EKS KMS key access by running:
   # aws kms get-key-policy --key-id ADD-YOUR-KEY-ID-HERE --region us-east-2 --policy-name default --output text
-  #
-  # create_kms_key = var.eks_create_kms_key
-  # kms_key_owners = var.kms_key_owners
   #
   # add the bastion IAM user to aws-auth.mapUsers so that
   # kubectl and k9s work from inside the bastion server by default.
@@ -281,7 +231,7 @@ EOF
 # AWS ECR Pull-Through Cache Policy
 #==============================================================================
 resource "aws_iam_policy" "ecr_pull_through_cache" {
-  name        = "${var.namespace}-ecr-pull-through-cache"
+  name        = "${var.cluster_name}-ecr-pull-through-cache"
   description = "Allow EKS nodes to pull from ECR pull-through cache"
   policy = jsonencode({
     Version = "2012-10-17"
@@ -302,16 +252,9 @@ resource "aws_iam_policy" "ecr_pull_through_cache" {
   tags = local.tags
 }
 
-# we need to hash the secret name in order to ensure general uniqueness, because
-# AWS Secrets Manager passwords have a mandatory wait period of at least 7 days
-# for deletions. Hence, if you ever intend to delete and recreate this secret,
-# in a shorter time period then you need to ensure the new secret has a different name.
-resource "random_id" "dockerhub_credentials" {
-  byte_length = 32
-}
 
 resource "aws_secretsmanager_secret" "dockerhub_credentials" {
-  name        = "ecr-pullthroughcache/docker-hub-${var.namespace}/${random_id.dockerhub_credentials.hex}"
+  name        = "ecr-pullthroughcache/docker-hub-${var.cluster_name}/${var.unique_id}"
   description = "Docker Hub credentials for ECR pull-through cache"
 
   tags = local.tags
@@ -326,30 +269,17 @@ resource "aws_secretsmanager_secret_version" "dockerhub_credentials" {
 }
 
 resource "aws_ecr_pull_through_cache_rule" "dockerhub" {
-  ecr_repository_prefix = "${var.namespace}-docker-hub"
+  ecr_repository_prefix = "${var.cluster_name}-docker-hub-${var.unique_id}"
   upstream_registry_url = "registry-1.docker.io"
   credential_arn        = aws_secretsmanager_secret.dockerhub_credentials.arn
-
-  #depends_on = [aws_secretsmanager_secret_version.dockerhub_credentials]
 }
 
-
-# data "aws_ami" "ubuntu" {
-#   most_recent = true
-#   owners      = ["099720109477"] # Canonical
-#   filter {
-#     name = "name"
-#     # was https://aws.amazon.com/marketplace/server/procurement?productId=prod-lg73jq6vy35h2
-#     # now https://aws.amazon.com/marketplace/pp/prodview-gktonp3vixhqo?sr=0-13&ref_=beagle&applicationId=AWSMPContessa
-#     values = ["ubuntu-eks-pro/k8s_1.33/images/hvm-ssd/ubuntu-jammy-22.04-amd64*"]
-#   }
-# }
 
 #==============================================================================
 # Certificate Manager Route53 Update Policy
 #==============================================================================
 resource "aws_iam_policy" "MANUAL_route53_update_records" {
-  name        = "eks-route53-cert-manager-${var.namespace}"
+  name        = "eks-route53-cert-manager-${var.cluster_name}"
   description = "Allow cert-manager on EKS nodes to manage Route53 DNS records"
   policy      = jsonencode({
     Version = "2012-10-17"
@@ -380,10 +310,22 @@ resource "aws_iam_policy" "MANUAL_route53_update_records" {
   })
 }
 
+# -----------------------------------------------------------------------------
+# Assign the cluster admin role to our custom list of IAM users.
+# -----------------------------------------------------------------------------
+resource "aws_iam_user_policy" "cluster_admin_assume_role" {
+  for_each = { for arn in var.cluster_admin_users : arn => element(split("/", arn), length(split("/", arn)) - 1) }
 
-resource "kubernetes_namespace_v1" "namespace-shared" {
-  metadata {
-    name = var.namespace
-  }
-  depends_on = [module.eks]
+  user = each.value
+  name = "${var.cluster_name}-cluster-admin-assume-role-${each.value}"
+  policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [
+      {
+        Effect = "Allow",
+        Action = "sts:AssumeRole",
+        Resource = module.eks.cluster_iam_role_arn
+      }
+    ]
+  })
 }

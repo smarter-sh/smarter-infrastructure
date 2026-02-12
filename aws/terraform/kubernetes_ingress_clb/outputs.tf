@@ -7,29 +7,17 @@
 # usage: build an EKS cluster load balancer
 #------------------------------------------------------------------------------
 
-
-output "helm_release__id" {
-  description = "the ID of the ingress controller"
-  value       = helm_release.ingress_nginx_controller.id
+output "nginx_ingress_controller_name" {
+	description = "Name of the nginx ingress controller Helm release"
+	value       = helm_release.traefik.name
 }
 
-
-output "helm_release__chart" {
-  description = "the helm chart used to deploy the ingress controller"
-  value       = helm_release.ingress_nginx_controller.chart
+output "nginx_ingress_controller_namespace" {
+	description = "Namespace where the nginx ingress controller is deployed"
+	value       = helm_release.traefik.namespace
 }
 
-output "helm_release_name" {
-  description = "the name of the ingress controller"
-  value       = helm_release.ingress_nginx_controller.name
-}
-
-output "helm_release_namespace" {
-  description = "the namespace in which the ingress controller is deployed"
-  value       = helm_release.ingress_nginx_controller.namespace
-}
-
-output "helm_release_repository" {
-  description = "the helm chart repository used to deploy the ingress controller"
-  value       = helm_release.ingress_nginx_controller.repository
+output "nginx_ingress_controller_chart_version" {
+	description = "Version of the ingress-nginx Helm chart used"
+	value       = helm_release.traefik.version
 }

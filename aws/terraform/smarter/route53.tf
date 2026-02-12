@@ -1,7 +1,7 @@
 # -----------------------------------------------------------------------------
 # From Kubernetes shared infrastructure, managed by openedx_devops repo
 # -----------------------------------------------------------------------------
-data "kubernetes_service" "ingress_nginx_controller" {
+data "kubernetes_service" "traefik" {
   metadata {
     name      = "common-ingress-nginx-controller"
     namespace = "kube-system"
