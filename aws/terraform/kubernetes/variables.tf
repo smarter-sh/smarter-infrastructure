@@ -98,12 +98,12 @@ variable "smarter_group_desired_size" {
   default = 3
 }
 
-variable "arm64_group_min_size" {
+variable "eks_node_group_min_size" {
   type    = number
   default = 0
 }
 
-variable "arm64_group_max_size" {
+variable "eks_node_group_max_size" {
   type    = number
   default = 2
 }
@@ -115,4 +115,10 @@ variable "arm64_group_desired_size" {
 
 variable "iam_admin_user_arn" {
     type = string
+}
+
+variable "eks_node_group_instance_types" {
+  description = "List of instance types for the EKS node group."
+  type        = list(string)
+  default     = ["t3.large", "m5.large", "c5.large"]
 }

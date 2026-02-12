@@ -36,6 +36,14 @@ Smarter is cost effective when running at scale. It is extensible and architecte
 - Go lang
 - GitHub Actions
 
+## Configuration
+
+Review the following files. Adjust as necessary.
+
+- [aws/global.hcl](./aws/global.hcl)
+- [aws/terragrunt.hcl](./aws/terragrunt.hcl)
+- [aws/prod/stack.hcl](./aws/prod/stack.hcl)
+
 ## Usage
 
 You should first review aws/global.hcl and aws/terragrunt.hcl, and edit as needed. Values in aws/global.hcl of the form `get_env("AWS_REGION", "ca-central-1")`

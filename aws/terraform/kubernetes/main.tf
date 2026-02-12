@@ -25,43 +25,10 @@ locals {
   }
   docker_username = lookup(local.env_vars, "DOCKER_USERNAME", "")
   docker_pat      = lookup(local.env_vars, "DOCKER_PAT", "")
-}
 
-locals {
   # Used by Karpenter config to determine correct partition (i.e. - `aws`, `aws-gov`, `aws-cn`, etc.)
   partition = data.aws_partition.current.partition
-
-
   tags = var.tags
-
-  # complete list of instance types with
-  #   - x86_64 / amd64 cpu architecture (and ARM64 for t4g)
-  #   - Memory >= 8 GiB
-  #   - vCPU == 2
-  amd64_instance_types = [
-    "t3.large",
-    "t3a.large",
-    "m5a.large",
-    "m6a.large",
-    "m5.large",
-    "m4.large",
-    "m5.large",
-    "c5.large",
-  ]
-  graviton_instance_types = [
-    "t4g.large",
-    "c6g.large",
-    "m6g.large",
-    "r6g.large",
-    "c7g.large",
-    "m7g.large",
-    "r7g.large",
-    "c8g.large",
-    "r8g.large",
-    "m8g.large"
-  ]
-  instance_types_graviton_preferred = local.graviton_instance_types
-
 }
 
 # NOTE:
@@ -73,47 +40,76 @@ locals {
 # Kubernetes secrets will be encrypted with an AWS-managed KMS key by
 # default, which is sufficient for most use cases.
 #
-# resource "aws_kms_key" "eks_secrets" {
-#   description = "KMS key for EKS secrets encryption"
-#   deletion_window_in_days = 10
-#   enable_key_rotation     = true
-#   policy                  = data.aws_iam_policy_document.kms_basic.json
-# }
+data "aws_iam_policy_document" "kms_basic" {
+  statement {
+    actions   = ["kms:*"]
+    resources = ["*"]
+    principals {
+      type        = "AWS"
+      identifiers = ["arn:aws:iam::${var.aws_account_id}:root"]
+    }
+  }
+}
+resource "aws_kms_key" "eks_secrets" {
 
-# data "aws_iam_policy_document" "kms_basic" {
-#   statement {
-#     actions   = ["kms:*"]
-#     resources = ["*"]
-#     principals {
-#       type        = "AWS"
-#       identifiers = ["arn:aws:iam::090511222473:root"]
-#     }
-#   }
-# }
+  description = "${var.namespace} KMS key for EKS secrets encryption"
+  deletion_window_in_days = 7 # minimum allowed by AWS for customer-managed keys
+  enable_key_rotation     = true
+  policy                  = data.aws_iam_policy_document.kms_basic.json
+}
+# we need to hash the KMS key name in order to ensure general uniqueness, because
+# KMS keys have a mandatory wait period of at least 7 days
+# for deletions. Hence, if you ever intend to delete and recreate this key,
+# in a shorter time period then you need to ensure the new key has a different name.
+resource "random_id" "eks_secrets" {
+  byte_length = 32
+}
 
-
-
+resource "aws_kms_alias" "eks_secrets" {
+  name          = "alias/eks/${var.namespace}-${random_id.eks_secrets.hex}"
+  target_key_id = aws_kms_key.eks_secrets.key_id
+}
 
 module "eks" {
   source                          = "terraform-aws-modules/eks/aws"
   version                         = "~> 21"
+  endpoint_private_access         = true
+  endpoint_public_access          = true
+  create_cloudwatch_log_group     = false
+  enable_irsa                     = true
+  create_iam_role                 = true
+  enable_cluster_creator_admin_permissions = true
+  authentication_mode             = "API_AND_CONFIG_MAP"
+  cloudwatch_log_group_class      = "INFREQUENT_ACCESS"
+
   name                            = var.namespace
   kubernetes_version              = var.kubernetes_cluster_version
   vpc_id                          = var.vpc_id
   subnet_ids                      = var.private_subnets
   control_plane_subnet_ids        = var.private_subnets
 
-  # endpoint_private_access         = true
-  # endpoint_public_access          = true
-  create_cloudwatch_log_group     = false
-  # enable_irsa                     = true
-  authentication_mode             = "API_AND_CONFIG_MAP"
-  cloudwatch_log_group_class      = "INFREQUENT_ACCESS"
-  create_iam_role = true
-  enable_cluster_creator_admin_permissions = true
+  # BUG NOTE: uncommenting this has the effective of REQUIRING KMS configuration
+  # objects, regardless of the value of `eks_create_kms_key`. This is a Terraform bug.
+  create_kms_key                  = var.eks_create_kms_key # default is false - use with caution
+  kms_key_owners                  = var.kms_key_owners
+  encryption_config               = {
+    resources = ["secrets"]
+    provider_key_arn = "arn:aws:kms:ca-central-1:090511222473:key/e9c77fc2-2933-4590-a82c-ebc9f7a88c73"
+  } # replace with the scaffolding below if you ARE using KMS encryption.
+  # encryption_config = {
+  #     resources = ["secrets"]
+  #     provider_key_arn = aws_kms_key.eks_secrets[0].arn
+  # }
+
   tags = local.tags
 
+  compute_config = {
+   enabled = false
+  }
+
   # NOTE:
+  # KMS key management.
+  # ---------------------------------------------------------------------------
   # larger organizations might want to change these two settings
   # in order to further restrict which IAM users have access to
   # the AWS EKS Kubernetes Secrets. Note that at cluster creation,
@@ -124,38 +120,35 @@ module "eks" {
   #
   # audit your AWS EKS KMS key access by running:
   # aws kms get-key-policy --key-id ADD-YOUR-KEY-ID-HERE --region us-east-2 --policy-name default --output text
-
+  #
   # create_kms_key = var.eks_create_kms_key
   # kms_key_owners = var.kms_key_owners
-
-  # encryption_config = {
-  #   resources = ["secrets"]
-  #   provider = {
-  #     key_arn = aws_kms_key.eks_secrets.arn
-  #   }
-  # }
-
+  #
   # add the bastion IAM user to aws-auth.mapUsers so that
   # kubectl and k9s work from inside the bastion server by default.
-
+  #
   # Cluster access entry
-  access_entries = {
-    bastion = {
-      kubernetes_groups = []
-      principal_arn     = var.bastion_iam_arn
+  # access_entries = {
+  #   bastion = {
+  #     kubernetes_groups = []
+  #     principal_arn     = var.bastion_iam_arn
 
-      policy_associations = {
-        admin = {
-          policy_arn = "arn:${local.partition}:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy"
-          access_scope = {
-            type = "cluster"
-          }
-        }
-      }
-    }
-  }
+  #     policy_associations = {
+  #       admin = {
+  #         policy_arn = "arn:${local.partition}:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy"
+  #         access_scope = {
+  #           type = "cluster"
+  #         }
+  #       }
+  #     }
+  #   }
+  # }
+  # ---------------------------------------------------------------------------
 
 
+  # Required add-ons for basic cluster functionality. Avoid
+  # adding unnecessary configuration details. The default settings work well
+  # for most use cases.
   addons = {
       coredns                = {}
       eks-pod-identity-agent = {
@@ -174,8 +167,9 @@ module "eks" {
     ingress_self_all = {
       description = "smarter: Node to node all ports/protocols"
       protocol    = "-1"
-      from_port   = 0
-      to_port     = 0
+      from_port   = 0       # FIX NOTE: this is a security vunerability.
+      to_port     = 0       # Ideally this should be narrowed to the IP address of the
+                            # nginx ingress controller's load balancer.
       type        = "ingress"
       cidr_blocks = [
         "172.16.0.0/12",
@@ -203,13 +197,13 @@ module "eks" {
 
 
   eks_managed_node_groups = {
-    amd64 = {
+    smarter = {
       capacity_type     = "SPOT"
       enable_monitoring = false
       cluster_enabled_log_types = []
-      min_size          = var.arm64_group_min_size
-      max_size          = var.arm64_group_max_size
-      desired_size      = var.arm64_group_min_size
+      min_size          = var.eks_node_group_min_size
+      max_size          = var.eks_node_group_max_size
+      desired_size      = var.eks_node_group_min_size
 
 
       node_repair_config = {
@@ -222,7 +216,7 @@ module "eks" {
       # mcdaniel nov-2025
       # leaving this as AMD64 chipsets until all openedx instances are removed from the cluster.
       # ami_type         = "AL2023_ARM_64_STANDARD"
-      instance_types    = local.amd64_instance_types
+      instance_types    = var.eks_node_group_instance_types
       subnet_ids        = var.private_subnets
 
       # Configure containerd to transparently redirect Docker Hub to ECR pull-through cache
@@ -276,7 +270,7 @@ EOF
         # Tag node group resources for Karpenter auto-discovery
         # NOTE - if creating multiple security groups with this module, only tag the
         # security group that Karpenter should utilize with the following tag
-        { Name = "eks-${var.shared_resource_identifier}-amd64" },
+        { Name = "eks-${var.shared_resource_identifier}-smarter" },
       )
     }
   }
@@ -311,8 +305,16 @@ resource "aws_iam_policy" "ecr_pull_through_cache" {
   tags = local.tags
 }
 
+# we need to hash the secret name in order to ensure general uniqueness, because
+# AWS Secrets Manager passwords have a mandatory wait period of at least 7 days
+# for deletions. Hence, if you ever intend to delete and recreate this secret,
+# in a shorter time period then you need to ensure the new secret has a different name.
+resource "random_id" "dockerhub_credentials" {
+  byte_length = 32
+}
+
 resource "aws_secretsmanager_secret" "dockerhub_credentials" {
-  name        = "ecr-pullthroughcache/docker-hub"
+  name        = "ecr-pullthroughcache/docker-hub-${var.namespace}/${random_id.dockerhub_credentials.hex}"
   description = "Docker Hub credentials for ECR pull-through cache"
 
   tags = local.tags
@@ -327,7 +329,7 @@ resource "aws_secretsmanager_secret_version" "dockerhub_credentials" {
 }
 
 resource "aws_ecr_pull_through_cache_rule" "dockerhub" {
-  ecr_repository_prefix = "docker-hub"
+  ecr_repository_prefix = "${var.namespace}-docker-hub"
   upstream_registry_url = "registry-1.docker.io"
   credential_arn        = aws_secretsmanager_secret.dockerhub_credentials.arn
 

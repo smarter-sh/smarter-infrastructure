@@ -12,8 +12,6 @@ locals {
   global_vars = read_terragrunt_config(find_in_parent_folders("global.hcl"))
 
 
-  arm64_group_min_size     = local.stack_vars.locals.eks_arm64_group_min_size
-  arm64_group_max_size     = local.stack_vars.locals.eks_arm64_group_max_size
 
   iam_admin_user_arn       = local.global_vars.locals.iam_admin_user_arn
 
@@ -26,8 +24,11 @@ locals {
   aws_account_id             = local.global_vars.locals.aws_account_id
   aws_region                 = local.global_vars.locals.aws_region
   shared_resource_identifier = local.global_vars.locals.shared_resource_identifier
-  kubernetes_cluster_version         = local.stack_vars.locals.kubernetes_cluster_version
+  kubernetes_cluster_version = local.stack_vars.locals.kubernetes_cluster_version
   eks_create_kms_key         = local.stack_vars.locals.eks_create_kms_key
+  eks_node_group_min_size    = local.stack_vars.locals.eks_node_group_min_size
+  eks_node_group_max_size    = local.stack_vars.locals.eks_node_group_max_size
+  eks_node_group_instance_types = local.stack_vars.locals.eks_node_group_instance_types
 
   # mcdaniel: FIX NOTE
   # we need to make a hard decision about whether or not we need to create a
@@ -40,6 +41,9 @@ locals {
   tags = merge(
     local.stack_vars.locals.tags,
     local.global_vars.locals.tags,
+    {
+    "create_kms_key" = local.stack_vars.locals.eks_create_kms_key,
+    }
   )
 }
 
@@ -88,17 +92,22 @@ inputs = {
   eks_create_kms_key         = local.eks_create_kms_key
   bastion_iam_arn            = local.bastion_iam_arn
   tags                       = local.tags
+  eks_node_group_instance_types = local.eks_node_group_instance_types
 
-  arm64_group_min_size     = local.arm64_group_min_size
-  arm64_group_max_size     = local.arm64_group_max_size
+  eks_node_group_min_size     = local.eks_node_group_min_size
+  eks_node_group_max_size     = local.eks_node_group_max_size
 
-  kms_key_owners = [
-    "${local.bastion_iam_arn}",
-    # -------------------------------------------------------------------------
-    # ADD MORE CLUSTER ADMIN USER IAM ACCOUNTS TO THE AWS KMS KEY OWNER LIST:
-    # -------------------------------------------------------------------------
-    "arn:aws:iam::${local.aws_account_id}:user/mcdaniel",
-    #"arn:aws:iam::${local.aws_account_id}:user/bob_marley",
-  ]
+  # -------------------------------------------------------------------------
+  # NOTE: uncomment if you are using KMS encryption for EKS secrets and want
+  # to add additional cluster admin users to the KMS key owner list.
+  # You will also need to add these users to the map_users variable below
+  # so they can authenticate to the cluster and manage the KMS key.
+  # ADD MORE CLUSTER ADMIN USER IAM ACCOUNTS TO THE AWS KMS KEY OWNER LIST:
+  # -------------------------------------------------------------------------
+  # kms_key_owners = [
+  #   "${local.bastion_iam_arn}",
+  #   "arn:aws:iam::${local.aws_account_id}:user/mcdaniel",
+  #   "arn:aws:iam::${local.aws_account_id}:user/bob_marley",
+  # ]
 
 }
