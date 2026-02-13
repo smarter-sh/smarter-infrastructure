@@ -25,7 +25,7 @@ locals {
     platform_region            = "ca"
     shared_resource_identifier = "ubc"
     platform_name              = "smarter"
-    api_subdomain              = "api"
+    api_domain              = "api"
     platform_subdomain         = get_env("PLATFORM_SUBDOMAIN", "platform")
     mysql_host                 = "mysql.service.lawrencemcdaniel.com"
     mysql_port                 = "3306"
@@ -50,7 +50,7 @@ locals {
     logging_level = "INFO"
 
     shared_resource_namespace  = "${local.shared_resource_identifier}-${local.aws_region}-${local.shared_resource_identifier}"
-    services_subdomain         = "${local.shared_resource_identifier}.${local.root_domain}"
+    services_subdomain         = "services.${local.root_domain}"
 }
 
 inputs = {
@@ -64,5 +64,5 @@ inputs = {
     mysql_root_password        = local.mysql_root_password
     mysql_host                 = local.mysql_host
     mysql_port                 = local.mysql_port
-    api_subdomain              = local.api_subdomain
+    api_domain              = local.api_domain
 }

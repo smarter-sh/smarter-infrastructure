@@ -22,7 +22,7 @@ resource "aws_route53_record" "cdn_environment_platform_domain" {
 }
 
 resource "aws_cloudfront_response_headers_policy" "cors" {
-  name = "CORS-Allow-Origin"
+  name = "CORS-Allow-Origin-${var.environment_name}"
   cors_config {
     access_control_allow_origins {
       items = ["*"]
@@ -44,7 +44,7 @@ module "cdn_environment_platform_domain" {
 
   aliases = [local.cdn_domain_name]
 
-  comment             = "Smarter CDN"
+  comment             = "Smarter CDN ${var.environment_name}"
   enabled             = true
   is_ipv6_enabled     = true
   price_class         = "PriceClass_All"
@@ -121,7 +121,7 @@ module "cdn_reactjs_environment_domain" {
 
   aliases = [local.environment_marketing_domain]
 
-  comment             = "Smarter reactjs CDN"
+  comment             = "Smarter reactjs CDN ${var.environment_name}"
   enabled             = true
   is_ipv6_enabled     = true
   price_class         = "PriceClass_All"

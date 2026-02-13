@@ -25,6 +25,11 @@ locals {
   tags = var.tags
 }
 
+data "aws_route53_zone" "services_subdomain" {
+  name = var.services_subdomain
+}
+
+
 resource "helm_release" "cert-manager" {
   name             = "cert-manager"
   namespace        = var.cert_manager_namespace

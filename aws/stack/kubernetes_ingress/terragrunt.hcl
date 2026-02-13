@@ -2,23 +2,25 @@
 # written by: Lawrence McDaniel
 #             https://lawrencemcdaniel.com
 #
-# date: jan-2023
+# date: Mar-2022
 #
-# usage: install Kubernetes Dashboard web app
+# usage: build an EKS with EC2 worker nodes and ALB
 #------------------------------------------------------------------------------
 locals {
-  # Automatically load stack-level variables
   stack_vars  = read_terragrunt_config(find_in_parent_folders("stack.hcl"))
   global_vars = read_terragrunt_config(find_in_parent_folders("global.hcl"))
 
   # Extract out common variables for reuse
-  stack_namespace = local.stack_vars.locals.stack_namespace
-  cluster_name    = local.global_vars.locals.cluster_name
-  aws_region      = local.global_vars.locals.aws_region
+  stack_name    = local.stack_vars.locals.stack_name
+  namespace          = "kube-system"
+  root_domain        = local.global_vars.locals.root_domain
+  services_subdomain = local.global_vars.locals.services_subdomain
+  aws_region         = local.global_vars.locals.aws_region
+  cluster_name       = local.global_vars.locals.cluster_name
 
   tags = merge(
     local.stack_vars.locals.tags,
-    { Name = "${local.stack_namespace}-karpenter" }
+    { Name = "${local.stack_name}-ingress-controller" }
   )
 }
 
@@ -49,20 +51,16 @@ dependency "kubernetes" {
 
   # Configure mock outputs for the `validate` and `init` commands that are returned when there are no outputs available (e.g the
   # module hasn't been applied yet.
-  mock_outputs_allowed_terraform_commands = ["init", "validate", "plan", "destroy"]
+  mock_outputs_allowed_terraform_commands = ["init", "validate", "destroy"]
   mock_outputs = {
-    service_node_group_iam_role_name = "fake-karpenter-node-group-iam-role-name"
-    service_node_group_iam_role_arn  = "fake-karpenter-node-group-iam-role-arn"
-    oidc_provider_arn                = "fakse-oidc-provider-arn"
   }
 
 }
 
-
 # Terragrunt will copy the Terraform configurations specified by the source parameter, along with any files in the
 # working directory, into a temporary folder, and execute your Terraform commands in that folder.
 terraform {
-  source = "../../terraform/kubernetes_descheduler"
+  source = "../../terraform/kubernetes_ingress"
   before_hook "before_init" {
     commands = ["init"]
     execute  = ["echo", "Initializing module in ${get_terragrunt_dir()}"]
@@ -76,8 +74,11 @@ include {
 
 # These are the variables we have to pass in to use the module specified in the terragrunt configuration above
 inputs = {
-  stack_namespace = local.stack_namespace
-  cluster_name    = local.cluster_name
-  aws_region      = local.aws_region
-  tags            = local.tags
+  namespace          = local.namespace
+  stack_name    = local.stack_name
+  root_domain        = local.root_domain
+  services_subdomain = local.services_subdomain
+  tags               = local.tags
+  aws_region         = local.aws_region
+  cluster_name       = local.cluster_name
 }

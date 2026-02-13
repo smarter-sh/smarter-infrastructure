@@ -5,7 +5,7 @@ resource "kubernetes_manifest" "platform_ingress" {
     environment_namespace = local.environment_namespace
     service_name          = var.shared_resource_identifier
     platform_domain       = "${var.platform_subdomain}.${var.root_domain}"
-    api_domain            = "${var.api_subdomain}.${var.root_domain}"
+    api_domain            = "${var.api_domain}.${var.root_domain}"
   }))
 
   depends_on = [
@@ -20,10 +20,45 @@ resource "kubernetes_manifest" "api_ingress" {
     environment_namespace = local.environment_namespace
     service_name          = var.shared_resource_identifier
     platform_domain       = "${var.platform_subdomain}.${var.root_domain}"
-    api_domain            = "${var.api_subdomain}.${var.root_domain}"
+    api_domain            = "${var.api_domain}.${var.root_domain}"
   }))
 
   depends_on = [
     data.aws_route53_zone.api
+  ]
+}
+
+resource "kubernetes_manifest" "traefik-middleware-cors" {
+  manifest = yamldecode(templatefile("${path.module}/templates/traefik-middleware-cors.yaml.tpl", {
+    environment_namespace = local.environment_namespace
+    platform_domain       = local.environment_platform_domain
+    api_domain            = local.environment_api_domain
+  }))
+
+  depends_on = [
+    data.aws_route53_zone.environment_platform_domain
+  ]
+}
+
+resource "kubernetes_manifest" "traefik-middleware-http-redirect" {
+  manifest = yamldecode(templatefile("${path.module}/templates/traefik-middleware-http-redirect.yaml.tpl", {
+    environment_namespace = local.environment_namespace
+    platform_domain       = local.environment_platform_domain
+    api_domain            = local.environment_api_domain
+  }))
+
+  depends_on = [
+    data.aws_route53_zone.environment_platform_domain
+  ]
+}
+
+
+resource "kubernetes_manifest" "traefik-service-sessions" {
+  manifest = yamldecode(templatefile("${path.module}/templates/traefik-service-sessions.yaml.tpl", {
+    environment_namespace = local.environment_namespace
+  }))
+
+  depends_on = [
+    data.aws_route53_zone.environment_platform_domain
   ]
 }

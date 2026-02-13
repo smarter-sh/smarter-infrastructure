@@ -16,10 +16,9 @@ locals {
   services_subdomain = local.global_vars.locals.services_subdomain
   platform_region    = local.global_vars.locals.platform_region
   aws_region         = local.global_vars.locals.aws_region
-  stack_namespace    = local.stack_vars.locals.stack_namespace
-  stack              = local.stack_vars.locals.stack
-  namespace          = local.stack_vars.locals.stack_namespace
-  resource_name      = local.stack_vars.locals.stack_namespace
+  stack_name         = local.stack_vars.locals.stack_name
+  namespace          = local.stack_vars.locals.stack_name
+  resource_name      = local.stack_vars.locals.stack_name
 
   tags = merge(
     local.stack_vars.locals.tags,
@@ -46,11 +45,10 @@ include {
 }
 
 # These are the variables we have to pass in to use the module specified in the terragrunt configuration above
-inputs = {
-  root_domain        = local.root_domain
-  services_subdomain = local.services_subdomain
-  aws_region         = local.aws_region
-  namespace          = local.namespace
+inputs = merge(
+  local.stack_vars.locals,
+  local.global_vars.locals,
+ {
   name               = "${local.resource_name}"
   cidr               = "192.168.0.0/20"
   azs                = ["${local.aws_region}a", "${local.aws_region}b", "${local.aws_region}d"]
@@ -93,12 +91,11 @@ inputs = {
   private_subnet_tags = {
     "kubernetes.io/cluster/${local.namespace}" = "shared"
     "kubernetes.io/role/internal-elb"          = "1"
-    "karpenter.sh/discovery"                   = local.stack_namespace
+    "karpenter.sh/discovery"                   = local.stack_name
   }
   intra_subnet_tags  = {
     "kubernetes.io/cluster/${local.namespace}" = "shared"
-    "karpenter.sh/discovery"                   = local.stack_namespace
+    "karpenter.sh/discovery"                   = local.stack_name
   }
-
   tags = local.tags
-}
+})

@@ -20,7 +20,7 @@ variable "namespace" {
   type = string
 }
 
-variable "stack_namespace" {
+variable "stack_name" {
   type = string
 }
 

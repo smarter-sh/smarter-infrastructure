@@ -40,7 +40,7 @@ variable "platform_subdomain" {
   default     = "alpha"
 }
 
-variable "api_subdomain" {
+variable "api_domain" {
   description = "a valid Internet domain name which you directly control using AWS Route53 in this account"
   type        = string
   default     = "alpha"
@@ -50,6 +50,11 @@ variable "environment" {
   description = "the environment name (e.g. local, alpha, beta, next, prod)"
   type        = string
   default     = "local"
+}
+
+variable "environment_name" {
+  description = "the environment name prefixed with the stack name (e.g. smarter-alpha)"
+  type        = string
 }
 
 variable "cluster_name" {

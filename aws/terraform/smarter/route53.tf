@@ -17,12 +17,20 @@ data "aws_route53_zone" "root_domain" {
   name = var.root_domain
 }
 
+data "aws_route53_zone" "api" {
+  name = "${var.api_domain}.${var.root_domain}"
+}
+
 # -----------------------------------------------------------------------------
 # api Domain: alpha.api.smarter.sh, beta.api.smarter.sh, etc.
 # this is managed by smarter via a manage.py command that runs during deployments
 # -----------------------------------------------------------------------------
-data "aws_route53_zone" "api" {
+resource "aws_route53_record" "api" {
+  zone_id = data.aws_route53_zone.api.zone_id
   name    = local.environment_api_domain
+  type    = "CNAME"
+  ttl     = "300"
+  records = [data.kubernetes_service.traefik.status[0].load_balancer[0].ingress[0].hostname]
 }
 
 # -----------------------------------------------------------------------------
@@ -36,16 +44,10 @@ data "aws_route53_zone" "environment_platform_domain" {
 # -----------------------------------------------------------------------------
 # marketing site DNS A record
 # -----------------------------------------------------------------------------
-resource "aws_route53_record" "marketing_site" {
-  zone_id = data.aws_route53_zone.root_domain.zone_id
+data "aws_route53_zone" "marketing_site" {
   name    = local.environment_marketing_domain
-  type    = "A"
-  alias {
-    name                   = module.cdn_reactjs_environment_domain.cloudfront_distribution_domain_name
-    zone_id                = module.cdn_reactjs_environment_domain.cloudfront_distribution_hosted_zone_id
-    evaluate_target_health = false
-  }
 }
+
 
 
 # -----------------------------------------------------------------------------

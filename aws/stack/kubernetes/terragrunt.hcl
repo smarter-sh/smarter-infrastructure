@@ -18,7 +18,7 @@ locals {
   # Extract out common variables for reuse
   env                        = local.stack_vars.locals.stack
   unique_id                   = local.global_vars.locals.unique_id
-  namespace                  = local.stack_vars.locals.stack_namespace
+  namespace                  = local.stack_vars.locals.stack_name
   cluster_name               = local.global_vars.locals.cluster_name
   root_domain                = local.global_vars.locals.root_domain
   platform_name              = local.global_vars.locals.shared_resource_identifier
