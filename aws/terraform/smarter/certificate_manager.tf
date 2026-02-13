@@ -23,7 +23,7 @@ module "acm_environment_platform_domain" {
     aws = aws.us-east-1
   }
 
-  domain_name       = local.cdn_domain_name
+  domain_name       = local.cdn_environment_platform_domain
   zone_id           = aws_route53_zone.environment_platform_domain.id
   validation_method = "DNS"
 
@@ -32,26 +32,6 @@ module "acm_environment_platform_domain" {
   # subject_alternative_names = [
   #   "*.${local.environment_platform_domain}",
   # ]
-
-  wait_for_validation = true
-
-  # adding the Usage tag as a way to differentiate this cert from the one created by
-  # the eks clb ingress, of which we have no control.
-  tags = local.tags
-
-}
-
-module "acm_environment_domain" {
-  source  = "terraform-aws-modules/acm/aws"
-  version = "~> 5.0"
-
-  providers = {
-    aws = aws.us-east-1
-  }
-
-  domain_name       = local.environment_marketing_domain
-  zone_id           = data.aws_route53_zone.root_domain.id
-  validation_method = "DNS"
 
   wait_for_validation = true
 

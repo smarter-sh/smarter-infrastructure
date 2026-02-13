@@ -46,11 +46,14 @@ resource "aws_route53_record" "environment_platform_domain_ns" {
 }
 
 resource "aws_route53_record" "environment_platform_domain" {
-  zone_id = data.aws_route53_zone.root_domain.zone_id
+  zone_id = aws_route53_zone.environment_platform_domain.zone_id
   name    = local.environment_platform_domain
-  type    = "CNAME"
-  ttl     = "300"
-  records = [data.kubernetes_service_v1.traefik.status[0].load_balancer[0].ingress[0].hostname]
+  type    = "A"
+  alias {
+      name = data.kubernetes_service_v1.traefik.status[0].load_balancer[0].ingress[0].hostname
+      zone_id = data.aws_elb_hosted_zone_id.main.id
+      evaluate_target_health = true
+    }
 }
 
 # -----------------------------------------------------------------------------
@@ -70,11 +73,14 @@ resource "aws_route53_record" "environment_api_domain_ns" {
 }
 
 resource "aws_route53_record" "environment_api_domain" {
-  zone_id = data.aws_route53_zone.api_domain.zone_id
+  zone_id = aws_route53_zone.environment_api_domain.zone_id
   name    = local.environment_api_domain
-  type    = "CNAME"
-  ttl     = "300"
-  records = [data.kubernetes_service_v1.traefik.status[0].load_balancer[0].ingress[0].hostname]
+  type    = "A"
+  alias {
+      name = data.kubernetes_service_v1.traefik.status[0].load_balancer[0].ingress[0].hostname
+      zone_id = data.aws_elb_hosted_zone_id.main.id
+      evaluate_target_health = true
+    }
 }
 
 
