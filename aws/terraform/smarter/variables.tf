@@ -52,7 +52,7 @@ variable "environment" {
   default     = "local"
 }
 
-variable "eks_cluster_name" {
+variable "cluster_name" {
   description = "name of the existing EKS cluster"
   type        = string
 }

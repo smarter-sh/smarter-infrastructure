@@ -27,7 +27,7 @@ dependencies {
   paths = [
     "../vpc",
     "../kubernetes",
-    "../kubernetes_ingress_clb",
+    "../kubernetes_ingress",
   ]
 }
 
@@ -45,8 +45,8 @@ dependency "vpc" {
   }
 }
 
-dependency "kubernetes_ingress_clb" {
-  config_path = "../kubernetes_ingress_clb"
+dependency "kubernetes_ingress" {
+  config_path = "../kubernetes_ingress"
 
   # Configure mock outputs for the `validate` and `init` commands that are returned when there are no outputs available (e.g the
   # module hasn't been applied yet.

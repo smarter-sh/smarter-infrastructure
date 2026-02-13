@@ -44,6 +44,31 @@ Review the following files. Adjust as necessary.
 - [aws/terragrunt.hcl](./aws/terragrunt.hcl)
 - [aws/prod/stack.hcl](./aws/prod/stack.hcl)
 
+### .env
+
+Create a .env file in the root of the repo with the following values.
+You'll need to `source .env` in order for Terraform to see these values.
+
+
+```console
+IAM_ADMIN_USER_ARN=arn:aws:iam::123456789012:user/username
+
+AWS_REGION=us-east-1
+AWS_ACCOUNT_ID=123456789012
+AWS_PROFILE=SET-ME-PLEASE
+
+ROOT_DOMAIN=example.com
+MYSQL_ROOT_USERNAME=root
+MYSQL_ROOT_PASSWORD=SET-ME-PLEASE
+PLATFORM_SUBDOMAIN=platform
+COST_CODE=SET-ME-PLEASE
+UNIQUE_ID=SET-ME-PLEASE
+
+DOCKER_USERNAME=docker_username
+DOCKER_PAT=docker_personal_access_token
+```
+
+
 ## Usage
 
 You should first review aws/global.hcl and aws/terragrunt.hcl, and edit as needed. Values in aws/global.hcl of the form `get_env("AWS_REGION", "ca-central-1")`

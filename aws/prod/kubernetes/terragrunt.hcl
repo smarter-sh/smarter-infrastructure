@@ -17,7 +17,9 @@ locals {
 
   # Extract out common variables for reuse
   env                        = local.stack_vars.locals.stack
+  unique_id                   = local.global_vars.locals.unique_id
   namespace                  = local.stack_vars.locals.stack_namespace
+  cluster_name               = local.global_vars.locals.cluster_name
   root_domain                = local.global_vars.locals.root_domain
   platform_name              = local.global_vars.locals.shared_resource_identifier
   platform_region            = local.global_vars.locals.platform_region
@@ -29,7 +31,6 @@ locals {
   eks_node_group_min_size    = local.stack_vars.locals.eks_node_group_min_size
   eks_node_group_max_size    = local.stack_vars.locals.eks_node_group_max_size
   eks_node_group_instance_types = local.stack_vars.locals.eks_node_group_instance_types
-  unique_id                   = local.global_vars.locals.unique_id
 
   # mcdaniel: FIX NOTE
   # we need to make a hard decision about whether or not we need to create a
@@ -44,7 +45,6 @@ locals {
     local.global_vars.locals.tags,
     {
     "create_kms_key" = local.stack_vars.locals.eks_create_kms_key,
-    "unique_id"      = local.unique_id,
     }
   )
 }
@@ -87,7 +87,7 @@ inputs = {
   aws_region                 = local.aws_region
   root_domain                = local.root_domain
   namespace                  = local.namespace
-  cluster_name               = local.namespace
+  cluster_name               = local.cluster_name
   private_subnets            = dependency.vpc.outputs.private_subnets
   public_subnets             = dependency.vpc.outputs.public_subnets
   vpc_id                     = dependency.vpc.outputs.vpc_id
@@ -110,10 +110,10 @@ inputs = {
   # -------------------------------------------------------------------------
   kms_key_owners = [
     "${local.bastion_iam_arn}",
-    "arn:aws:iam::${local.aws_account_id}:user/mcdaniel",
+    "${local.iam_admin_user_arn}",
   ]
   cluster_admin_users = [
-    "arn:aws:iam::${local.aws_account_id}:user/mcdaniel",
+    "${local.iam_admin_user_arn}",
   ]
 
 }

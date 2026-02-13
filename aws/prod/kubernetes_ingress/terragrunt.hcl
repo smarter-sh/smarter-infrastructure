@@ -16,6 +16,7 @@ locals {
   root_domain        = local.global_vars.locals.root_domain
   services_subdomain = local.global_vars.locals.services_subdomain
   aws_region         = local.global_vars.locals.aws_region
+  cluster_name       = local.global_vars.locals.cluster_name
 
   tags = merge(
     local.stack_vars.locals.tags,
@@ -59,7 +60,7 @@ dependency "kubernetes" {
 # Terragrunt will copy the Terraform configurations specified by the source parameter, along with any files in the
 # working directory, into a temporary folder, and execute your Terraform commands in that folder.
 terraform {
-  source = "../../terraform/kubernetes_ingress_clb"
+  source = "../../terraform/kubernetes_ingress"
   before_hook "before_init" {
     commands = ["init"]
     execute  = ["echo", "Initializing module in ${get_terragrunt_dir()}"]
@@ -79,4 +80,5 @@ inputs = {
   services_subdomain = local.services_subdomain
   tags               = local.tags
   aws_region         = local.aws_region
+  cluster_name       = local.cluster_name
 }

@@ -13,6 +13,8 @@ locals {
 
   # Extract out common variables for reuse
   stack_namespace = local.stack_vars.locals.stack_namespace
+  cluster_name    = local.global_vars.locals.cluster_name
+  aws_region      = local.global_vars.locals.aws_region
 
   tags = merge(
     local.stack_vars.locals.tags,
@@ -75,5 +77,7 @@ include {
 # These are the variables we have to pass in to use the module specified in the terragrunt configuration above
 inputs = {
   stack_namespace = local.stack_namespace
+  cluster_name    = local.cluster_name
+  aws_region      = local.aws_region
   tags            = local.tags
 }

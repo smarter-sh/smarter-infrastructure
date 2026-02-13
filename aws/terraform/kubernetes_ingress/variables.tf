@@ -34,3 +34,8 @@ variable "aws_region" {
     description = "AWS region to deploy to."
     type        = string
 }
+
+variable "cluster_name" {
+    description = "Name of the EKS cluster to create."
+    type        = string
+}

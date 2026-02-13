@@ -7,6 +7,8 @@
 # usage: create an EKS cluster with one managed node group for EC2
 #        plus a Fargate profile for serverless computing.
 #
+# Load Docker Hub credentials from .env file
+#
 # Technical documentation:
 # - https://docs.aws.amazon.com/kubernetes
 # - https://registry.terraform.io/terraform/terraform-aws-modules/eks/aws/
@@ -16,7 +18,6 @@ data "aws_partition" "current" {}
 data "aws_caller_identity" "current" {}
 data "aws_region" "current" {}
 
-# Load Docker Hub credentials from .env file
 locals {
   env_file = try(file("${path.module}/../../../../.env"), "")
   env_vars = { for line in split("\n", local.env_file) :
@@ -30,7 +31,6 @@ locals {
   partition = data.aws_partition.current.partition
   tags = var.tags
 }
-
 
 module "eks" {
   source                          = "terraform-aws-modules/eks/aws"
@@ -52,7 +52,6 @@ module "eks" {
   kms_key_administrators          = var.kms_key_owners
   kms_key_owners                  = var.kms_key_owners
   kms_key_users                   = var.kms_key_owners
-  kms_key_aliases                 = ["eks/${var.cluster_name}-${var.unique_id}"]
   kms_key_description             = "eks ${var.cluster_name} cluster encryption key"
   tags = local.tags
 
@@ -221,6 +220,7 @@ EOF
       )
     }
   }
+
 }
 
 #==============================================================================
@@ -254,7 +254,7 @@ resource "aws_iam_policy" "ecr_pull_through_cache" {
 
 
 resource "aws_secretsmanager_secret" "dockerhub_credentials" {
-  name        = "ecr-pullthroughcache/docker-hub-${var.cluster_name}/${var.unique_id}"
+  name        = "ecr-pullthroughcache/docker-${var.cluster_name}/${var.unique_id}"
   description = "Docker Hub credentials for ECR pull-through cache"
 
   tags = local.tags
@@ -269,7 +269,7 @@ resource "aws_secretsmanager_secret_version" "dockerhub_credentials" {
 }
 
 resource "aws_ecr_pull_through_cache_rule" "dockerhub" {
-  ecr_repository_prefix = "${var.cluster_name}-docker-hub-${var.unique_id}"
+  ecr_repository_prefix = substr("${var.cluster_name}-docker-${var.unique_id}", 0, 30)
   upstream_registry_url = "registry-1.docker.io"
   credential_arn        = aws_secretsmanager_secret.dockerhub_credentials.arn
 }
