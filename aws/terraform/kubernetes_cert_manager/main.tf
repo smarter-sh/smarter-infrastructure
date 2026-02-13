@@ -35,6 +35,7 @@ resource "helm_release" "cert-manager" {
   values = [
     local.templatefile_cert_manager_values
   ]
+
 }
 
 #------------------------------------------------------------------------------
@@ -74,7 +75,7 @@ resource "aws_iam_policy" "cert_manager_policy" {
 
 
 module "cert_manager_irsa" {
-  source                        = "terraform-aws-modules/iam/aws//terraform/iam-assumable-role-with-oidc"
+  source                        = "terraform-aws-modules/iam/aws//modules/iam-assumable-role-with-oidc"
   version                       = "~> 5.34"
   create_role                   = true
   role_name                     = "${var.namespace}-cert_manager-irsa"

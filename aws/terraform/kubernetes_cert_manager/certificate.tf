@@ -9,12 +9,12 @@ data "aws_route53_zone" "services_subdomain" {
   name = var.services_subdomain
 }
 
-resource "kubernetes_manifest" "certificate" {
-  manifest = yamldecode(local.templatefile_certificate)
+# resource "kubernetes_manifest" "certificate" {
+#   manifest = yamldecode(local.templatefile_certificate)
 
-  depends_on = [
-    module.cert_manager_irsa,
-    helm_release.cert-manager,
-    aws_iam_policy.cert_manager_policy,
-  ]
-}
+#   depends_on = [
+#     module.cert_manager_irsa,
+#     helm_release.cert-manager,
+#     aws_iam_policy.cert_manager_policy,
+#   ]
+# }

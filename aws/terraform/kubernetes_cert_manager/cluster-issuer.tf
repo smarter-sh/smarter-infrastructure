@@ -8,17 +8,17 @@ locals {
   })
 }
 
-resource "kubernetes_manifest" "cluster-issuer" {
-  manifest = yamldecode(local.templatefile_cluster_issuer)
+# resource "kubernetes_manifest" "cluster-issuer" {
+#   manifest = yamldecode(local.templatefile_cluster_issuer)
 
-  depends_on = [
-    module.cert_manager_irsa,
-    helm_release.cert-manager,
-    aws_iam_policy.cert_manager_policy,
-  ]
-  field_manager {
-    name            = "terraform"
-    force_conflicts = true
-  }
+#   depends_on = [
+#     module.cert_manager_irsa,
+#     helm_release.cert-manager,
+#     aws_iam_policy.cert_manager_policy,
+#   ]
+#   field_manager {
+#     name            = "terraform"
+#     force_conflicts = true
+#   }
 
-}
+# }

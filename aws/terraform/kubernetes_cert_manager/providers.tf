@@ -12,15 +12,18 @@
 #}
 
 data "aws_eks_cluster" "eks" {
-  name = var.namespace
+  name = var.cluster_name
+  region = var.aws_region
 }
 
 data "aws_eks_cluster" "cluster" {
-  name = var.namespace
+  name = var.cluster_name
+  region = var.aws_region
 }
 
 data "aws_eks_cluster_auth" "cluster" {
-  name = var.namespace
+  name = var.cluster_name
+  region = var.aws_region
 }
 
 provider "kubernetes" {

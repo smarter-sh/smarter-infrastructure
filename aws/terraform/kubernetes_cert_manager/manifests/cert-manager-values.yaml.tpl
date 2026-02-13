@@ -1,3 +1,5 @@
+crds:
+  enabled: true
 serviceAccount:
   annotations:
     eks.amazonaws.com/role-arn: ${role_arn}
@@ -12,7 +14,6 @@ securityContext:
   #enabled: true
   # -------------------------------------------------------------------------------
   fsGroup: 1001
-installCRDs: true
 extraArgs:
   # Needed for bug: https://github.com/cert-manager/cert-manager/issues/5515#issuecomment-1479054700
   - --enable-certificate-owner-ref=true

@@ -16,6 +16,7 @@ locals {
   aws_region                = local.global_vars.locals.aws_region
   cert_manager_namespace    = "cert-manager"
   services_subdomain        = local.global_vars.locals.services_subdomain
+  cluster_name              = local.global_vars.locals.cluster_name
 
   tags = merge(
     local.stack_vars.locals.tags,
@@ -79,4 +80,5 @@ inputs = {
   namespace              = local.shared_resource_namespace
   services_subdomain     = local.services_subdomain
   tags                   = local.tags
+  cluster_name           = local.cluster_name
 }
