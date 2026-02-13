@@ -1,7 +1,7 @@
 # -----------------------------------------------------------------------------
 # From Kubernetes shared infrastructure, managed by openedx_devops repo
 # -----------------------------------------------------------------------------
-data "kubernetes_service" "traefik" {
+data "kubernetes_service_v1" "traefik" {
   metadata {
     name      = "traefik"
     namespace = "traefik"
@@ -21,17 +21,6 @@ data "aws_route53_zone" "api_domain" {
   name = var.api_domain
 }
 
-# -----------------------------------------------------------------------------
-# api Domain: alpha.api.smarter.sh, beta.api.smarter.sh, etc.
-# this is managed by smarter via a manage.py command that runs during deployments
-# -----------------------------------------------------------------------------
-resource "aws_route53_record" "environment_api_domain" {
-  zone_id = data.aws_route53_zone.api_domain.zone_id
-  name    = local.environment_api_domain
-  type    = "CNAME"
-  ttl     = "300"
-  records = [data.kubernetes_service.traefik.status[0].load_balancer[0].ingress[0].hostname]
-}
 
 # -----------------------------------------------------------------------------
 # marketing site DNS A record
@@ -48,6 +37,22 @@ resource "aws_route53_zone" "environment_platform_domain" {
   tags = local.tags
 }
 
+resource "aws_route53_record" "environment_platform_domain_ns" {
+  zone_id = data.aws_route53_zone.root_domain.zone_id
+  name    = local.environment_platform_domain
+  type    = "NS"
+  ttl     = "300"
+  records = aws_route53_zone.environment_platform_domain.name_servers
+}
+
+resource "aws_route53_record" "environment_platform_domain" {
+  zone_id = data.aws_route53_zone.root_domain.zone_id
+  name    = local.environment_platform_domain
+  type    = "CNAME"
+  ttl     = "300"
+  records = [data.kubernetes_service_v1.traefik.status[0].load_balancer[0].ingress[0].hostname]
+}
+
 # -----------------------------------------------------------------------------
 # environment Api Domain: alpha.api.smarter.sh, beta.api.smarter.sh, etc.
 # -----------------------------------------------------------------------------
@@ -56,6 +61,21 @@ resource "aws_route53_zone" "environment_api_domain" {
   tags = local.tags
 }
 
+resource "aws_route53_record" "environment_api_domain_ns" {
+  zone_id = data.aws_route53_zone.api_domain.zone_id
+  name    = local.environment_api_domain
+  type    = "NS"
+  ttl     = "300"
+  records = aws_route53_zone.environment_api_domain.name_servers
+}
+
+resource "aws_route53_record" "environment_api_domain" {
+  zone_id = data.aws_route53_zone.api_domain.zone_id
+  name    = local.environment_api_domain
+  type    = "CNAME"
+  ttl     = "300"
+  records = [data.kubernetes_service_v1.traefik.status[0].load_balancer[0].ingress[0].hostname]
+}
 
 
 # -----------------------------------------------------------------------------

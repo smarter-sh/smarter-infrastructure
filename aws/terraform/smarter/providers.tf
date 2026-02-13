@@ -27,12 +27,14 @@ terraform {
     }
     kubernetes = {
       source  = "hashicorp/kubernetes"
-      version = "<= 3.0.0"
+      version = ">= 3.0.0"
     }
   }
 }
 provider "kubernetes" {
 
+  config_path = "~/.kube/config"
+  config_context = "smarter-ubc-ca-202602121853"
   host                   = data.aws_eks_cluster.eks.endpoint
   cluster_ca_certificate = base64decode(data.aws_eks_cluster.eks.certificate_authority[0].data)
   token                  = data.aws_eks_cluster_auth.eks.token

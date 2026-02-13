@@ -18,7 +18,7 @@ resource "random_password" "mysql_root" {
   }
 }
 
-resource "kubernetes_secret" "mysql_root" {
+resource "kubernetes_secret_v1" "mysql_root" {
   metadata {
     name      = "mysql-root"
     namespace = local.environment_namespace
@@ -31,7 +31,7 @@ resource "kubernetes_secret" "mysql_root" {
     MYSQL_PORT            = var.mysql_port
   }
 
-  depends_on = [kubernetes_namespace.smarter]
+  depends_on = [kubernetes_namespace_v1.smarter]
 }
 
 
@@ -45,7 +45,7 @@ resource "random_password" "mysql_smarter" {
   }
 }
 
-resource "kubernetes_secret" "mysql_smarter" {
+resource "kubernetes_secret_v1" "mysql_smarter" {
   metadata {
     name      = "mysql-smarter"
     namespace = local.environment_namespace
@@ -59,7 +59,7 @@ resource "kubernetes_secret" "mysql_smarter" {
     MYSQL_PORT             = var.mysql_port
   }
 
-  depends_on = [kubernetes_namespace.smarter]
+  depends_on = [kubernetes_namespace_v1.smarter]
 }
 
 resource "random_password" "smarter_admin_password" {
@@ -71,7 +71,7 @@ resource "random_password" "smarter_admin_password" {
   }
 }
 
-resource "kubernetes_secret" "smarter_admin_password" {
+resource "kubernetes_secret_v1" "smarter_admin_password" {
   metadata {
     name      = "smarter-admin"
     namespace = local.environment_namespace
@@ -84,7 +84,7 @@ resource "kubernetes_secret" "smarter_admin_password" {
     SMARTER_LOGIN_URL      = "https://${local.environment_platform_domain}/login/"
   }
 
-  depends_on = [kubernetes_namespace.smarter]
+  depends_on = [kubernetes_namespace_v1.smarter]
 }
 
 
@@ -97,7 +97,7 @@ resource "random_password" "django_secret_key" {
   }
 }
 
-resource "kubernetes_secret" "django_secret_key" {
+resource "kubernetes_secret_v1" "django_secret_key" {
   metadata {
     name      = "smarter-django-secret-key"
     namespace = local.environment_namespace
@@ -107,5 +107,5 @@ resource "kubernetes_secret" "django_secret_key" {
     SECRET_KEY = random_password.django_secret_key.result
   }
 
-  depends_on = [kubernetes_namespace.smarter]
+  depends_on = [kubernetes_namespace_v1.smarter]
 }

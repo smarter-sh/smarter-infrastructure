@@ -1,32 +1,34 @@
 
-resource "kubernetes_manifest" "issuer_platform" {
-  manifest = yamldecode(templatefile("${path.module}/templates/issuer.yml.tpl", {
+locals {
+  issuer_platform_manifest = yamldecode(templatefile("${path.module}/templates/issuer.yml.tpl", {
     root_domain    = var.root_domain
-    environment    = local.environment
     domain         = local.environment_platform_domain
-    namespace      = "cert-manager"
+    namespace      = local.environment_namespace
     aws_region     = var.aws_region
     hosted_zone_id = aws_route53_zone.environment_platform_domain.zone_id
   }))
 
-  depends_on = [
-    kubernetes_namespace.smarter,
-    # kubernetes_manifest.platform_ingress,
-  ]
-}
-
-resource "kubernetes_manifest" "issuer_api" {
-  manifest = yamldecode(templatefile("${path.module}/templates/issuer.yml.tpl", {
+  issuer_api_manifest = yamldecode(templatefile("${path.module}/templates/issuer.yml.tpl", {
     root_domain    = var.root_domain
-    environment    = local.environment
     domain         = local.environment_api_domain
-    namespace      = "cert-manager"
+    namespace      = local.environment_namespace
     aws_region     = var.aws_region
     hosted_zone_id = aws_route53_zone.environment_api_domain.zone_id
   }))
-
-  depends_on = [
-    kubernetes_namespace.smarter,
-    # kubernetes_manifest.platform_ingress,
-  ]
 }
+# resource "kubernetes_manifest" "issuer_platform" {
+#   manifest = local.issuer_platform_manifest
+
+#   depends_on = [
+#     kubernetes_namespace_v1.smarter,
+#     aws_route53_zone.environment_platform_domain
+#   ]
+# }
+
+# resource "kubernetes_manifest" "issuer_api" {
+#   manifest = local.issuer_api_manifest
+#   depends_on = [
+#     kubernetes_namespace_v1.smarter,
+#     aws_route53_zone.environment_api_domain
+#   ]
+# }

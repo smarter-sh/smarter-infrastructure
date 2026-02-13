@@ -22,7 +22,7 @@
 #             https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_access_key
 #------------------------------------------------------------------------------
 
-resource "kubernetes_secret" "smtp_user" {
+resource "kubernetes_secret_v1" "smtp_user" {
   metadata {
     name      = "aws-ses-config"
     namespace = local.environment_namespace
