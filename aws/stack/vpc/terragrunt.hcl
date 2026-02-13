@@ -13,6 +13,7 @@ locals {
 
   # Extract out common variables for reuse
   root_domain        = local.global_vars.locals.root_domain
+  cluster_name       = local.global_vars.locals.cluster_name
   services_subdomain = local.global_vars.locals.services_subdomain
   platform_region    = local.global_vars.locals.platform_region
   aws_region         = local.global_vars.locals.aws_region
@@ -77,7 +78,7 @@ inputs = merge(
   single_nat_gateway     = true
   one_nat_gateway_per_az = false
 
-  # a bit of foreshadowing:
+  # a bit of context:
   # AWS EKS uses tags for identifying resources which it interacts.
   # here we are tagging the public and private subnets with specially-named tags
   # that EKS uses to know where its public and internal load balancers should be placed.
@@ -85,17 +86,18 @@ inputs = merge(
   # these tags are required, regardless of whether we're using EKS with EC2 worker nodes
   # or with a Fargate Compute Cluster.
   public_subnet_tags = {
-    "kubernetes.io/cluster/${local.namespace}" = "shared"
-    "kubernetes.io/role/elb"                   = "1"
+    "kubernetes.io/cluster/${local.cluster_name}" = "shared"
+    "kubernetes.io/role/elb"                      = "1"
   }
+
   private_subnet_tags = {
-    "kubernetes.io/cluster/${local.namespace}" = "shared"
-    "kubernetes.io/role/internal-elb"          = "1"
-    "karpenter.sh/discovery"                   = local.stack_name
+    "kubernetes.io/cluster/${local.cluster_name}" = "shared"
+    "kubernetes.io/role/internal-elb"             = "1"
+    "karpenter.sh/discovery"                      = local.stack_name
   }
   intra_subnet_tags  = {
-    "kubernetes.io/cluster/${local.namespace}" = "shared"
-    "karpenter.sh/discovery"                   = local.stack_name
+    "kubernetes.io/cluster/${local.cluster_name}" = "shared"
+    "karpenter.sh/discovery"                      = local.stack_name
   }
   tags = local.tags
 })

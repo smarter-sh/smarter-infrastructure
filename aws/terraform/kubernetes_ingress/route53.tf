@@ -9,13 +9,11 @@
 data "aws_route53_zone" "services_subdomain" {
   name = var.services_subdomain
 }
-# to-do: remove this declaration and refactor references below from
-# data.kubernetes_service_v1.traefik to
-# helm_release.traefik
+
 data "kubernetes_service_v1" "traefik" {
   metadata {
-    name      = "common-ingress-nginx-controller"
-    namespace = "kube-system"
+    name      = "traefik"
+    namespace = "traefik"
   }
 
   depends_on = [

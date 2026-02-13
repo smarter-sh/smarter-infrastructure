@@ -3,8 +3,8 @@
 # -----------------------------------------------------------------------------
 data "kubernetes_service" "traefik" {
   metadata {
-    name      = "common-ingress-nginx-controller"
-    namespace = "kube-system"
+    name      = "traefik"
+    namespace = "traefik"
   }
 }
 data "aws_elb_hosted_zone_id" "main" {}

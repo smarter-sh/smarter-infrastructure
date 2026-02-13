@@ -11,7 +11,7 @@ resource "kubernetes_manifest" "issuer_platform" {
 
   depends_on = [
     kubernetes_namespace.smarter,
-    kubernetes_manifest.platform_ingress,
+    # kubernetes_manifest.platform_ingress,
   ]
 }
 
@@ -27,6 +27,6 @@ resource "kubernetes_manifest" "issuer_api" {
 
   depends_on = [
     kubernetes_namespace.smarter,
-    kubernetes_manifest.platform_ingress,
+    # kubernetes_manifest.platform_ingress,
   ]
 }
