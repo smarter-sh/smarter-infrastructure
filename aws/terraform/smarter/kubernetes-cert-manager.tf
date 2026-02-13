@@ -6,7 +6,7 @@ resource "kubernetes_manifest" "issuer_platform" {
     domain         = local.environment_platform_domain
     namespace      = "cert-manager"
     aws_region     = var.aws_region
-    hosted_zone_id = data.aws_route53_zone.environment_platform_domain.zone_id
+    hosted_zone_id = aws_route53_zone.environment_platform_domain.zone_id
   }))
 
   depends_on = [
@@ -22,7 +22,7 @@ resource "kubernetes_manifest" "issuer_api" {
     domain         = local.environment_api_domain
     namespace      = "cert-manager"
     aws_region     = var.aws_region
-    hosted_zone_id = data.aws_route53_zone.api.zone_id
+    hosted_zone_id = aws_route53_zone.environment_api_domain.zone_id
   }))
 
   depends_on = [

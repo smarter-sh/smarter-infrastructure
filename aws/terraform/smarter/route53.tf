@@ -17,28 +17,20 @@ data "aws_route53_zone" "root_domain" {
   name = var.root_domain
 }
 
-data "aws_route53_zone" "api" {
-  name = "${var.api_domain}.${var.root_domain}"
+data "aws_route53_zone" "api_domain" {
+  name = var.api_domain
 }
 
 # -----------------------------------------------------------------------------
 # api Domain: alpha.api.smarter.sh, beta.api.smarter.sh, etc.
 # this is managed by smarter via a manage.py command that runs during deployments
 # -----------------------------------------------------------------------------
-resource "aws_route53_record" "api" {
-  zone_id = data.aws_route53_zone.api.zone_id
+resource "aws_route53_record" "environment_api_domain" {
+  zone_id = data.aws_route53_zone.api_domain.zone_id
   name    = local.environment_api_domain
   type    = "CNAME"
   ttl     = "300"
   records = [data.kubernetes_service.traefik.status[0].load_balancer[0].ingress[0].hostname]
-}
-
-# -----------------------------------------------------------------------------
-# environment Domain: alpha.platform.smarter.sh, beta.platform.smarter.sh, etc.
-# this is managed by smarter via a manage.py command that runs during deployments
-# -----------------------------------------------------------------------------
-data "aws_route53_zone" "environment_platform_domain" {
-  name    = local.environment_platform_domain
 }
 
 # -----------------------------------------------------------------------------
@@ -48,13 +40,29 @@ data "aws_route53_zone" "marketing_site" {
   name    = local.environment_marketing_domain
 }
 
+# -----------------------------------------------------------------------------
+# environment Domain: alpha.platform.smarter.sh, beta.platform.smarter.sh, etc.
+# -----------------------------------------------------------------------------
+resource "aws_route53_zone" "environment_platform_domain" {
+  name = local.environment_platform_domain
+  tags = local.tags
+}
+
+# -----------------------------------------------------------------------------
+# environment Api Domain: alpha.api.smarter.sh, beta.api.smarter.sh, etc.
+# -----------------------------------------------------------------------------
+resource "aws_route53_zone" "environment_api_domain" {
+  name = local.environment_api_domain
+  tags = local.tags
+}
+
 
 
 # -----------------------------------------------------------------------------
 # AWS SES domain identity verification records
 # -----------------------------------------------------------------------------
 resource "aws_route53_record" "aws_ses_domain_identity" {
-  zone_id = data.aws_route53_zone.environment_platform_domain.zone_id
+  zone_id = aws_route53_zone.environment_platform_domain.zone_id
   name    = "_amazonses.${local.environment_platform_domain}"
   type    = "TXT"
   ttl     = "600"
@@ -63,7 +71,7 @@ resource "aws_route53_record" "aws_ses_domain_identity" {
 
 resource "aws_route53_record" "environment_platform_domain_amazonses_dkim_record" {
   count   = 3
-  zone_id = data.aws_route53_zone.environment_platform_domain.zone_id
+  zone_id = aws_route53_zone.environment_platform_domain.zone_id
   name    = "${aws_ses_domain_dkim.environment_platform_domain.dkim_tokens[count.index]}._domainkey"
   type    = "CNAME"
   ttl     = "600"
@@ -71,7 +79,7 @@ resource "aws_route53_record" "environment_platform_domain_amazonses_dkim_record
 }
 
 resource "aws_route53_record" "environment_platform_domain_amazonses_dmarc_record" {
-  zone_id = data.aws_route53_zone.environment_platform_domain.zone_id
+  zone_id = aws_route53_zone.environment_platform_domain.zone_id
   name    = "_dmarc.${local.environment_platform_domain}"
   type    = "TXT"
   ttl     = "600"

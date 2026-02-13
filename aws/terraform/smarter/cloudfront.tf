@@ -7,9 +7,9 @@ locals {
   cdn_domain_name           = "cdn.${local.environment_platform_domain}"
 }
 
-# see ./route53.tf for creation of data.aws_route53_zone.environment_platform_domain.id
+# see ./route53.tf for creation of aws_route53_zone.environment_platform_domain.id
 resource "aws_route53_record" "cdn_environment_platform_domain" {
-  zone_id = data.aws_route53_zone.environment_platform_domain.id
+  zone_id = aws_route53_zone.environment_platform_domain.id
   name    = local.cdn_domain_name
   type    = "A"
 

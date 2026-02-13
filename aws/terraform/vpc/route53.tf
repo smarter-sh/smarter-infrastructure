@@ -26,7 +26,7 @@ resource "aws_route53_record" "services_subdomain_ns" {
 # example: api.smarter.sh
 # -----------------------------------------------------------------------------
 resource "aws_route53_zone" "api_domain" {
-  name = "${var.api_domain}.${var.root_domain}"
+  name = var.api_domain
   tags = local.tags
 }
 

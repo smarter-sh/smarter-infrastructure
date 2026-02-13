@@ -11,12 +11,9 @@ locals {
   stack_vars  = read_terragrunt_config(find_in_parent_folders("stack.hcl"))
   global_vars = read_terragrunt_config(find_in_parent_folders("global.hcl"))
 
-
-
   iam_admin_user_arn       = local.global_vars.locals.iam_admin_user_arn
 
   # Extract out common variables for reuse
-  env                        = local.stack_vars.locals.stack
   unique_id                   = local.global_vars.locals.unique_id
   namespace                  = local.stack_vars.locals.stack_name
   cluster_name               = local.global_vars.locals.cluster_name

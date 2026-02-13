@@ -5,11 +5,11 @@ resource "kubernetes_manifest" "platform_ingress" {
     environment_namespace = local.environment_namespace
     service_name          = var.shared_resource_identifier
     platform_domain       = "${var.platform_subdomain}.${var.root_domain}"
-    api_domain            = "${var.api_domain}.${var.root_domain}"
+    api_domain            = var.api_domain
   }))
 
   depends_on = [
-    data.aws_route53_zone.environment_platform_domain
+    aws_route53_zone.environment_platform_domain
   ]
 }
 
@@ -20,11 +20,11 @@ resource "kubernetes_manifest" "api_ingress" {
     environment_namespace = local.environment_namespace
     service_name          = var.shared_resource_identifier
     platform_domain       = "${var.platform_subdomain}.${var.root_domain}"
-    api_domain            = "${var.api_domain}.${var.root_domain}"
+    api_domain            = var.api_domain
   }))
 
   depends_on = [
-    data.aws_route53_zone.api
+    aws_route53_zone.environment_api_domain
   ]
 }
 
@@ -36,7 +36,7 @@ resource "kubernetes_manifest" "traefik-middleware-cors" {
   }))
 
   depends_on = [
-    data.aws_route53_zone.environment_platform_domain
+    aws_route53_zone.environment_platform_domain
   ]
 }
 
@@ -48,7 +48,7 @@ resource "kubernetes_manifest" "traefik-middleware-http-redirect" {
   }))
 
   depends_on = [
-    data.aws_route53_zone.environment_platform_domain
+    aws_route53_zone.environment_platform_domain
   ]
 }
 
@@ -59,6 +59,6 @@ resource "kubernetes_manifest" "traefik-service-sessions" {
   }))
 
   depends_on = [
-    data.aws_route53_zone.environment_platform_domain
+    aws_route53_zone.environment_platform_domain
   ]
 }
