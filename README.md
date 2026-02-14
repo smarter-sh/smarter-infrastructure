@@ -41,7 +41,7 @@ Review the following files. Adjust as necessary.
 - [aws/terragrunt.hcl](./aws/terragrunt.hcl)
 - [aws/stack/stack.hcl](./aws/stack/stack.hcl)
 
-### .env
+### Environment Variables
 
 Create a .env file in the root of the repo with the following values.
 You'll need to `source .env` in order for Terraform to see these values. Values
@@ -68,6 +68,63 @@ DOCKER_USERNAME=docker_username
 DOCKER_PAT=docker_personal_access_token
 ```
 
+`IAM_ADMIN_USER_ARN`: (Required) The AWS existing IAM user that will own the
+EKS Kubernetes cluster. Specifically, in configMap.aws-auth, an entry will
+be created in mapUsers that add this IAM user to the
+Kubernetes system:master group.
+
+`AWS_REGION`: (Required) the AWS data center from which all resources will be
+created. Certain exceptions apply due to technical/service constraints, where
+noted.
+
+`AWS_ACCOUNT_ID`: (Required) your 12-digit AWS Account number, found in the
+top-right corner of the AWS web console after having authenticated.
+
+`AWS_PROFILE`: (Optional) but strongly recommended as an alternative to persisting
+your AWS key-pair to this .env file. If it exists, the aws cli will automatically
+cross-reference your AWS_PROFILE name to the assigned AWS Keypair. This is the
+sole AWS credential for the entire project. **Note:** if you do not provide a
+AWS_PROFILE then you must provide AWS_ACCESS_KEY_ID & AWS_SECRET_ACCESS_KEY.
+
+`ROOT_DOMAIN`: (Required) example: 'ai.my-university.edu'.
+Importantly, Your ROOT_DOMAIN **MUST** be managed by AWS Route53 DNS service.
+Both these Terraform modules as well as the Smarter Python-Django codebase
+expect to find an AWS Route53 HostedZone for this domain. Technically, this is
+the 'base' domain in that Smarter in point of fact, allows subdomains.
+
+`MYSQL_ROOT_USERNAME` & `MYSQL_ROOT_PASSWORD`: (Required) the MySql root credentials for
+the MySql backing service for the entire Smarter installation. This pair
+are used for creating the MySql database, and the actual MySql user for
+your installation, on a per-environment basis. That is, each of alpha,
+beta, next, prod has its own credentials, generated from the root
+credentials and persisted to Kubernetes Secrets.
+
+`PLATFORM_SUBDOMAIN`: (Optional) Defaults to 'platform'. This value becomes the base
+subdomain for environmnents, and also the middle values of Kubernetes
+environment namespaces. Examples: the domain 'platform.smarter.sh', and the
+namespace 'smarter-platform-prod'. Changing the value post-deployment is
+technically feasible, though **highly** disruptive, so choose this value
+carefully. For environments hosted at 'smarter.sh' this the client code.
+Example: ubc.smarter.sh, and smarter-ubc-prod.
+
+`COST_CODE`: (Required) Generally should be the same value as `PLATFORM_SUBDOMAIN`.
+This become a global AWS tag that is added to every AWS resource of
+the installation.
+
+`UNIQUE_ID`: (Required) A string value that is suffixed to AWS resources, when necessary,
+to ensure global uniqueness throughout the AWS account. Best practice is to
+use an alpha-numeric value that carries some meaning for the installation. For
+example, a datestamp like '20260615' of when the installation was originally
+created. This also becomes a global tag that is added to all AWS resources.
+
+`DOCKER_USERNAME` & `DOCKER_PAT`: (Required). These are propagated to EC2
+instances when they are created. These credentials are used for authenticating
+to DockerHub Api. Authenticating to DockerHub exponentially increases the
+number of requests that you can make before throttling is triggered. Moreover,
+this project also sets up a Docker caching mechanism via AWS Elastic Container
+Registry which additionally significantly reduce Api requests to Dockerhub. This
+not only significantly speeds up deployments, but also significantly reduces the
+risk of DockerHub throttling your Api requests.
 
 ## Usage
 
