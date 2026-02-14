@@ -26,6 +26,7 @@ This infrastructure is designed to host multiple environments on the same
 Kubernetes cluster (ie alpha, beta, next, prod). Additional envionment-specific
 AWS resources that this project fully manages include:
 
+- VPC (Virtual Private Cloud)
 - IAM (Identity Access Management) Roles, Users, and Policies
 - Cloudfront Content Delivery network
 - Elastic Container Registry for private Smarter app repos (optional)
@@ -34,7 +35,31 @@ AWS resources that this project fully manages include:
 - Simple Email Service configuration
 - Certificate Manager
 
-## Configuration
+## Installation
+
+### Requirements
+
+### Recommended Hardware
+
+- CPU: 4+ cores (modern Intel/AMD or Apple Silicon)
+- RAM: 16 GB minimum (32 GB recommended for very large plans)
+- Storage: SSD with at least 35 GB free (Terraform state and .terraform directories can grow very large)
+- Network: Reliable broadband (for AWS API calls and module downloads)
+- OS: macOS, Linux, or Windows (WSL2 recommended for Windows)
+
+### Software
+
+- [Terraform](https://developer.hashicorp.com/terraform)
+- [Terragrunt](https://terragrunt.gruntwork.io/)
+- [kubectl](https://kubernetes.io/docs/tasks/tools/)
+- [aws command-line interface](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html)
+
+*Developers*:
+
+- Node
+- Python
+
+### Configuration
 
 Review the following files. Adjust as necessary.
 
