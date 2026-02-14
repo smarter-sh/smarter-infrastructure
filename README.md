@@ -73,7 +73,7 @@ that this project creates, as there could be unintended consequences.**
 
 ### Environment Variables
 
-**NOTE**: running `make` in a terminal window, in the root of this repo will automatically initialize a `.env` file for you. Otherwise, create a .env file
+Running `make` in a terminal window, in the root of this repo will automatically initialize a `.env` file for you. Otherwise, create a .env file
 in the root of the repo with the values described below. Also note that use of
 the Terraform built-in command `get_env("SOME_ENVIRONMENT_VARIABLE")` is strictly limited to 'aws/global.hcl'.
 
