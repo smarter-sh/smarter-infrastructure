@@ -45,9 +45,8 @@ Review the following files. Adjust as necessary.
 
 ### Environment Variables
 
-**NOTE**: running `make` from the terminal window will automatically
-initialize a `.env` file for you. Otherwise, create a .env file in the root of the repo with the values described
-below.
+**NOTE**: running `make` in a terminal window, in the root of this repo will automatically initialize a `.env` file for you. Otherwise, create a .env file
+in the root of the repo with the values described below.
 
 **IMPORTANT**: You'll need to run `set -a; source .env; set +a` in order for
 these environment variables to become visible inside of running Terraform code.
@@ -70,6 +69,8 @@ UNIQUE_ID=SET-ME-PLEASE
 DOCKER_USERNAME=docker_username
 DOCKER_PAT=docker_personal_access_token
 ```
+
+#### Definitions
 
 `IAM_ADMIN_USER_ARN`: (Required) The AWS existing IAM user that will own the
 EKS Kubernetes cluster. Specifically, in configMap.aws-auth, an entry will
