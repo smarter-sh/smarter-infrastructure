@@ -15,7 +15,7 @@ for teaching cloud computing at scale, and generative AI prompt engineering
 techniques including advanced use of LLM tool calling involving secure
 integrations to remote data sources like Sql databases and remote Apis.
 
-## At a Glance
+## At A Glance
 
 Creates a standalone AWS EKS (Elastic Kubernetes Service) Kubernetes cluster
 inside of a dedicated VPC (Virtual Private Cloud), and installs supporting Helm
@@ -62,8 +62,9 @@ AWS resources that this project fully manages include:
 
 All installation parameters are provided as environment variables. You should not need to edit
 Terraform code as part of your installation process. Review the following files. Adjust as necessary.
-The default hcl settings should work in most cases. Avoid modifying the hcl files, unless you have
-experience working with Terraform and Terragrunt, as there could be unintended consequences.
+The default hcl settings should work in most cases. Avoid modifying the hcl files, unless you are
+familiar with Terraform and Terragrunt and you are highly experienced with the AWS resources
+that this project creates, as there could be unintended consequences.
 
 - [.env](./.env.example)
 - [aws/global.hcl](./aws/global.hcl)
