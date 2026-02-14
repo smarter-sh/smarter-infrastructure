@@ -170,7 +170,8 @@ smarter/platform_region=ca
 smarter/platform_subdomain=ubc
 smarter/root_domain=smarter.sh
 smarter/unique_id=202602121853
-terraform=TRUE```
+terraform=TRUE
+```
 
 ## Documentation
 
