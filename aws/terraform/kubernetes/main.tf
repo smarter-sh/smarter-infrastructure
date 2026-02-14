@@ -2,7 +2,7 @@
 # written by: Lawrence McDaniel
 #             https://lawrencemcdaniel.com/
 #
-# date: Mar-2022
+# date: Mar-2023
 #
 # usage: create an EKS cluster with one managed node group for EC2
 #        plus a Fargate profile for serverless computing.

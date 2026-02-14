@@ -1,4 +1,12 @@
 #------------------------------------------------------------------------------
+# written by: Lawrence McDaniel
+#             https://lawrencemcdaniel.com/
+#
+# date: Mar-2023
+#
+# usage: setup AWS EKS CoreDNS addon with IRSA permissions
+#
+#------------------------------------------------------------------------------
 
 resource "aws_iam_role" "AmazonEKS_CoreDNS_Role" {
   name = "AmazonEKS_CoreDNS_Role-${var.namespace}"

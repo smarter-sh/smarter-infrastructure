@@ -2,7 +2,7 @@
 # written by: Lawrence McDaniel
 #             https://lawrencemcdaniel.com
 #
-# date: Mar-2022
+# date: Mar-2023
 #
 # usage: build an EKS with EC2 worker nodes and ALB
 #------------------------------------------------------------------------------

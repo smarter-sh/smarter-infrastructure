@@ -2,7 +2,7 @@
 # written by: Lawrence McDaniel
 #             https://lawrencemcdaniel.com
 #
-# date: mar-2022
+# date: mar-2023
 #
 # usage: create a VPC to contain all Open edX backend resources.
 #        this VPC is configured to generally use all AWS defaults.

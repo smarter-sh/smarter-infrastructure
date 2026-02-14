@@ -2,12 +2,12 @@
 # written by: Lawrence McDaniel
 #             https://lawrencemcdaniel.com/
 #
-# date: Dec-2022
+# date: Dec-2023
 #
 # Create the Amazon EBS CSI driver IAM role for service accounts
 # https://docs.aws.amazon.com/eks/latest/userguide/csi-iam-role.html
 #
-# Note:  in late december 2022 the AWS EKS EBS CSI Add-on suddenly began
+# Note:  in late december 2023 the AWS EKS EBS CSI Add-on suddenly began
 #        inheriting its IAM role from the karpenter node group rather than using
 #        the role that is explicitly created and assigned here. no idea why.
 #        As a workaround, i'm also adding the AmazonEBSCSIDriverPolicy policy to the

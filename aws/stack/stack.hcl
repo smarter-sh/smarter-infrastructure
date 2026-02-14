@@ -2,7 +2,7 @@
 # written by: Lawrence McDaniel
 #             https://lawrencemcdaniel.com/
 #
-# date: Feb-2022
+# date: Feb-2023
 #
 # usage: create stack-level parameters, exposed to all
 #        Terragrunt modules in this environment.

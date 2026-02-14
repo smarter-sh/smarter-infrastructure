@@ -1,10 +1,10 @@
 #------------------------------------------------------------------------------
-# written by: Miguel Afonso
-#             https://www.linkedin.com/in/mmafonso/
+# written by:   Lawrence McDaniel
+#               https://lawrencemcdaniel.com
 #
-# date: Aug-2021
+# date:         Feb-2026
 #
-# usage: build an EKS cluster load balancer
+# usage:        variables for the default cluster-wide traefik ingress controller
 #------------------------------------------------------------------------------
 
 variable "services_subdomain" {

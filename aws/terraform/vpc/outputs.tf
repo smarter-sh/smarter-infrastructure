@@ -1,3 +1,11 @@
+#------------------------------------------------------------------------------
+# written by: Lawrence McDaniel
+#             https://lawrencemcdaniel.com
+#
+# date: mar-2023
+#
+# usage: outputs for vps module
+#------------------------------------------------------------------------------
 output "root_domain_zone_id" {
   description = "The zone ID of the root domain"
   value       = data.aws_route53_zone.root_domain.zone_id

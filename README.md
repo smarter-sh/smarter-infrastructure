@@ -6,10 +6,10 @@
 [![License: AGPL v3](https://img.shields.io/badge/License-AGPL_v3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0)
 [![hack.d Lawrence McDaniel](https://img.shields.io/badge/hack.d-Lawrence%20McDaniel-orange.svg)](https://lawrencemcdaniel.com)
 
-This repo contains Terraform source code for creating the AWS cloud
+This repo contains [Terraform](https://developer.hashicorp.com/terraform) source code for creating the AWS cloud
 infrastructure that supports the [Smarter Api and web platform](https://github.com/smarter-sh/smarter).
 
-Smarter is a declarative extensible AI authoring and resource management system.
+[Smarter](https://smarter.sh/) is a declarative extensible AI authoring and resource management system.
 It is used as an instructional tool at [University of British Columbia](https://www.ubc.ca/)
 for teaching cloud computing at scale, and generative AI prompt engineering
 techniques including advanced use of LLM tool calling involving secure
@@ -17,9 +17,9 @@ integrations to remote data sources like Sql databases and remote Apis.
 
 ## At A Glance
 
-Creates a standalone AWS EKS (Elastic Kubernetes Service) Kubernetes cluster
-inside of a dedicated VPC (Virtual Private Cloud), and installs supporting Helm
-packages for Traefik and Cert-Manager, for implementing the necessary cloud
+Creates a standalone AWS EKS ([Elastic Kubernetes Service](https://aws.amazon.com/pm/eks/)) Kubernetes cluster
+inside of a dedicated VPC ([Virtual Private Cloud](https://aws.amazon.com/vpc/)), and installs supporting [Helm](https://helm.sh/)
+packages for [Traefik](https://traefik.io/traefik) and [Cert-Manager](https://cert-manager.io/), for implementing the necessary cloud
 support behind traditional TLS-terminated ingresses. Terraform tags all
 resources for tracking purposes.
 

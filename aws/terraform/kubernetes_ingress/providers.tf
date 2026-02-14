@@ -1,15 +1,11 @@
 #------------------------------------------------------------------------------
-# written by: Miguel Afonso
-#             https://www.linkedin.com/in/mmafonso/
+# written by:   Lawrence McDaniel
+#               https://lawrencemcdaniel.com
 #
-# date: Aug-2021
+# date:         Feb-2026
 #
-# usage: build an EKS cluster load balancer
+# usage:        providers for the default cluster-wide traefik ingress controller
 #------------------------------------------------------------------------------
-
-#data "tls_certificate" "cluster" {
-#  url = data.aws_eks_cluster.eks.identity[0].oidc[0].issuer
-#}
 
 data "aws_eks_cluster" "eks" {
   name = var.cluster_name

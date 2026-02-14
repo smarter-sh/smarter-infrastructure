@@ -1,3 +1,11 @@
+#------------------------------------------------------------------------------
+# written by: Lawrence McDaniel
+#             https://lawrencemcdaniel.com
+#
+# date:   mar-2023
+#
+# usage:  DNS configuration for vps module
+#------------------------------------------------------------------------------
 data "aws_route53_zone" "root_domain" {
   name = var.root_domain
 }

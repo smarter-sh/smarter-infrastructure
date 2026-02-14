@@ -1,10 +1,10 @@
 #------------------------------------------------------------------------------
-# written by: Miguel Afonso
-#             https://www.linkedin.com/in/mmafonso/
+# written by: Lawrence McDaniel
+#             https://lawrencemcdaniel.com
 #
-# date: Aug-2021
+# date:   mar-2023
 #
-# usage: create a VPC to contain all Open edX backend resources.
+# usage:  variables for vps module
 #------------------------------------------------------------------------------
 variable "aws_region" {
   description = "The region in which the origin S3 bucket was created."

@@ -1,10 +1,10 @@
 #------------------------------------------------------------------------------
 # written by: Lawrence McDaniel
-#             https://lawrencemcdaniel.com/
+#             https://lawrencemcdaniel.com
 #
-# date: March-2022
+# date:   mar-2023
 #
-# usage: build an EKS cluster load balancer that uses a Fargate Compute Cluster
+# usage:  version pints for vps module
 #------------------------------------------------------------------------------
 terraform {
   required_version = "~> 1.5"
