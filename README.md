@@ -1,40 +1,37 @@
-# Querium Smarter
+# The Smarter Project - AWS Infrastructure
 
-[![OpenAI](https://a11ybadges.com/badge?logo=openai)](https://platform.openai.com/)
-[![LangChain](https://a11ybadges.com/badge?text=LangChain&badgeColor=0834ac)](https://www.langchain.com/)
 [![Amazon AWS](https://a11ybadges.com/badge?logo=amazonaws)](https://aws.amazon.com/)
-[![Bootstrap](https://a11ybadges.com/badge?logo=bootstrap)](https://getbootstrap.com/)
-[![ReactJS](https://a11ybadges.com/badge?logo=react)](https://react.dev/)
-[![NPM](https://a11ybadges.com/badge?logo=npm)](https://www.npmjs.com/)
-[![Python](https://a11ybadges.com/badge?logo=python)](https://www.python.org/)
-[![Django](https://a11ybadges.com/badge?logo=django)](https://www.djangoproject.com/)
 [![Terraform](https://a11ybadges.com/badge?logo=terraform)](https://www.terraform.io/)<br>
-[![Unit Tests](https://github.com/QueriumCorp/smarter/actions/workflows/test.yml/badge.svg?branch=main)](https://github.com/QueriumCorp/smarter/actions/workflows/releaseController.yml)
-![Release Status](https://github.com/QueriumCorp/smarter/actions/workflows/release.yml/badge.svg?branch=main)
-![Auto Assign](https://github.com/QueriumCorp/smarter/actions/workflows/auto-assign.yml/badge.svg)
 [![License: AGPL v3](https://img.shields.io/badge/License-AGPL_v3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0)
 [![hack.d Lawrence McDaniel](https://img.shields.io/badge/hack.d-Lawrence%20McDaniel-orange.svg)](https://lawrencemcdaniel.com)
 
-**Smarter is an enterprise-class platform for designing and managing chat solutions. Think of Smarter as the 'Redhat Linux' of chat.**
+This repo contains Terraform source code for creating the AWS cloud
+infrastructure that supports the Smarter Api and web platform.
 
-Smarter gives prompt engineering teams an intuitive workbench approach to designing, prototyping, testing, deploying and managing powerful chat solutions for common corporate use cases including customer sales support, vendor/supplier management, human resources, and more. Smarter is compatible with a wide variety of chatbot UI front ends for technology ecosystems such as NPM, Wordpress, Squarespace, Drupal, Office 365, Sharepoint, .Net, Netsuite, salesforce.com, and SAP. It is developed to support prompt engineering teams working in large organizations. Accordindly, Smarter provides common enterprise features such as security, accounting cost codes, and audit capabilities.
+Smarter is a declarative extensible AI authoring and resource management system.
+It is used as an instructional tool at [University of British Columbia](https://www.ubc.ca/)
+for teaching cloud computing at scale, and generative AI prompt engineering
+techniques including advanced use of LLM tool calling involving secure
+integrations to remote data sources like Sql databases and remote Apis.
 
-Smarter is LLM provider-agnostic, and provides seamless integrations to a continuously evolving list of value added services for security management, prompt content moderation, audit, cost accounting, and workflow management. It can be used as a pay-as-you-go, platform as a service, or, installed in your own AWS cloud account and supported by Querium's professional services team. It can also be installed on-premise in a hybrid model.
+## At Glance
 
-Smarter is cost effective when running at scale. It is extensible and architected on the philosophy of a compact core that does not require customization nor forking. It is horizontally scalable. It is natively multi-tenant, and can be installed alongside your existing systems. The principal technologies in the Smarter platform stack include:
+Creates a standalone AWS EKS (Elastic Kubernetes Service) Kubernetes cluster,
+and installs supporting Helm packages for Traefik and Cert-Manager, for
+implementing the necessary cloud support behind traditional TLS-terminated
+ingresses.
 
-- Ubuntu Linux
-- Docker/Kubernetes/Helm
-- MySQL
-- Redis
-- Terraform/awscli/Boto3
-- Python/Django
-- Pytest/Pluggy
-- Langchain
-- Pydantic
-- ReactJS/Bootstrap
-- Go lang
-- GitHub Actions
+This infrastructure is designed to host multiple environments on the same
+Kubernetes cluster (ie alpha, beta, next, prod). Additional envionment-specific
+AWS resources that this project fully manages include:
+
+- IAM (Identity Access Management) Roles, Users, and Policies
+- Cloudfront Content Delivery network
+- Elastic Container Registry for private Smarter app repos (optional)
+- Route53 DNS records
+- S3 storage bucket
+- Simple Email Service configuration
+- Certificate Manager
 
 ## Configuration
 
