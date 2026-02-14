@@ -155,6 +155,17 @@ terragrunt run-all init
 terragrunt run-all apply
 ```
 
+Configure kubectl for use in your local development environment
+
+```console
+aws eks update-kubeconfig --region <region> --name <cluster_name>
+kubectl get namespaces
+```
+
+If you are new to Kubernetes then [k9s](https://k9scli.io/) is highly
+recommended as a visual adminstrative tools for monitoring your
+Kubernetes resources.
+
 ## AWS Resource Tags
 
 These Terraform modules create several tags that are applied globally to all
