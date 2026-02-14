@@ -44,8 +44,11 @@ Review the following files. Adjust as necessary.
 ### .env
 
 Create a .env file in the root of the repo with the following values.
-You'll need to `source .env` in order for Terraform to see these values.
-
+You'll need to `source .env` in order for Terraform to see these values. Values
+of the form `get_env("AWS_REGION", "ca-central-1")` can be overridden with
+environment variables. Example: `export AWS_REGION=us-east-1`. You can also
+optional create a .env file with multiple values, and then use the single
+command, `set -a; source .env; set +a` to make these visible to Terraform.
 
 ```console
 IAM_ADMIN_USER_ARN=arn:aws:iam::123456789012:user/username
@@ -67,9 +70,6 @@ DOCKER_PAT=docker_personal_access_token
 
 
 ## Usage
-
-You should first review aws/global.hcl and aws/terragrunt.hcl, and edit as needed. Values in aws/global.hcl of the form `get_env("AWS_REGION", "ca-central-1")`
-can be overridden with environment variables. Example: `export AWS_REGION=us-east-1`. You can also optional create a .env file with multiple values, and then use the single command, `set -a; source .env; set +a`.
 
 Build the Kubernetes Cluster
 
