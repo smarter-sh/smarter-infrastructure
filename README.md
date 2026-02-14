@@ -57,9 +57,12 @@ AWS resources that this project fully manages include:
 - Network: Reliable broadband (for AWS API calls and module downloads)
 - OS: macOS, Linux, or Windows (WSL2 recommended for Windows)
 
-## Configuration
+## Terraform Configuration
 
-Review the following files. Adjust as necessary.
+All installation parameters are provided as environment variables. You should not need to edit
+Terraform code as part of your installation process. Review the following files. Adjust as necessary.
+The default hcl settings should work in most cases. Avoid modifying the hcl files, unless you have
+experience working with Terraform and Terragrunt, as there could be unintended consequences.
 
 - [.env](./.env.example)
 - [aws/global.hcl](./aws/global.hcl)
