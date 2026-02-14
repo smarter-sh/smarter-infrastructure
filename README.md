@@ -14,7 +14,7 @@ for teaching cloud computing at scale, and generative AI prompt engineering
 techniques including advanced use of LLM tool calling involving secure
 integrations to remote data sources like Sql databases and remote Apis.
 
-## At Glance
+## At a Glance
 
 Creates a standalone AWS EKS (Elastic Kubernetes Service) Kubernetes cluster,
 and installs supporting Helm packages for Traefik and Cert-Manager, for
@@ -39,7 +39,7 @@ Review the following files. Adjust as necessary.
 
 - [aws/global.hcl](./aws/global.hcl)
 - [aws/terragrunt.hcl](./aws/terragrunt.hcl)
-- [aws/prod/stack.hcl](./aws/prod/stack.hcl)
+- [aws/stack/stack.hcl](./aws/stack/stack.hcl)
 
 ### .env
 
@@ -71,8 +71,18 @@ DOCKER_PAT=docker_personal_access_token
 You should first review aws/global.hcl and aws/terragrunt.hcl, and edit as needed. Values in aws/global.hcl of the form `get_env("AWS_REGION", "ca-central-1")`
 can be overridden with environment variables. Example: `export AWS_REGION=us-east-1`. You can also optional create a .env file with multiple values, and then use the single command, `set -a; source .env; set +a`.
 
+Build the Kubernetes Cluster
+
 ```console
-cd aws/prod/
+cd aws/stack/
+terragrunt run-all init
+terragrunt run-all apply
+```
+
+Build a Smarter Environment
+
+```console
+cd aws/environments/prod
 terragrunt run-all init
 terragrunt run-all apply
 ```
