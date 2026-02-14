@@ -70,12 +70,14 @@ DOCKER_PAT=docker_personal_access_token
 
 `IAM_ADMIN_USER_ARN`: (Required) The AWS existing IAM user that will own the
 EKS Kubernetes cluster. Specifically, in configMap.aws-auth, an entry will
-be created in mapUsers that add this IAM user to the
+be created in mapUsers that adds this IAM user to the
 Kubernetes system:master group.
 
-`AWS_REGION`: (Required) the AWS data center from which all resources will be
-created. Certain exceptions apply due to technical/service constraints, where
-noted.
+`AWS_REGION`: (Optional) Defaults to 'us-east-1'. The AWS data center from
+which all resources will be created. Certain exceptions apply due to
+technical/service constraints, where noted. For example, AWS Cloudfront
+only accepts ssl certificates from us-east-1, IAM resources and Route53 are
+globally managed, etcetera.
 
 `AWS_ACCOUNT_ID`: (Required) your 12-digit AWS Account number, found in the
 top-right corner of the AWS web console after having authenticated.
@@ -85,18 +87,21 @@ your AWS key-pair to this .env file. If it exists, the aws cli will automaticall
 cross-reference your AWS_PROFILE name to the assigned AWS Keypair. This is the
 sole AWS credential for the entire project. **Note:** if you do not provide a
 AWS_PROFILE then you must provide AWS_ACCESS_KEY_ID & AWS_SECRET_ACCESS_KEY.
+See [Configuration and credential file settings in the AWS CLI](https://docs.aws.amazon.com/cli/v1/userguide/cli-configure-files.html)
 
 `ROOT_DOMAIN`: (Required) example: 'ai.my-university.edu'.
 Importantly, Your ROOT_DOMAIN **MUST** be managed by AWS Route53 DNS service.
-Both these Terraform modules as well as the Smarter Python-Django codebase
+These Terraform modules as well as the Smarter Python-Django codebase itself
 expect to find an AWS Route53 HostedZone for this domain. Technically, this is
 the 'base' domain in that Smarter in point of fact, allows subdomains.
 
-`MYSQL_ROOT_USERNAME` & `MYSQL_ROOT_PASSWORD`: (Required) the MySql root credentials for
-the MySql backing service for the entire Smarter installation. This pair
-are used for creating the MySql database, and the actual MySql user for
-your installation, on a per-environment basis. That is, each of alpha,
-beta, next, prod has its own credentials, generated from the root
+`MYSQL_ROOT_USERNAME` & `MYSQL_ROOT_PASSWORD`: (Optional) the MySql root
+credentials for the existing MySql backing service for the entire Smarter
+installation. This pair, to the extent that you are using existing, shared
+Mysql infrastructure such as AWS RDS (Relational Database Service), are used
+for creating the MySql database, and the actual MySql
+user and password for your installation, on a per-environment basis. That is, each of
+alpha, beta, next, prod has its own credentials, generated from the root
 credentials and persisted to Kubernetes Secrets.
 
 `PLATFORM_SUBDOMAIN`: (Optional) Defaults to 'platform'. This value becomes the base
@@ -104,18 +109,19 @@ subdomain for environmnents, and also the middle values of Kubernetes
 environment namespaces. Examples: the domain 'platform.smarter.sh', and the
 namespace 'smarter-platform-prod'. Changing the value post-deployment is
 technically feasible, though **highly** disruptive, so choose this value
-carefully. For environments hosted at 'smarter.sh' this the client code.
-Example: ubc.smarter.sh, and smarter-ubc-prod.
+carefully. For environments hosted at 'smarter.sh' this is the client code.
+Example: 'ubc.smarter.sh', and 'smarter-ubc-prod'.
 
-`COST_CODE`: (Required) Generally should be the same value as `PLATFORM_SUBDOMAIN`.
-This become a global AWS tag that is added to every AWS resource of
-the installation.
+`COST_CODE`: (Optional) Defaults to 'smarter'. Generally this should be the
+same value as `PLATFORM_SUBDOMAIN`. This become a global AWS tag that is added
+to every AWS resource of the installation.
 
-`UNIQUE_ID`: (Required) A string value that is suffixed to AWS resources, when necessary,
-to ensure global uniqueness throughout the AWS account. Best practice is to
-use an alpha-numeric value that carries some meaning for the installation. For
-example, a datestamp like '20260615' of when the installation was originally
-created. This also becomes a global tag that is added to all AWS resources.
+`UNIQUE_ID`: (Optional) Defaults to 'YYYYMMDDHHMM' of the current datetime.
+More generally, this is a string value that is suffixed to AWS resources, as
+necessary, to ensure global uniqueness throughout the AWS account. Best
+practice is to use an alpha-numeric value that carries some meaning for the
+installation. For example, a datestamp like 'eval' or 'live'. This value
+becomes a global tag that is added to all AWS resources.
 
 `DOCKER_USERNAME` & `DOCKER_PAT`: (Required). These are propagated to EC2
 instances when they are created. These credentials are used for authenticating
@@ -143,6 +149,28 @@ cd aws/environments/prod
 terragrunt run-all init
 terragrunt run-all apply
 ```
+
+## AWS Resource Tags
+
+These Terraform module create several tags that are applied globally to all
+AWS resources that i creates. These are therefore useful for tracking, 
+reporting and cost accounting purposes. Tags include, but are not limited to
+the following:
+
+```console
+contact=Lawrence McDaniel - https://lawrencemcdaniel.com/
+cost_code=ubc
+create_kms_key=FALSE
+Name=smarter
+smarter=TRUE
+smarter/cluster_name?smarter-ubc-ca-202602121853
+smarter/mysql_host=mysql.service.lawrencemcdaniel.com
+smarter/platform_name=smarter
+smarter/platform_region=ca
+smarter/platform_subdomain=ubc
+smarter/root_domain=smarter.sh
+smarter/unique_id=202602121853
+terraform=TRUE```
 
 ## Documentation
 

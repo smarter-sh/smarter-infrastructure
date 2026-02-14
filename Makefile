@@ -16,7 +16,7 @@ PIP := $(PYTHON) -m pip
 
 ifneq ("$(wildcard .env)","")
 else
-    $(shell cp ./doc/example-dot-env .env)
+	$(shell sed "s/SET-ME-PLEASE/$(shell date +%Y%m%d%H%M)/" .env.example > .env)
 endif
 
 .PHONY: init clean lint analyze release pre-commit-init pre-commit-run python-init terraform-build terraform-clean
