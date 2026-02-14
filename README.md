@@ -18,10 +18,10 @@ integrations to remote data sources like Sql databases and remote Apis.
 ## At a Glance
 
 Creates a standalone AWS EKS (Elastic Kubernetes Service) Kubernetes cluster
-inside of a dedicated VPC, and installs supporting Helm packages for Traefik
-and Cert-Manager, for implementing the necessary cloud support behind
-traditional TLS-terminated ingresses. Terraform tags all resources for tracking
-purposes.
+inside of a dedicated VPC (Virtual Private Cloud), and installs supporting Helm
+packages for Traefik and Cert-Manager, for implementing the necessary cloud
+support behind traditional TLS-terminated ingresses. Terraform tags all
+resources for tracking purposes.
 
 This infrastructure is designed to host multiple environments on the same
 Kubernetes cluster (ie alpha, beta, next, prod). Additional envionment-specific
