@@ -46,7 +46,8 @@ Review the following files. Adjust as necessary.
 ### Environment Variables
 
 **NOTE**: running `make` in a terminal window, in the root of this repo will automatically initialize a `.env` file for you. Otherwise, create a .env file
-in the root of the repo with the values described below.
+in the root of the repo with the values described below. Also note that use of
+the Terraform built-in command `get_env("SOME_ENVIRONMENT_VARIABLE")` is strictly limited to 'aws/global.hcl'.
 
 **IMPORTANT**: You'll need to run `set -a; source .env; set +a` in order for
 these environment variables to become visible inside of running Terraform code.
