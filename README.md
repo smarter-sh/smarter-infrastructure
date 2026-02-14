@@ -38,6 +38,7 @@ AWS resources that this project fully manages include:
 
 Review the following files. Adjust as necessary.
 
+- [.env](./.env.example)
 - [aws/global.hcl](./aws/global.hcl)
 - [aws/terragrunt.hcl](./aws/terragrunt.hcl)
 - [aws/stack/stack.hcl](./aws/stack/stack.hcl)
