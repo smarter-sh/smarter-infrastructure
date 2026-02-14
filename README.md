@@ -7,7 +7,7 @@
 [![hack.d Lawrence McDaniel](https://img.shields.io/badge/hack.d-Lawrence%20McDaniel-orange.svg)](https://lawrencemcdaniel.com)
 
 This repo contains Terraform source code for creating the AWS cloud
-infrastructure that supports the Smarter Api and web platform.
+infrastructure that supports the [Smarter Api and web platform](https://github.com/smarter-sh/smarter).
 
 Smarter is a declarative extensible AI authoring and resource management system.
 It is used as an instructional tool at [University of British Columbia](https://www.ubc.ca/)
