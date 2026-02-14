@@ -45,12 +45,13 @@ Review the following files. Adjust as necessary.
 
 ### Environment Variables
 
-Create a .env file in the root of the repo with the following values.
-You'll need to `source .env` in order for Terraform to see these values. Values
-of the form `get_env("AWS_REGION", "ca-central-1")` can be overridden with
-environment variables. Example: `export AWS_REGION=us-east-1`. You can also
-optional create a .env file with multiple values, and then use the single
-command, `set -a; source .env; set +a` to make these visible to Terraform.
+**NOTE**: running `make` from the terminal window will automatically
+initialize a `.env` file for you. Otherwise, create a .env file in the root of the repo with the values described
+below.
+
+**IMPORTANT**: You'll need to run `set -a; source .env; set +a` in order for
+these environment variables to become visible inside of running Terraform code.
+Afterwards, values of the form `get_env("AWS_REGION", "ca-central-1")` can see the environment variables that you have set in your .env file.
 
 ```console
 IAM_ADMIN_USER_ARN=arn:aws:iam::123456789012:user/username
