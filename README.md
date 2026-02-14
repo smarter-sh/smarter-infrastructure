@@ -39,15 +39,7 @@ AWS resources that this project fully manages include:
 
 ### Requirements
 
-### Recommended Hardware
-
-- CPU: 4+ cores (modern Intel/AMD or Apple Silicon)
-- RAM: 16 GB minimum (32 GB recommended for very large plans)
-- Storage: SSD with at least 35 GB free (Terraform state and .terraform directories can grow very large)
-- Network: Reliable broadband (for AWS API calls and module downloads)
-- OS: macOS, Linux, or Windows (WSL2 recommended for Windows)
-
-### Software
+#### Client Software
 
 - [Terraform](https://developer.hashicorp.com/terraform)
 - [Terragrunt](https://terragrunt.gruntwork.io/)
@@ -58,6 +50,14 @@ AWS resources that this project fully manages include:
 
 - Node
 - Python
+
+#### Recommended Hardware
+
+- CPU: 4+ cores (modern Intel/AMD or Apple Silicon)
+- RAM: 16 GB minimum (32 GB recommended for very large plans)
+- Storage: SSD with at least 35 GB free (Terraform state and .terraform directories can grow very large)
+- Network: Reliable broadband (for AWS API calls and module downloads)
+- OS: macOS, Linux, or Windows (WSL2 recommended for Windows)
 
 ### Configuration
 
