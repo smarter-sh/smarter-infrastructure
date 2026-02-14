@@ -35,23 +35,21 @@ AWS resources that this project fully manages include:
 - Simple Email Service configuration
 - Certificate Manager
 
-## Installation
+## Client Software Prerequisites & Minimum Hardware Requiments
 
-### Requirements
-
-#### Client Software
+### Software
 
 - [Terraform](https://developer.hashicorp.com/terraform)
 - [Terragrunt](https://terragrunt.gruntwork.io/)
 - [kubectl](https://kubernetes.io/docs/tasks/tools/)
 - [aws command-line interface](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html)
 
-*Developers*:
+*For developers who contribute to this project*:
 
 - Node
 - Python
 
-#### Recommended Hardware
+### Hardware
 
 - CPU: 4+ cores (modern Intel/AMD or Apple Silicon)
 - RAM: 16 GB minimum (32 GB recommended for very large plans)
@@ -59,7 +57,7 @@ AWS resources that this project fully manages include:
 - Network: Reliable broadband (for AWS API calls and module downloads)
 - OS: macOS, Linux, or Windows (WSL2 recommended for Windows)
 
-### Configuration
+## Configuration
 
 Review the following files. Adjust as necessary.
 
