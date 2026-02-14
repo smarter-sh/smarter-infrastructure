@@ -201,11 +201,9 @@ AWS resources. These are useful for tracking, reporting and cost accounting
 purposes. Tags include, but are not limited to the following:
 
 ```console
-contact=Lawrence McDaniel - https://lawrencemcdaniel.com/
-cost_code=smarter
-create_kms_key=FALSE
-Name=smarter
 smarter=TRUE
+smarter/contact=Lawrence McDaniel - https://lawrencemcdaniel.com/
+smarter/cost_code=smarter
 smarter/cluster_name=smarter-platform-us-202602121853
 smarter/mysql_host=mysql.service.localhost
 smarter/platform_name=smarter

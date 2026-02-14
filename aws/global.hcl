@@ -33,8 +33,8 @@ locals {
     tags = {
       "smarter"                   = "true",
       "terraform"                 = "true",
-      "contact"                   = "Lawrence McDaniel - https://lawrencemcdaniel.com/"
-      "cost_code"                 = local.cost_code,
+      "smarter/contact"           = "Lawrence McDaniel - https://lawrencemcdaniel.com/"
+      "smarter/cost_code"         = local.cost_code,
       "smarter/root_domain"       = local.root_domain
       "smarter/cluster_name"      = local.cluster_name
       "smarter/mysql_host"        = local.mysql_host
