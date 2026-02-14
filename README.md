@@ -152,10 +152,9 @@ terragrunt run-all apply
 
 ## AWS Resource Tags
 
-These Terraform module create several tags that are applied globally to all
-AWS resources that i creates. These are therefore useful for tracking, 
-reporting and cost accounting purposes. Tags include, but are not limited to
-the following:
+These Terraform modules create several tags that are applied globally to all
+AWS resources. These are useful for tracking, reporting and cost accounting
+purposes. Tags include, but are not limited to the following:
 
 ```console
 contact=Lawrence McDaniel - https://lawrencemcdaniel.com/
