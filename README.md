@@ -62,9 +62,9 @@ AWS resources that this project fully manages include:
 
 All installation parameters are provided as environment variables. You should not need to edit
 Terraform code as part of your installation process. Review the following files. Adjust as necessary.
-The default hcl settings should work in most cases. Avoid modifying the hcl files, unless you are
+The default hcl settings should work in most cases. **Avoid modifying the hcl files, unless you are
 familiar with Terraform and Terragrunt and you are highly experienced with the AWS resources
-that this project creates, as there could be unintended consequences.
+that this project creates, as there could be unintended consequences.**
 
 - [.env](./.env.example)
 - [aws/global.hcl](./aws/global.hcl)
