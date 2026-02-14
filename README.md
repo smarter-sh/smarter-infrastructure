@@ -23,7 +23,7 @@ packages for [Traefik](https://traefik.io/traefik) and [Cert-Manager](https://ce
 support behind traditional TLS-terminated ingresses. Terraform tags all
 resources for tracking purposes.
 
-This infrastructure is designed to host multiple environments on the same
+This infrastructure is designed to host multiple Smarter environments on the same
 Kubernetes cluster (ie alpha, beta, next, prod). Additional envionment-specific
 AWS resources that this project fully manages include:
 
