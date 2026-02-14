@@ -163,7 +163,7 @@ kubectl get namespaces
 ```
 
 If you are new to Kubernetes then [k9s](https://k9scli.io/) is highly
-recommended as a visual adminstrative tools for monitoring your
+recommended as a visual adminstrative tool for monitoring your
 Kubernetes resources.
 
 ## AWS Resource Tags
