@@ -158,16 +158,16 @@ purposes. Tags include, but are not limited to the following:
 
 ```console
 contact=Lawrence McDaniel - https://lawrencemcdaniel.com/
-cost_code=ubc
+cost_code=smarter
 create_kms_key=FALSE
 Name=smarter
 smarter=TRUE
-smarter/cluster_name?smarter-ubc-ca-202602121853
-smarter/mysql_host=mysql.service.lawrencemcdaniel.com
+smarter/cluster_name=smarter-platform-us-202602121853
+smarter/mysql_host=mysql.service.localhost
 smarter/platform_name=smarter
-smarter/platform_region=ca
-smarter/platform_subdomain=ubc
-smarter/root_domain=smarter.sh
+smarter/platform_region=us
+smarter/platform_subdomain=platform
+smarter/root_domain=ai.my-university.edu
 smarter/unique_id=202602121853
 terraform=TRUE
 ```
