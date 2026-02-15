@@ -1,3 +1,13 @@
+#------------------------------------------------------------------------------
+# written by: Lawrence McDaniel
+#             https://lawrencemcdaniel.com/
+#
+# date:       July-2023
+#
+# usage:      Smarter app infrastructure - set environment variables and tags
+#             for this environment.
+#------------------------------------------------------------------------------
+
 locals {
   environment                   = var.environment
   environment_namespace         = lower("${var.environment_name}")

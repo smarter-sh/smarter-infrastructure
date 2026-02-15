@@ -1,3 +1,14 @@
+#------------------------------------------------------------------------------
+# written by: Lawrence McDaniel
+#             https://lawrencemcdaniel.com/
+#
+# date:       July-2023
+#
+# usage:      Smarter app infrastructure - Terraform configuration
+#             for AWS S3 buckets and policies
+#------------------------------------------------------------------------------
+
+
 module "environment_storage" {
   source  = "terraform-aws-modules/s3-bucket/aws"
   version = "~> 4.10"

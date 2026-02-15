@@ -1,3 +1,13 @@
+#------------------------------------------------------------------------------
+# written by: Lawrence McDaniel
+#             https://lawrencemcdaniel.com/
+#
+# date:       July-2023
+#
+# usage:      Smarter app infrastructure - Terraform outputs for this
+#             Smarter environment.
+#------------------------------------------------------------------------------
+
 output "environment_name" {
   value = var.environment_name
 }

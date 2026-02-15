@@ -4,7 +4,8 @@
 #
 # date:       July-2023
 #
-# usage:      Terraform configuration
+# usage:      Smarter app infrastructure - Terraform providers for this
+#             Smarter environment.
 #------------------------------------------------------------------------------
 
 data "aws_eks_cluster" "eks" {

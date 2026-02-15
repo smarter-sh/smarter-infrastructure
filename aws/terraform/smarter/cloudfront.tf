@@ -1,3 +1,12 @@
+#------------------------------------------------------------------------------
+# written by: Lawrence McDaniel
+#             https://lawrencemcdaniel.com/
+#
+# date:       July-2023
+#
+# usage:      Smarter app infrastructure - CDN for static assets, and SSL/TLS
+#             certs for Cloudfront.
+#------------------------------------------------------------------------------
 
 # create an environment-specific cloudfront distribution
 

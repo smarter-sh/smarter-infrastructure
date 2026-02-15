@@ -2,9 +2,11 @@
 # written by: Lawrence McDaniel
 #             https://lawrencemcdaniel.com/
 #
-# date:   feb-2024
+# date:       July-2023
 #
-# usage:  AWS Elastic Container Registry (ECR)
+# usage:      Smarter app infrastructure - ECR repository for container images
+#             built by the CI/CD pipeline. Only used when the deploying from
+#             source code as opposed to DockerHub.
 #------------------------------------------------------------------------------
 
 resource "aws_ecr_repository" "smarter" {

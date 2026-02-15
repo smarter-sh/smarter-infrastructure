@@ -1,3 +1,14 @@
+#------------------------------------------------------------------------------
+# written by: Lawrence McDaniel
+#             https://lawrencemcdaniel.com/
+#
+# date:       July-2023
+#
+# usage:      Smarter app infrastructure - create cert-manager certificate
+#             issuers for the platform and API domains. These issuers will be
+#             used to automatically manage TLS certificates for the
+#             respective domains.
+#------------------------------------------------------------------------------
 
 locals {
   issuer_platform_manifest = yamldecode(templatefile("${path.module}/templates/issuer.yml.tpl", {

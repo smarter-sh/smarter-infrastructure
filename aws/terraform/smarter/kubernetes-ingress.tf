@@ -1,3 +1,21 @@
+#------------------------------------------------------------------------------
+# written by: Lawrence McDaniel
+#             https://lawrencemcdaniel.com/
+#
+# date:       July-2023
+#
+# usage:      Smarter app infrastructure - create Kubernetes ingress resources
+#             for the platform and API domains. These ingress resources will be
+#             used to route traffic to the Smarter app service.
+#------------------------------------------------------------------------------
+
+
+# The Kubernetes ingress needs to handshake with the Helm chart that deploys
+# The Smarter application pod(s) and service. See the Helm chart
+# at https://github.com/smarter-sh/smarter/blob/main/helm/charts/smarter/templates/deployment_app.yaml#L10
+#
+# More specifically, the 'service_name' of this template needs to match the deployment app's metadata.app
+# field.
 resource "kubernetes_manifest" "platform_ingress" {
   manifest = yamldecode(templatefile("${path.module}/templates/ingress.yaml.tpl", {
     cluster_issuer        = local.environment_platform_domain

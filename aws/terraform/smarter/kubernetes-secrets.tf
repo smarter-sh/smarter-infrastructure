@@ -1,3 +1,17 @@
+#------------------------------------------------------------------------------
+# written by: Lawrence McDaniel
+#             https://lawrencemcdaniel.com/
+#
+# date:       July-2023
+#
+# usage:      Smarter app infrastructure - create Kubernetes secrets for the
+#             Smarter app. These include:
+#             - MySQL root credentials
+#             - MySQL credentials for the Smarter app
+#             - Admin credentials for the Smarter app
+#             - Django secret key for the Smarter app
+#------------------------------------------------------------------------------
+
 #--------------------------------------------------------------
 # Deploy containerized application to an existing Kubernetes cluster
 #--------------------------------------------------------------

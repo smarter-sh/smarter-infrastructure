@@ -1,3 +1,14 @@
+#------------------------------------------------------------------------------
+# written by: Lawrence McDaniel
+#             https://lawrencemcdaniel.com/
+#
+# date:       July-2023
+#
+# usage:      Smarter app infrastructure - Terraform configuration
+#             for AWS Route53 DNS zones and DNS records
+#------------------------------------------------------------------------------
+
+
 # -----------------------------------------------------------------------------
 # From Kubernetes shared infrastructure, managed by openedx_devops repo
 # -----------------------------------------------------------------------------

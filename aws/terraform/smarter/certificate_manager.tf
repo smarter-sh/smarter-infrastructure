@@ -1,4 +1,14 @@
 #------------------------------------------------------------------------------
+# written by: Lawrence McDaniel
+#             https://lawrencemcdaniel.com/
+#
+# date:       July-2023
+#
+# usage:      Smarter app infrastructure - SSL/TLS certs for CLB and dynamic
+#             ingresses in the EKS cluster.
+#------------------------------------------------------------------------------
+
+#------------------------------------------------------------------------------
 # SSL/TLS certs issued in the AWS region for ALB
 #------------------------------------------------------------------------------
 provider "aws" {

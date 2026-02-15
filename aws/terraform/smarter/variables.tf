@@ -2,9 +2,9 @@
 # written by: Lawrence McDaniel
 #             https://lawrencemcdaniel.com/
 #
-# date:       sep-2023
+# date:       July-2023
 #
-# usage:      all Terraform variable declarations
+# usage:      Smarter app infrastructure - Terraform variable declarations
 #------------------------------------------------------------------------------
 variable "shared_resource_identifier" {
   description = "A common identifier/prefix for resources created for this demo"

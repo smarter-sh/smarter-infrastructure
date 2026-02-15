@@ -1,11 +1,11 @@
 #------------------------------------------------------------------------------
 # written by: Lawrence McDaniel
-#             https://lawrencemcdaniel.com
+#             https://lawrencemcdaniel.com/
 #
-# date:   apr-2023
+# date:       July-2023
 #
-# usage:  create an IAM user with a key-secret credential.
-#         attach a mail sending policy to this user account.
+# usage:      Smarter app infrastructure - create an IAM user with a key-secret
+#             credential. attach a mail sending policy to this user account.
 #------------------------------------------------------------------------------
 data "aws_iam_policy_document" "ses_sender" {
   statement {
