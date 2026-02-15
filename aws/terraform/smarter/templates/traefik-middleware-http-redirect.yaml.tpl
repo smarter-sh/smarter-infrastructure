@@ -17,7 +17,7 @@
 #   - The redirect is permanent (HTTP 301).
 #
 # For more information, see:
-#   https://doc.traefik.io/traefik/middlewares/redirectscheme/
+#   https://doc.traefik.io/traefik/reference/routing-configuration/http/middlewares/redirectscheme/
 ######################################################################
 apiVersion: traefik.io/v1alpha1
 kind: Middleware

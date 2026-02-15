@@ -19,7 +19,7 @@
 #   - Update the allowed origins, methods, and headers as needed.
 #
 # For more information, see:
-#   https://doc.traefik.io/traefik/middlewares/headers/
+#   https://doc.traefik.io/traefik/reference/routing-configuration/http/middlewares/headers/
 ######################################################################
 apiVersion: traefik.io/v1alpha1
 kind: Middleware

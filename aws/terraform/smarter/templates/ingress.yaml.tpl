@@ -22,7 +22,6 @@
 #
 # For more information, see:
 #   https://kubernetes.io/docs/concepts/services-networking/ingress/
-#   https://doc.traefik.io/traefik/
 #   https://cert-manager.io/docs/
 ######################################################################
 apiVersion: networking.k8s.io/v1
