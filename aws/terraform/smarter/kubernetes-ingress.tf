@@ -3,7 +3,7 @@ resource "kubernetes_manifest" "platform_ingress" {
     cluster_issuer        = local.environment_platform_domain
     domain                = local.environment_platform_domain
     environment_namespace = local.environment_namespace
-    service_name          = var.shared_resource_identifier
+    service_name          = "smarter"
     platform_domain       = "${var.platform_subdomain}.${var.root_domain}"
     api_domain            = var.api_domain
   }))
@@ -18,7 +18,7 @@ resource "kubernetes_manifest" "api_ingress" {
     cluster_issuer        = local.environment_api_domain
     domain                = local.environment_api_domain
     environment_namespace = local.environment_namespace
-    service_name          = var.shared_resource_identifier
+    service_name          = "smarter"
     platform_domain       = "${var.platform_subdomain}.${var.root_domain}"
     api_domain            = var.api_domain
   }))
