@@ -1,3 +1,26 @@
+######################################################################
+# Traefik Middleware: CORS Policy
+#
+# This YAML template defines a Traefik Middleware for handling
+# Cross-Origin Resource Sharing (CORS) headers in Kubernetes.
+#
+# Purpose:
+#   - Allow secure cross-origin requests from specified domains.
+#   - Configure allowed HTTP methods, headers, and credentials.
+#
+# Template Variables:
+#   - ${environment_namespace}: Namespace where the middleware is deployed.
+#   - ${platform_domain}: Main platform domain allowed for CORS.
+#   - ${api_domain}: API domain(s) allowed for CORS.
+#
+# Usage:
+#   - Reference this middleware in your Traefik IngressRoute definitions
+#     to enable CORS for your services.
+#   - Update the allowed origins, methods, and headers as needed.
+#
+# For more information, see:
+#   https://doc.traefik.io/traefik/middlewares/headers/
+######################################################################
 apiVersion: traefik.io/v1alpha1
 kind: Middleware
 metadata:
