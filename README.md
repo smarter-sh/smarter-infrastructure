@@ -36,6 +36,10 @@ AWS resources that this project fully manages include:
 - Simple Email Service configuration
 - Certificate Manager
 
+**Important**: You will need an AWS IAM key-pair with sufficient permissions to manage the complete lifecycle
+of all AWS resources referenced in this repo, as well as any further permissions that these resources need.
+For example, AWS EKS requires extensive EC2 permissions in order for it to operate.
+
 ## Client Software Prerequisites & Minimum Hardware Requiments
 
 ### Software
@@ -44,6 +48,7 @@ AWS resources that this project fully manages include:
 - [Terragrunt](https://terragrunt.gruntwork.io/)
 - [kubectl](https://kubernetes.io/docs/tasks/tools/)
 - [aws command-line interface](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html)
+
 
 *For developers who contribute to this project*:
 
