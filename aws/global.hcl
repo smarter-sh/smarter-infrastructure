@@ -27,7 +27,7 @@ locals {
     platform_name              = "smarter"
     api_domain                 = "api.${local.root_domain}"
     platform_subdomain         = get_env("PLATFORM_SUBDOMAIN", "platform")
-    mysql_host                 = "mysql.service.lawrencemcdaniel.com"
+    mysql_host                 = "smarter-mariadb"
     mysql_port                 = "3306"
     cluster_name               = "${local.platform_name}-${local.shared_resource_identifier}-${local.platform_region}-${local.unique_id}"
     tags = {
