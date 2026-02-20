@@ -28,7 +28,7 @@
 apiVersion: cert-manager.io/v1
 kind: ClusterIssuer
 metadata:
-  name: ${domain}
+  name: ${domain_tls}
 spec:
   acme:
     # The ACME server URL for Let's Encrypt production environment.
@@ -39,7 +39,7 @@ spec:
     email: no-reply@${root_domain}
     # Name of a Secret resource that will store the ACME account's private key.
     privateKeySecretRef:
-      name: ${domain}_tls
+      name: ${domain_tls}
     # ACME challenge solvers configuration.
     solvers:
       - dns01:
