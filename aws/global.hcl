@@ -25,7 +25,7 @@ locals {
     platform_region            = "ca"
     shared_resource_identifier = "ubc"
     platform_name              = "smarter"
-    api_domain                 = "api.${local.root_domain}"
+    api_domain                 = "api.${local.shared_resource_identifier}.${local.root_domain}"
     platform_subdomain         = get_env("PLATFORM_SUBDOMAIN", "platform")
     mysql_host                 = "smarter-mariadb"
     mysql_port                 = "3306"

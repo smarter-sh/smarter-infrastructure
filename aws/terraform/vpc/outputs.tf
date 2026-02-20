@@ -31,20 +31,6 @@ output "services_subdomain_ns_fqdn" {
   value       = aws_route53_record.services_subdomain_ns.fqdn
 }
 
-output "api_domain_zone_id" {
-  description = "The zone ID of the API subdomain"
-  value       = aws_route53_zone.api_domain.zone_id
-}
-
-output "api_domain_name" {
-  description = "The name of the API subdomain zone"
-  value       = aws_route53_zone.api_domain.name
-}
-
-output "api_domain_name_servers" {
-  description = "The name servers for the API subdomain"
-  value       = aws_route53_zone.api_domain.name_servers
-}
 
 
 output "vpc_id" {

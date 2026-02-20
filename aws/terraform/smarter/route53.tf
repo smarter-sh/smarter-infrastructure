@@ -28,11 +28,6 @@ data "aws_route53_zone" "root_domain" {
   name = var.root_domain
 }
 
-data "aws_route53_zone" "api_domain" {
-  name = var.api_domain
-}
-
-
 # -----------------------------------------------------------------------------
 # marketing site DNS A record
 # -----------------------------------------------------------------------------
@@ -76,7 +71,7 @@ resource "aws_route53_zone" "environment_api_domain" {
 }
 
 resource "aws_route53_record" "environment_api_domain_ns" {
-  zone_id = data.aws_route53_zone.api_domain.zone_id
+  zone_id = aws_route53_zone.environment_platform_domain.zone_id
   name    = local.environment_api_domain
   type    = "NS"
   ttl     = "300"
