@@ -16,6 +16,7 @@ locals {
   environment_prefix = var.environment == "prod" ? "" : "${var.environment}."
   environment_platform_domain = "${local.environment_prefix}${var.platform_subdomain}.${var.root_domain}"
   environment_api_domain      = "${local.environment_prefix}${var.api_domain}"
+  s3_reactjs_bucket_name        = "reactjs.${local.environment_prefix}${local.environment_marketing_domain}"
 
   ecr_repository_name           = local.environment_namespace
   ecr_repository_image          = "${var.aws_account_id}.dkr.ecr.${var.aws_region}.amazonaws.com/${local.ecr_repository_name}:latest"
@@ -24,7 +25,6 @@ locals {
   mysql_username                = local.mysql_database
 
   s3_bucket_name                = "${local.environment}.${var.platform_subdomain}.${var.root_domain}"
-  s3_reactjs_bucket_name        = "reactjs.${local.environment_marketing_domain}"
 
   tags = merge(
     var.tags,

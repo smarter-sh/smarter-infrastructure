@@ -29,6 +29,7 @@ locals {
     hosted_zone_id = aws_route53_zone.environment_api_domain.zone_id
   }))
 }
+
 resource "kubernetes_manifest" "issuer_platform" {
   manifest = local.issuer_platform_manifest
 
