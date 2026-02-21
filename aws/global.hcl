@@ -23,10 +23,11 @@ locals {
     cost_code                  = get_env("COST_CODE", "smarter")
 
     platform_region            = "ca"
-    shared_resource_identifier = "ubc"
     platform_name              = "smarter"
-    api_domain                 = "api.${local.shared_resource_identifier}.${local.root_domain}"
     platform_subdomain         = get_env("PLATFORM_SUBDOMAIN", "platform")
+    shared_resource_identifier = local.platform_subdomain
+    platform_domain            = "${local.platform_subdomain}.${local.root_domain}"
+    platform_api_domain        = "api.${local.platform_subdomain}.${local.root_domain}"
     mysql_host                 = "smarter-mariadb"
     mysql_port                 = "3306"
     cluster_name               = "${local.platform_name}-${local.shared_resource_identifier}-${local.platform_region}-${local.unique_id}"
@@ -64,5 +65,5 @@ inputs = {
     mysql_root_password        = local.mysql_root_password
     mysql_host                 = local.mysql_host
     mysql_port                 = local.mysql_port
-    api_domain                 = local.api_domain
+    platform_api_domain                 = local.platform_api_domain
 }

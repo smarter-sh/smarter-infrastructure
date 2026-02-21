@@ -82,7 +82,7 @@ variable "services_subdomain" {
   type = string
 }
 
-variable "api_domain" {
+variable "platform_api_domain" {
   type = string
 }
 

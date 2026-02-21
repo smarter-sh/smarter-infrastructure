@@ -14,8 +14,12 @@ locals {
   environment_marketing_domain  = "${var.root_domain}"
 
   environment_prefix = var.environment == "prod" ? "" : "${var.environment}."
-  environment_platform_domain = "${local.environment_prefix}${var.platform_subdomain}.${var.root_domain}"
-  environment_api_domain      = "${local.environment_prefix}${var.api_domain}"
+  environment_platform_domain   = "${local.environment_prefix}${var.platform_domain}"
+                                # alpha.platform.example.com
+
+  environment_api_domain        = "${local.environment_prefix}${var.platform_api_domain}"
+                                #  alpha.api.platform.example.com
+
   s3_reactjs_bucket_name        = "reactjs.${local.environment_prefix}${local.environment_marketing_domain}"
 
   ecr_repository_name           = local.environment_namespace

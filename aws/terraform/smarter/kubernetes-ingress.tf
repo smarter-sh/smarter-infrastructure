@@ -23,7 +23,7 @@ resource "kubernetes_manifest" "platform_ingress" {
     environment_namespace = local.environment_namespace
     service_name          = "smarter"
     platform_domain       = "${var.platform_subdomain}.${var.root_domain}"
-    api_domain            = var.api_domain
+    platform_api_domain            = var.platform_api_domain
   }))
 
   depends_on = [
@@ -38,7 +38,7 @@ resource "kubernetes_manifest" "api_ingress" {
     environment_namespace = local.environment_namespace
     service_name          = "smarter"
     platform_domain       = "${var.platform_subdomain}.${var.root_domain}"
-    api_domain            = var.api_domain
+    platform_api_domain            = var.platform_api_domain
   }))
 
   depends_on = [
@@ -50,7 +50,7 @@ resource "kubernetes_manifest" "traefik-middleware-cors" {
   manifest = yamldecode(templatefile("${path.module}/templates/traefik-middleware-cors.yaml.tpl", {
     environment_namespace = local.environment_namespace
     platform_domain       = local.environment_platform_domain
-    api_domain            = local.environment_api_domain
+    platform_api_domain            = local.environment_api_domain
   }))
 
   depends_on = [
@@ -62,7 +62,7 @@ resource "kubernetes_manifest" "traefik-middleware-http-redirect" {
   manifest = yamldecode(templatefile("${path.module}/templates/traefik-middleware-http-redirect.yaml.tpl", {
     environment_namespace = local.environment_namespace
     platform_domain       = local.environment_platform_domain
-    api_domain            = local.environment_api_domain
+    platform_api_domain            = local.environment_api_domain
   }))
 
   depends_on = [

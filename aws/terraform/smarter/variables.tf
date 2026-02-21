@@ -40,10 +40,16 @@ variable "platform_subdomain" {
   default     = "alpha"
 }
 
-variable "api_domain" {
+variable "platform_domain"{
   description = "a valid Internet domain name which you directly control using AWS Route53 in this account"
   type        = string
-  default     = "alpha"
+  default     = "platform.smarter.sh"
+}
+
+variable "platform_api_domain" {
+  description = "a valid Internet domain name which you directly control using AWS Route53 in this account"
+  type        = string
+  default     = "api.platform.smarter.sh"
 }
 
 variable "environment" {

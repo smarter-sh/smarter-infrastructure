@@ -11,7 +11,7 @@
 # Template Variables:
 #   - ${environment_namespace}: Namespace where the middleware is deployed.
 #   - ${platform_domain}: Main platform domain allowed for CORS.
-#   - ${api_domain}: API domain(s) allowed for CORS.
+#   - ${platform_api_domain}: API domain(s) allowed for CORS.
 #
 # Usage:
 #   - Reference this middleware in your Traefik IngressRoute definitions
@@ -30,11 +30,11 @@ spec:
   headers:
     accessControlAllowOriginList:
       - "https://${platform_domain}"
-      - "https://${api_domain}"
-      - "https://*.${api_domain}"
+      - "https://${platform_api_domain}"
+      - "https://*.${platform_api_domain}"
       - "http://${platform_domain}"
-      - "http://${api_domain}"
-      - "http://*.${api_domain}"
+      - "http://${platform_api_domain}"
+      - "http://*.${platform_api_domain}"
     accessControlAllowMethods:
       - PUT
       - GET

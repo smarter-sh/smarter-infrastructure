@@ -63,7 +63,7 @@ resource "aws_route53_record" "environment_platform_domain" {
 }
 
 # -----------------------------------------------------------------------------
-# environment Api Domain: alpha.api.smarter.sh, beta.api.smarter.sh, etc.
+# environment Api Domain: api.smarter.sh, alpha.api.smarter.sh, beta.api.smarter.sh, etc.
 # -----------------------------------------------------------------------------
 resource "aws_route53_zone" "environment_api_domain" {
   name = local.environment_api_domain
@@ -71,7 +71,7 @@ resource "aws_route53_zone" "environment_api_domain" {
 }
 
 resource "aws_route53_record" "environment_api_domain_ns" {
-  zone_id = aws_route53_zone.environment_platform_domain.zone_id
+  zone_id = data.aws_route53_zone.root_domain.zone_id
   name    = local.environment_api_domain
   type    = "NS"
   ttl     = "300"
