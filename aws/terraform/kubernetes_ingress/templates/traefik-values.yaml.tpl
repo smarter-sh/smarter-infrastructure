@@ -18,3 +18,6 @@ ports:
     forwardedHeaders:
       trustedIPs:
         - "0.0.0.0"
+service:
+  spec:
+    externalTrafficPolicy: Local
