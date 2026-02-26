@@ -22,8 +22,6 @@ locals {
   environment_api_domain        = var.platform_subdomain != "local" ? "${local.environment_prefix}${var.platform_api_domain}" : var.platform_api_domain
                                 #  alpha.api.platform.example.com
 
-  s3_reactjs_bucket_name        = "reactjs.${local.environment_prefix}${local.environment_marketing_domain}"
-
   ecr_repository_name           = var.platform_subdomain != "local" ? local.environment_namespace : "${var.platform_name}-${var.platform_subdomain}"
   ecr_repository_image          = "${var.aws_account_id}.dkr.ecr.${var.aws_region}.amazonaws.com/${local.ecr_repository_name}:latest"
 
