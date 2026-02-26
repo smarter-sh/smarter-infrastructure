@@ -34,6 +34,11 @@ variable "root_domain" {
   default     = "smarter.sh"
 }
 
+variable "platform_name" {
+  description = "the name of the platform (e.g. smarter)"
+  type        = string
+  default     = "smarter"
+}
 variable "platform_subdomain" {
   description = "a valid Internet domain name which you directly control using AWS Route53 in this account"
   type        = string

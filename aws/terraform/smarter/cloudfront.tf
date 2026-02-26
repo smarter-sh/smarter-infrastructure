@@ -56,7 +56,7 @@ module "cdn_environment_platform_domain" {
   comment             = "Smarter CDN ${var.environment_name}"
   enabled             = true
   is_ipv6_enabled     = true
-  price_class         = "PriceClass_All"
+  price_class         = "PriceClass_100" # cheapest option: Serves content from only the US and Europe.
   retain_on_delete    = false
   wait_for_deployment = false
 

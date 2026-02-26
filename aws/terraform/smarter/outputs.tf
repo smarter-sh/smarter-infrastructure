@@ -75,22 +75,18 @@ output "issuer_api_manifest" {
 
 
 
-output "a_root_domain" {
-    value = var.root_domain
-}
-
-output "a_domain" {
+output "domain" {
     value = local.environment_platform_domain
 }
 
-output "a_namespace" {
+output "namespace" {
     value = local.environment_namespace
 }
 
-output "a_aws_region" {
+output "aws_region" {
     value = var.aws_region
 }
 
-output "a_hosted_zone_id" {
+output "hosted_zone_id" {
     value = aws_route53_zone.environment_platform_domain.zone_id
 }
