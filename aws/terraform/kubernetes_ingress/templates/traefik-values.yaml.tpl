@@ -21,3 +21,4 @@ ports:
 service:
   spec:
     externalTrafficPolicy: Local
+    sessionAffinity: ClientIP
