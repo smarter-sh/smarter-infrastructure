@@ -47,7 +47,7 @@ resource "aws_route53_record" "environment_platform_domain_ns" {
   zone_id = data.aws_route53_zone.root_domain.zone_id
   name    = local.environment_platform_domain
   type    = "NS"
-  ttl     = "300"
+  ttl     = "3600"
   records = aws_route53_zone.environment_platform_domain.name_servers
 }
 
@@ -74,7 +74,7 @@ resource "aws_route53_record" "environment_api_domain_ns" {
   zone_id = data.aws_route53_zone.root_domain.zone_id
   name    = local.environment_api_domain
   type    = "NS"
-  ttl     = "300"
+  ttl     = "3600"
   records = aws_route53_zone.environment_api_domain.name_servers
 }
 

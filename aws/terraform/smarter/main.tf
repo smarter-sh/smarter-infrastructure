@@ -16,7 +16,7 @@ locals {
   environment_prefix = (var.environment == "prod" && var.platform_subdomain != "local") ? "" : (var.platform_subdomain != "local" ? "${var.environment}." : "${var.platform_subdomain}.")
 
 
-  environment_platform_domain   = var.platform_domain
+  environment_platform_domain   = var.platform_subdomain != "local" ? "${local.environment_prefix}${var.platform_domain}" : var.platform_domain
                                 # alpha.platform.example.com
 
   environment_api_domain        = var.platform_subdomain != "local" ? "${local.environment_prefix}${var.platform_api_domain}" : var.platform_api_domain
