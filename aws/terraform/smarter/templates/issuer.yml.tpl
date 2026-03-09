@@ -10,7 +10,6 @@
 #     resources using Let's Encrypt and cert-manager.
 #
 # Template Variables:
-#   - ${domain}: Name for the ClusterIssuer and related secrets.
 #   - ${root_domain}: Email domain for ACME registration.
 #   - ${aws_region}: AWS region for Route53 DNS challenge.
 #   - ${hosted_zone_id}: Route53 Hosted Zone ID for DNS-01 challenge.
@@ -28,7 +27,7 @@
 apiVersion: cert-manager.io/v1
 kind: ClusterIssuer
 metadata:
-  name: ${domain_tls}
+  name: ${target_domain}
 spec:
   acme:
     # The ACME server URL for Let's Encrypt production environment.
@@ -39,11 +38,11 @@ spec:
     email: no-reply@${root_domain}
     # Name of a Secret resource that will store the ACME account's private key.
     privateKeySecretRef:
-      name: ${domain_tls}
+      name: ${target_domain}
     # ACME challenge solvers configuration.
     solvers:
-      - dns01:
-          # hosted Zone ID for for the environment domain.
-          route53:
-            region: ${aws_region}
-            hostedZoneID: ${hosted_zone_id}
+    - dns01:
+        # hosted Zone ID for for the environment domain.
+        route53:
+          region: ${aws_region}
+          hostedZoneID: ${hosted_zone_id}

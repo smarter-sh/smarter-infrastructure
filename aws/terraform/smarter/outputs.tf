@@ -65,12 +65,6 @@ output "issuer_platform_manifest" {
   value = local.issuer_platform_manifest
 }
 
-output "issuer_api_manifest" {
-  value = local.issuer_api_manifest
-}
-
-
-
 output "domain" {
     value = local.environment_platform_domain
 }
