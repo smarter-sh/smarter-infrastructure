@@ -27,9 +27,12 @@ locals {
   docker_username = lookup(local.env_vars, "DOCKER_USERNAME", "")
   docker_pat      = lookup(local.env_vars, "DOCKER_PAT", "")
 
+  autoscaler_role = "${var.cluster_name}-cluster-autoscaler"
+  cluster_autoscaler_role_arn = module.cluster_autoscaler_irsa_role.iam_role_arn
   templatefile_cluster_autoscaler = templatefile("${path.module}/config/cluster-autoscaler.yaml.tpl", {
     cluster_name  = var.cluster_name
     region = data.aws_region.current.id
+    autoscaler_role_arn = local.cluster_autoscaler_role_arn
   })
 
 
@@ -195,9 +198,6 @@ EOF
         AmazonEKS_CNI_Policy              = "arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy"
         AmazonEC2ContainerRegistryReadOnly = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
 
-        # Required by Karpenter
-        AmazonSSMManagedInstanceCore = "arn:${local.partition}:iam::aws:policy/AmazonSSMManagedInstanceCore"
-
         # Required by EBS CSI Add-on
         AmazonEBSCSIDriverPolicy = data.aws_iam_policy.AmazonEBSCSIDriverPolicy.arn
 
@@ -222,9 +222,6 @@ EOF
       }
       tags = merge(
         local.tags,
-        # Tag node group resources for Karpenter auto-discovery
-        # NOTE - if creating multiple security groups with this module, only tag the
-        # security group that Karpenter should utilize with the following tag
         {
           Name = "eks-${var.shared_resource_identifier}-smarter"
           "k8s.io/cluster-autoscaler/enabled"             = "true"
@@ -254,6 +251,51 @@ EOF
 #==============================================================================
 #                             SUPPORTING RESOURCES
 #==============================================================================
+resource "aws_iam_policy" "cluster_autoscaler" {
+  name = "cluster-autoscaler"
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "autoscaling:SetDesiredCapacity",
+          "autoscaling:TerminateInstanceInAutoScalingGroup"
+        ]
+        Resource = "*"
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          "autoscaling:DescribeAutoScalingGroups",
+          "autoscaling:DescribeAutoScalingInstances",
+          "autoscaling:DescribeTags",
+          "ec2:DescribeLaunchTemplateVersions"
+        ]
+        Resource = "*"
+      }
+    ]
+  })
+}
+module "cluster_autoscaler_irsa_role" {
+  source  = "terraform-aws-modules/iam/aws//modules/iam-role-for-service-accounts-eks"
+  version = "5.28.0"
+
+  role_name = local.autoscaler_role
+  cluster_autoscaler_cluster_names = [var.cluster_name]
+  attach_cluster_autoscaler_policy = true
+
+  oidc_providers = {
+    main = {
+      provider_arn               = module.eks.oidc_provider_arn
+      namespace_service_accounts = ["kube-system:cluster-autoscaler"]
+    }
+  }
+
+  tags = local.tags
+}
+
 resource "helm_release" "cluster_autoscaler" {
   name       = "cluster-autoscaler"
   repository = "https://kubernetes.github.io/autoscaler"
