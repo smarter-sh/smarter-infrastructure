@@ -238,6 +238,25 @@ EOF
       desired_size      = 3
       instance_types    = var.eks_node_group_instance_types
       subnet_ids        = [var.private_subnets[0]]
+
+      node_repair_config = {
+        enabled = true
+        update_config = {
+          max_unavailable_percentage = 33
+        }
+      }
+
+      block_device_mappings = {
+        xvda = {
+          device_name = "/dev/xvda"
+          ebs = {
+            volume_type           = "gp3"
+            volume_size           = 75
+            delete_on_termination = true
+          }
+        }
+      }
+
       labels = {
         node-group = "wordpress"
       }
