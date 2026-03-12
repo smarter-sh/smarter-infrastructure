@@ -27,6 +27,12 @@ locals {
   docker_username = lookup(local.env_vars, "DOCKER_USERNAME", "")
   docker_pat      = lookup(local.env_vars, "DOCKER_PAT", "")
 
+  templatefile_cluster_autoscaler = templatefile("${path.module}/config/cluster-autoscaler.yaml.tpl", {
+    cluster_name  = var.cluster_name
+    region = data.aws_region.current.id
+  })
+
+
   # Used by Karpenter config to determine correct partition (i.e. - `aws`, `aws-gov`, `aws-cn`, etc.)
   partition = data.aws_partition.current.partition
   tags = var.tags
@@ -216,7 +222,11 @@ EOF
         # Tag node group resources for Karpenter auto-discovery
         # NOTE - if creating multiple security groups with this module, only tag the
         # security group that Karpenter should utilize with the following tag
-        { Name = "eks-${var.shared_resource_identifier}-smarter" },
+        {
+          Name = "eks-${var.shared_resource_identifier}-smarter"
+          "k8s.io/cluster-autoscaler/enabled"             = "true"
+          "k8s.io/cluster-autoscaler/${var.cluster_name}" = "owned"
+        },
       )
     }
   }
@@ -226,6 +236,17 @@ EOF
 #==============================================================================
 #                             SUPPORTING RESOURCES
 #==============================================================================
+resource "helm_release" "cluster_autoscaler" {
+  name       = "cluster-autoscaler"
+  repository = "https://kubernetes.github.io/autoscaler"
+  chart      = "cluster-autoscaler"
+
+  namespace = "kube-system"
+  values = [
+    local.templatefile_cluster_autoscaler
+  ]
+}
+
 
 #==============================================================================
 # AWS ECR Pull-Through Cache Policy
