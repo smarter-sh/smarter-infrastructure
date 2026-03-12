@@ -264,8 +264,6 @@ EOF
         local.tags,
         {
           Name = "eks-${var.shared_resource_identifier}-wordpress"
-          "k8s.io/cluster-autoscaler/enabled"             = "true"
-          "k8s.io/cluster-autoscaler/${var.cluster_name}" = "owned"
         },
       )
     }
