@@ -122,6 +122,30 @@ module "eks" {
   }
 
   node_security_group_additional_rules = {
+    ingress_smarter_8000 = {
+      description = "Allow Smarter app/worker/beat traffic on port 8000"
+      protocol    = "tcp"
+      from_port   = 8000
+      to_port     = 8000
+      type        = "ingress"
+      cidr_blocks = ["192.168.0.0/20"] # anywhere inside the VPC can talk to nodes on this port
+    }
+    cert_manager_webhook = {
+      description = "Allow cert-manager webhook traffic"
+      protocol    = "tcp"
+      from_port   = 9402
+      to_port     = 9443
+      type        = "ingress"
+      cidr_blocks = ["192.168.0.0/20"] # anywhere inside the VPC can talk to nodes on this port
+    }
+    aws_cluster_autoscaler = {
+      description = "Allow Cluster Autoscaler traffic"
+      protocol    = "tcp"
+      from_port   = 8085
+      to_port     = 10250
+      type        = "ingress"
+      cidr_blocks = ["192.168.0.0/20"] # anywhere inside the VPC can talk to nodes on this port
+    }
     ingress_node_to_node = {
       description = "Node-to-node traffic"
       protocol    = "tcp"
