@@ -50,6 +50,7 @@ inputs = merge(
   local.stack_vars.locals,
   local.global_vars.locals,
  {
+  aws_region         = local.aws_region
   name               = "${local.resource_name}"
   cidr               = "192.168.0.0/20"
   azs                = ["${local.aws_region}a", "${local.aws_region}b", "${local.aws_region}d"]

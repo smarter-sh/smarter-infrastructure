@@ -46,3 +46,67 @@ module "vpc" {
 
   tags = local.tags
 }
+
+# -----------------------------------------------------------------------------
+# create VPC endpoints for ECR and STS so that our backend resources can access
+# these services without going through the internet.
+#
+# see https://aws.amazon.com/es/blogs/containers/using-vpc-endpoint-policies-to-control-amazon-ecr-access/
+# for more info on ECR endpoints.
+#
+# usage:
+# $ aws ssm start-session --target <instance-id>
+# $ aws eks update-kubeconfig --region <region> --name <cluster-name>
+# -----------------------------------------------------------------------------
+resource "aws_vpc_endpoint" "ecr_api" {
+  vpc_id            = module.vpc.vpc_id
+  service_name      = "com.amazonaws.${var.aws_region}.ecr.api"
+  vpc_endpoint_type = "Interface"
+  subnet_ids        = var.private_subnets
+}
+
+resource "aws_vpc_endpoint" "ecr_dkr" {
+  vpc_id            = module.vpc.vpc_id
+  service_name      = "com.amazonaws.${var.aws_region}.ecr.dkr"
+  vpc_endpoint_type = "Interface"
+  subnet_ids        = var.private_subnets
+}
+
+resource "aws_vpc_endpoint" "sts" {
+  vpc_id            = module.vpc.vpc_id
+  service_name      = "com.amazonaws.${var.aws_region}.sts"
+  vpc_endpoint_type = "Interface"
+  subnet_ids        = var.private_subnets
+}
+
+resource "aws_instance" "bastion" {
+  ami           = data.aws_ami.amazon_linux.id
+  instance_type = "t3.micro"
+  subnet_id     = var.private_subnets[0]
+
+  iam_instance_profile = aws_iam_instance_profile.ssm.name
+
+  vpc_security_group_ids = [aws_security_group.admin.id]
+}
+
+resource "aws_iam_role" "ssm" {
+  name = "ssm-role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect = "Allow"
+      Principal = { Service = "ec2.amazonaws.com" }
+      Action = "sts:AssumeRole"
+    }]
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "ssm" {
+  role       = aws_iam_role.ssm.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
+}
+
+resource "aws_iam_instance_profile" "ssm" {
+  role = aws_iam_role.ssm.name
+}
