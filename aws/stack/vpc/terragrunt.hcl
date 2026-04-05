@@ -12,14 +12,15 @@ locals {
   global_vars = read_terragrunt_config(find_in_parent_folders("global.hcl"))
 
   # Extract out common variables for reuse
-  root_domain        = local.global_vars.locals.root_domain
-  cluster_name       = local.global_vars.locals.cluster_name
-  services_subdomain = local.global_vars.locals.services_subdomain
-  platform_region    = local.global_vars.locals.platform_region
-  aws_region         = local.global_vars.locals.aws_region
-  stack_name         = local.stack_vars.locals.stack_name
-  namespace          = local.stack_vars.locals.stack_name
-  resource_name      = local.stack_vars.locals.stack_name
+  bastion_public_key_path = local.global_vars.locals.bastion_public_key_path
+  root_domain             = local.global_vars.locals.root_domain
+  cluster_name            = local.global_vars.locals.cluster_name
+  services_subdomain      = local.global_vars.locals.services_subdomain
+  platform_region         = local.global_vars.locals.platform_region
+  aws_region              = local.global_vars.locals.aws_region
+  stack_name              = local.stack_vars.locals.stack_name
+  namespace               = local.stack_vars.locals.stack_name
+  resource_name           = local.stack_vars.locals.stack_name
 
   tags = merge(
     local.stack_vars.locals.tags,
@@ -50,10 +51,11 @@ inputs = merge(
   local.stack_vars.locals,
   local.global_vars.locals,
  {
-  aws_region         = local.aws_region
-  name               = "${local.resource_name}"
-  cidr               = "192.168.0.0/20"
-  azs                = ["${local.aws_region}a", "${local.aws_region}b", "${local.aws_region}d"]
+  bastion_public_key_path = local.bastion_public_key_path
+  aws_region              = local.aws_region
+  name                    = "${local.resource_name}"
+  cidr                    = "192.168.0.0/20"
+  azs                     = ["${local.aws_region}a", "${local.aws_region}b", "${local.aws_region}d"]
 
   database_subnets    = ["192.168.1.0/24", "192.168.2.0/24"]
   elasticache_subnets = ["192.168.3.0/24", "192.168.4.0/24"]

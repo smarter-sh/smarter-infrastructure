@@ -13,7 +13,7 @@
 #        see https://registry.terraform.io/terraform/terraform-aws-modules/vpc/aws/latest
 #------------------------------------------------------------------------------
 locals {
-  bastion_public_key_path = "/Users/mcdaniel/.ssh/lpm0073.pub"
+  bastion_public_key_path = var.bastion_public_key_path
   tags = merge(
     var.tags,
     {
