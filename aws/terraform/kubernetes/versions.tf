@@ -4,7 +4,7 @@
 #
 # date: Mar-2023
 #
-# usage: create an EKS cluster
+# usage: configure Terraform versions and providers for EKS cluster
 #------------------------------------------------------------------------------
 terraform {
   required_version = "~> 1.5"

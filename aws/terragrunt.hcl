@@ -3,6 +3,9 @@ locals {
 
   aws_region      = local.global_vars.locals.aws_region
   aws_account_id  = local.global_vars.locals.aws_account_id
+
+  # FIX NOTE: platform_name is unnecessarily being recast here as the customer name
+  # whereas the intention is for platform_name to equal 'smarter'
   platform_name   = local.global_vars.locals.shared_resource_identifier
 }
 
