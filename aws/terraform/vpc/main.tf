@@ -123,7 +123,15 @@ resource "aws_instance" "bastion" {
   iam_instance_profile = aws_iam_instance_profile.ssm.name
   vpc_security_group_ids = [aws_security_group.admin.id]
   tags = merge(local.tags, {"Name" = "bastion"})
+
+  root_block_device {
+    volume_size = 40
+    volume_type = "gp3"
+    delete_on_termination = true
+    tags = merge(local.tags, {"Name" = "bastion-root"})
+  }
 }
+
 
 resource "aws_eip" "bastion" {
   region = var.aws_region
