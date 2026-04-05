@@ -30,19 +30,22 @@ data "aws_vpc" "smarter_vpc" {
 }
 
 #------------------------------------------------------------------------------
-# Calico is an open-source networking and network security solution for containers, virtual machines,
-# and native host-based workloads. In Kubernetes, Calico provides a highly scalable networking backend
-# and implements Kubernetes NetworkPolicy for fine-grained, label-based security controls between pods.
+# Calico is an open-source networking and network security solution for
+# containers, virtual machines, and native host-based workloads. In Kubernetes,
+# Calico provides a highly scalable networking backend and implements Kubernetes
+# NetworkPolicy for fine-grained, label-based security controls between pods.
 #
 # Key features:
 # - Implements Kubernetes CNI (Container Network Interface) for pod networking
 # - Enforces network policies for traffic control and microsegmentation
 # - Supports both layer 3 (routing) and layer 2 (bridging) networking
 # - Provides network security, isolation, and visibility
-# - Can be used with or without BGP, and supports multiple cloud and on-prem environments
+# - Can be used with or without BGP, and supports multiple cloud and on-prem
+# environments
 #
-# In this configuration, Calico is deployed as the CNI provider to enable advanced network policy
-# enforcement and secure pod-to-pod communication within the Kubernetes cluster.
+# In this configuration, Calico is deployed as the CNI provider to enable
+# advanced network policy enforcement and secure pod-to-pod communication within
+# the Kubernetes cluster.
 #------------------------------------------------------------------------------
 resource "helm_release" "calico" {
   name       = "calico"
@@ -73,14 +76,14 @@ resource "helm_release" "calico" {
 
 
 #------------------------------------------------------------------------------
-# This network policy allows only authorized pods (those with the label
-# app.kubernetes.io/application-group = var.platform_name) aka "smarter"
-# to initiate TCP connections to MariaDB pods
-# on the database port (default 3306). All other ingress traffic to MariaDB pods is denied
-# by default via the default-deny policy (see below.)
+# This network policy allows only authorized pods to initiate TCP connections
+# to MariaDB pods on the database port (default 3306). All other ingress
+# traffic to MariaDB pods is denied by default via the default-deny
+# policy (see below).
 #
 # This ensures that only application group pods can access the MariaDB service,
-# improving security by preventing unauthorized pods from connecting to the database.
+# improving security by preventing unauthorized pods from connecting to
+# the database.
 #------------------------------------------------------------------------------
 resource "kubernetes_network_policy_v1" "smarter_mariadb_allow_backend" {
   metadata {
