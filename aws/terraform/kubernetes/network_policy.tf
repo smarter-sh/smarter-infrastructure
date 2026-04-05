@@ -75,6 +75,43 @@ resource "helm_release" "calico" {
 }
 
 
+# ------------------------------------------------------------------------------
+# Allows TCP ingress on port 8000 to application group pods.
+#
+# This network policy permits incoming TCP traffic from any source (0.0.0.0/0)
+# to all pods labeled with app.kubernetes.io/application-group = var.platform_name
+# on port 8000. Use this to expose services (such as HTTP APIs) running on port 8000
+# within the application group to external or internal clients.
+# ------------------------------------------------------------------------------
+resource "kubernetes_network_policy_v1" "smarter_application_group_ingress_8000" {
+  metadata {
+    name      = "smarter-application-group-ingress-8000"
+    namespace = var.namespace
+  }
+
+  spec {
+    pod_selector {
+      match_labels = {
+        "app.kubernetes.io/application-group" = var.platform_name
+      }
+    }
+
+    policy_types = ["Ingress"]
+
+    ingress {
+      from {
+        ip_block {
+          cidr = "0.0.0.0/0"
+        }
+      }
+      ports {
+        protocol = "TCP"
+        port     = 8000
+      }
+    }
+  }
+}
+
 #------------------------------------------------------------------------------
 # This network policy allows only authorized pods to initiate TCP connections
 # to MariaDB pods on the database port (default 3306). All other ingress
