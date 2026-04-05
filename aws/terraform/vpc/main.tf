@@ -13,6 +13,7 @@
 #        see https://registry.terraform.io/terraform/terraform-aws-modules/vpc/aws/latest
 #------------------------------------------------------------------------------
 locals {
+  bastion_public_key_path = "/Users/mcdaniel/.ssh/lpm0073.pub"
   tags = merge(
     var.tags,
     {
@@ -20,6 +21,16 @@ locals {
     }
   )
 
+}
+
+data "aws_ami" "amazon_linux" {
+  most_recent = true
+  owners      = ["amazon"]
+
+  filter {
+    name   = "name"
+    values = ["amzn2-ami-hvm-*-x86_64-gp2"]
+  }
 }
 
 
@@ -63,6 +74,7 @@ resource "aws_vpc_endpoint" "ecr_api" {
   service_name      = "com.amazonaws.${var.aws_region}.ecr.api"
   vpc_endpoint_type = "Interface"
   subnet_ids        = var.private_subnets
+  tags = local.tags
 }
 
 resource "aws_vpc_endpoint" "ecr_dkr" {
@@ -70,6 +82,7 @@ resource "aws_vpc_endpoint" "ecr_dkr" {
   service_name      = "com.amazonaws.${var.aws_region}.ecr.dkr"
   vpc_endpoint_type = "Interface"
   subnet_ids        = var.private_subnets
+  tags = local.tags
 }
 
 resource "aws_vpc_endpoint" "sts" {
@@ -77,16 +90,45 @@ resource "aws_vpc_endpoint" "sts" {
   service_name      = "com.amazonaws.${var.aws_region}.sts"
   vpc_endpoint_type = "Interface"
   subnet_ids        = var.private_subnets
+  tags = local.tags
 }
 
+resource "aws_security_group" "admin" {
+  name        = "${var.name}-admin-sg"
+  description = "Security group for bastion host"
+  vpc_id      = module.vpc.vpc_id
+
+  ingress {
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = local.tags
+}
+
+
+resource "aws_key_pair" "bastion" {
+  key_name   = "bastion"
+  public_key = file(local.bastion_public_key_path)
+
+  tags = local.tags
+}
 resource "aws_instance" "bastion" {
   ami           = data.aws_ami.amazon_linux.id
   instance_type = "t3.micro"
-  subnet_id     = var.private_subnets[0]
-
+  subnet_id     = var.public_subnets[0]
+  key_name      = "bastion"
   iam_instance_profile = aws_iam_instance_profile.ssm.name
-
   vpc_security_group_ids = [aws_security_group.admin.id]
+  tags = local.tags
+}
+
+resource "aws_eip" "bastion" {
+  region = var.aws_region
+  instance = aws_instance.bastion.id
+  tags = local.tags
 }
 
 resource "aws_iam_role" "ssm" {
@@ -100,6 +142,7 @@ resource "aws_iam_role" "ssm" {
       Action = "sts:AssumeRole"
     }]
   })
+  tags = local.tags
 }
 
 resource "aws_iam_role_policy_attachment" "ssm" {
@@ -109,4 +152,5 @@ resource "aws_iam_role_policy_attachment" "ssm" {
 
 resource "aws_iam_instance_profile" "ssm" {
   role = aws_iam_role.ssm.name
+  tags = local.tags
 }
