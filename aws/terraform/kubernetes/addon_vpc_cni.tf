@@ -4,6 +4,8 @@
 #
 # date: July-2025
 #
+# usage: setup AWS EKS VPC CNI addon with IRSA permissions
+#------------------------------------------------------------------------------
 data "aws_iam_policy" "AmazonEKS_CNI_Policy" {
   arn = "arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy"
 }

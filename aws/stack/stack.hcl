@@ -9,7 +9,8 @@
 #------------------------------------------------------------------------------
 locals {
   global_vars = read_terragrunt_config(find_in_parent_folders("global.hcl"))
-  stack_name = "${local.global_vars.locals.platform_name}-${local.global_vars.locals.shared_resource_identifier}-${local.global_vars.locals.platform_region}"
+  environment = "prod"
+  stack_name = "${local.global_vars.locals.platform_name}-${local.global_vars.locals.shared_resource_identifier}-${local.environment}"
   tags            = {}
 
   #----------------------------------------------------------------------------

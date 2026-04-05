@@ -18,7 +18,7 @@ locals {
   namespace                  = local.stack_vars.locals.stack_name
   cluster_name               = local.global_vars.locals.cluster_name
   root_domain                = local.global_vars.locals.root_domain
-  platform_name              = local.global_vars.locals.shared_resource_identifier
+  platform_name              = local.global_vars.locals.platform_name
   platform_region            = local.global_vars.locals.platform_region
   aws_account_id             = local.global_vars.locals.aws_account_id
   aws_region                 = local.global_vars.locals.aws_region
