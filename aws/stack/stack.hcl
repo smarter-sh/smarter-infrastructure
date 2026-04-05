@@ -21,7 +21,7 @@ locals {
   kubernetes_cluster_version = "1.35"
   eks_create_kms_key         = false
   eks_node_group_min_size    = 3
-  eks_node_group_max_size    = 10
+  eks_node_group_max_size    = 15
   # The smarter Docker container is built for both AMD64 and ARM64 architectures,
   # so we can use either type of instance. AMD64 is the more common of the two,
   # so this is our default.

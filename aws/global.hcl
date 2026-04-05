@@ -12,6 +12,7 @@ locals {
     ###############################################################################
     # AWS CLI parameters
     ###############################################################################
+    bastion_public_key_path    = get_env("BASTION_PUBLIC_KEY_PATH", "/Users/mcdaniel/.ssh/lpm0073.pub")
     iam_admin_user_arn         = get_env("IAM_ADMIN_USER_ARN", "SET-ME-IN-DOT-ENV")
     aws_account_id             = get_env("AWS_ACCOUNT_ID", "SET-ME-IN-DOT-ENV")
     aws_profile                = get_env("AWS_PROFILE", "default")
@@ -65,5 +66,6 @@ inputs = {
     mysql_root_password        = local.mysql_root_password
     mysql_host                 = local.mysql_host
     mysql_port                 = local.mysql_port
-    platform_api_domain                 = local.platform_api_domain
+    platform_api_domain        = local.platform_api_domain
+    bastion_public_key_path    = local.bastion_public_key_path
 }

@@ -18,6 +18,10 @@ variable "root_domain" {
   type = string
 }
 
+variable "platform_name" {
+  type = string
+}
+
 variable "namespace" {
   type = string
 }

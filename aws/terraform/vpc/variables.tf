@@ -6,6 +6,10 @@
 #
 # usage:  variables for vps module
 #------------------------------------------------------------------------------
+variable "bastion_public_key_path" {
+  description = "The path to the public key to use for the bastion host"
+  type        = string
+}
 variable "aws_region" {
   description = "The region in which the origin S3 bucket was created."
   type        = string

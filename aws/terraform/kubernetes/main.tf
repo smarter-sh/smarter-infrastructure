@@ -122,25 +122,71 @@ module "eks" {
   }
 
   node_security_group_additional_rules = {
-    ingress_self_all = {
-      description = "smarter: Node to node all ports/protocols"
-      protocol    = "-1"
-      from_port   = 0       # FIX NOTE: this is a security vulnerability.
-      to_port     = 0       # Ideally this should be narrowed to the IP address of the
-                            # nginx ingress controller's load balancer.
+    ingress_smarter_8000 = {
+      description = "Allow Smarter app/worker/beat traffic on port 8000"
+      protocol    = "tcp"
+      from_port   = 8000
+      to_port     = 8000
       type        = "ingress"
-      cidr_blocks = [
-        "172.16.0.0/12",
-        "192.168.0.0/16",
-      ]
+      cidr_blocks = ["192.168.0.0/20"] # anywhere inside the VPC can talk to nodes on this port
+    }
+    cert_manager_webhook = {
+      description = "Allow cert-manager webhook traffic"
+      protocol    = "tcp"
+      from_port   = 9402
+      to_port     = 9443
+      type        = "ingress"
+      cidr_blocks = ["192.168.0.0/20"] # anywhere inside the VPC can talk to nodes on this port
+    }
+    aws_cluster_autoscaler = {
+      description = "Allow Cluster Autoscaler traffic"
+      protocol    = "tcp"
+      from_port   = 8085
+      to_port     = 10250
+      type        = "ingress"
+      cidr_blocks = ["192.168.0.0/20"] # anywhere inside the VPC can talk to nodes on this port
+    }
+    ingress_node_to_node = {
+      description = "Node-to-node traffic"
+      protocol    = "tcp"
+      from_port   = 1025
+      to_port     = 65535
+      type        = "ingress"
+      self        = true
+    }
+
+    ingress_from_nlb = {
+      description = "Allow traffic from NLB"
+      type        = "ingress"
+      protocol    = "tcp"
+      from_port   = 80
+      to_port     = 443
+      cidr_blocks = ["192.168.0.0/20"]
     }
     port_8443 = {
       description = "smarter: open port 8443 to vpc"
-      protocol    = "-1"
+      protocol    = "tcp"
       from_port   = 8443
       to_port     = 8443
       type        = "ingress"
       self        = true
+    }
+    egress_https = {
+      description = "smarter: Node HTTPS egress"
+      protocol    = "tcp"
+      from_port   = 443
+      to_port     = 443
+      type        = "egress"
+      cidr_blocks = ["0.0.0.0/0"]
+    }
+
+    egress_dns = {
+      description = "smarter: Node DNS egress"
+      protocol    = "udp"
+      from_port   = 53
+      to_port     = 53
+      type        = "egress"
+      cidr_blocks = ["0.0.0.0/0"]
     }
     egress_all = {
       description      = "smarter: Node all egress"
