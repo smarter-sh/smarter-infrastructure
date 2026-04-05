@@ -73,7 +73,7 @@ resource "aws_vpc_endpoint" "ecr_api" {
   vpc_id            = module.vpc.vpc_id
   service_name      = "com.amazonaws.${var.aws_region}.ecr.api"
   vpc_endpoint_type = "Interface"
-  subnet_ids        = var.private_subnets
+  subnet_ids        = module.vpc.private_subnets
   tags = local.tags
 }
 
@@ -81,7 +81,7 @@ resource "aws_vpc_endpoint" "ecr_dkr" {
   vpc_id            = module.vpc.vpc_id
   service_name      = "com.amazonaws.${var.aws_region}.ecr.dkr"
   vpc_endpoint_type = "Interface"
-  subnet_ids        = var.private_subnets
+  subnet_ids        = module.vpc.private_subnets
   tags = local.tags
 }
 
@@ -89,7 +89,7 @@ resource "aws_vpc_endpoint" "sts" {
   vpc_id            = module.vpc.vpc_id
   service_name      = "com.amazonaws.${var.aws_region}.sts"
   vpc_endpoint_type = "Interface"
-  subnet_ids        = var.private_subnets
+  subnet_ids        = module.vpc.private_subnets
   tags = local.tags
 }
 
@@ -118,11 +118,11 @@ resource "aws_key_pair" "bastion" {
 resource "aws_instance" "bastion" {
   ami           = data.aws_ami.amazon_linux.id
   instance_type = "t3.micro"
-  subnet_id     = var.public_subnets[0]
+  subnet_id     = module.vpc.public_subnets[0]
   key_name      = "bastion"
   iam_instance_profile = aws_iam_instance_profile.ssm.name
   vpc_security_group_ids = [aws_security_group.admin.id]
-  tags = local.tags
+  tags = merge(local.tags, {"Name" = "bastion"})
 }
 
 resource "aws_eip" "bastion" {
