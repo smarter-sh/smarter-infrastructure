@@ -30,7 +30,7 @@ resource "helm_release" "calico" {
 }
 
 
-resource "kubernetes_network_policy" "smarter_mariadb_allow_backend" {
+resource "kubernetes_network_policy_v1" "smarter_mariadb_allow_backend" {
   metadata {
     name      = "mariadb-allow-backend"
     namespace = "default"
@@ -39,8 +39,8 @@ resource "kubernetes_network_policy" "smarter_mariadb_allow_backend" {
   spec {
     pod_selector {
       match_labels = {
-        app.kubernetes.io/name = "mariadb"
-        app.kubernetes.io/instance = var.platform_name
+        "app.kubernetes.io/name" = "mariadb"
+        "app.kubernetes.io/instance" = var.platform_name
       }
     }
 
@@ -50,7 +50,7 @@ resource "kubernetes_network_policy" "smarter_mariadb_allow_backend" {
     from {
       pod_selector {
         match_labels = {
-          app.kubernetes.io/application-group = var.platform_name
+          "app.kubernetes.io/application-group" = var.platform_name
         }
       }
     }
@@ -63,7 +63,7 @@ resource "kubernetes_network_policy" "smarter_mariadb_allow_backend" {
   }
 }
 
-resource "kubernetes_network_policy" "smarter_redis_allow_backend" {
+resource "kubernetes_network_policy_v1" "smarter_redis_allow_backend" {
   metadata {
     name      = "redis-allow-backend"
     namespace = "default"
@@ -72,9 +72,9 @@ resource "kubernetes_network_policy" "smarter_redis_allow_backend" {
   spec {
     pod_selector {
       match_labels = {
-        app.kubernetes.io/name     = "redis"
-        app.kubernetes.io/instance = var.platform_name
-        app.kubernetes.io/component = "master"
+        "app.kubernetes.io/name"     = "redis"
+        "app.kubernetes.io/instance" = var.platform_name
+        "app.kubernetes.io/component" = "master"
       }
     }
 
@@ -84,7 +84,7 @@ resource "kubernetes_network_policy" "smarter_redis_allow_backend" {
       from {
         pod_selector {
           match_labels = {
-            app.kubernetes.io/application-group = var.platform_name
+            "app.kubernetes.io/application-group" = var.platform_name
           }
         }
       }
@@ -97,7 +97,7 @@ resource "kubernetes_network_policy" "smarter_redis_allow_backend" {
   }
 }
 
-resource "kubernetes_network_policy" "smarter_default_deny_mariadb" {
+resource "kubernetes_network_policy_v1" "smarter_default_deny_mariadb" {
   metadata {
     name      = "default-deny-mariadb"
     namespace = "smarter-ubc-prod"
@@ -105,15 +105,15 @@ resource "kubernetes_network_policy" "smarter_default_deny_mariadb" {
   spec {
     pod_selector {
       match_labels = {
-        app.kubernetes.io/name = "mariadb"
-        app.kubernetes.io/instance = var.platform_name
+        "app.kubernetes.io/name" = "mariadb"
+        "app.kubernetes.io/instance" = var.platform_name
       }
     }
     policy_types = ["Ingress"]
   }
 }
 
-resource "kubernetes_network_policy" "smarter_default_deny_redis" {
+resource "kubernetes_network_policy_v1" "smarter_default_deny_redis" {
   metadata {
     name      = "default-deny-redis"
     namespace = "smarter-ubc-prod"
@@ -121,16 +121,16 @@ resource "kubernetes_network_policy" "smarter_default_deny_redis" {
   spec {
     pod_selector {
       match_labels = {
-        app.kubernetes.io/name = "redis"
-        app.kubernetes.io/instance = var.platform_name
-        app.kubernetes.io/component = "master"
+        "app.kubernetes.io/name" = "redis"
+        "app.kubernetes.io/instance" = var.platform_name
+        "app.kubernetes.io/component" = "master"
       }
     }
     policy_types = ["Ingress"]
   }
 }
 
-resource "kubernetes_network_policy" "smarter_default_deny_smarter_application_group" {
+resource "kubernetes_network_policy_v1" "smarter_default_deny_smarter_application_group" {
   metadata {
     name      = "default-deny-smarter-application-group"
     namespace = "smarter-ubc-prod"
@@ -138,7 +138,7 @@ resource "kubernetes_network_policy" "smarter_default_deny_smarter_application_g
   spec {
     pod_selector {
       match_labels = {
-        app.kubernetes.io/application-group = var.platform_name
+        "app.kubernetes.io/application-group" = var.platform_name
       }
     }
     policy_types = ["Ingress"]
@@ -146,7 +146,7 @@ resource "kubernetes_network_policy" "smarter_default_deny_smarter_application_g
 }
 
 
-resource "kubernetes_network_policy" "smarter_application_group_egress" {
+resource "kubernetes_network_policy_v1" "smarter_application_group_egress" {
   metadata {
     name      = "smarter-application-group-egress"
     namespace = "default"
@@ -155,7 +155,7 @@ resource "kubernetes_network_policy" "smarter_application_group_egress" {
   spec {
     pod_selector {
       match_labels = {
-        app.kubernetes.io/application-group = var.platform_name
+        "app.kubernetes.io/application-group" = var.platform_name
       }
     }
 
@@ -165,7 +165,7 @@ resource "kubernetes_network_policy" "smarter_application_group_egress" {
       to {
         pod_selector {
           match_labels = {
-            app.kubernetes.io/application-group = var.platform_name
+            "app.kubernetes.io/application-group" = var.platform_name
           }
         }
       }
@@ -179,7 +179,7 @@ resource "kubernetes_network_policy" "smarter_application_group_egress" {
       to {
         pod_selector {
           match_labels = {
-            app.kubernetes.io/application-group = var.platform_name
+            "app.kubernetes.io/application-group" = var.platform_name
           }
         }
       }
