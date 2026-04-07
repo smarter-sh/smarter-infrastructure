@@ -68,6 +68,109 @@ module "eks" {
    enabled = false
   }
 
+  node_security_group_enable_recommended_rules = false
+  node_security_group_additional_rules = {
+    # -------------------------------
+    # INGRESS
+    # -------------------------------
+    ingress_from_lb_https = {
+      description              = "Allow HTTPS from load balancer"
+      protocol                 = "tcp"
+      from_port                = 443
+      to_port                  = 443
+      type                     = "ingress"
+      cidr_blocks              = ["192.168.0.0/16"]
+    }
+
+    ingress_from_lb_http = {
+      description              = "Allow HTTP from load balancer"
+      protocol                 = "tcp"
+      from_port                = 80
+      to_port                  = 80
+      type                     = "ingress"
+      cidr_blocks              = ["192.168.0.0/16"]
+    }
+
+    egress_https = {
+      protocol    = "tcp"
+      from_port   = 443
+      to_port     = 443
+      type        = "egress"
+      cidr_blocks = ["0.0.0.0/0"]
+    }
+
+    egress_dns = {
+      protocol    = "udp"
+      from_port   = 53
+      to_port     = 53
+      type        = "egress"
+      cidr_blocks = ["0.0.0.0/0"]
+    }
+    egress_dns_tcp = {
+      description = "DNS TCP fallback"
+      protocol    = "tcp"
+      from_port   = 53
+      to_port     = 53
+      type        = "egress"
+      cidr_blocks = ["0.0.0.0/0"]
+    }
+
+  # -------------------------------
+  # EGRESS
+  # -------------------------------
+
+  # NTP (time sync — REQUIRED or TLS breaks)
+  egress_ntp = {
+    description = "NTP time sync"
+    protocol    = "udp"
+    from_port   = 123
+    to_port     = 123
+    type        = "egress"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress_smtp_submission = {
+    description = "SMTP submission (TLS)"
+    protocol    = "tcp"
+    from_port   = 587
+    to_port     = 587
+    type        = "egress"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress_smtp = {
+    description = "SMTP (legacy)"
+    protocol    = "tcp"
+    from_port   = 25
+    to_port     = 25
+    type        = "egress"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress_ephemeral = {
+  description = "Allow ephemeral response traffic"
+  protocol    = "tcp"
+  from_port   = 1024
+  to_port     = 65535
+  type        = "egress"
+  cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  # -------------------------------
+  # OPTIONAL (DEBUGGING / TEMP)
+  # -------------------------------
+
+  # egress_all_temp = {
+  #   description = "TEMP allow all egress (debug only)"
+  #   protocol    = "-1"
+  #   from_port   = 0
+  #   to_port     = 0
+  #   type        = "egress"
+  #   cidr_blocks = ["0.0.0.0/0"]
+  # }
+
+  }
+
   # NOTE:
   # KMS key management.
   # ---------------------------------------------------------------------------
