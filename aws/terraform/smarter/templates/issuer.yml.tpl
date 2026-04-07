@@ -29,9 +29,9 @@ kind: ClusterIssuer
 metadata:
   name: ${target_domain}
   labels:
-      app.kubernetes.io/application-group: ${ app_name }
-      app.kubernetes.io/name: ${ app_name }
-  spec:
+    app.kubernetes.io/application-group: ${ app_name }
+    app.kubernetes.io/name: ${ app_name }
+spec:
   acme:
     # The ACME server URL for Let's Encrypt production environment.
     # Use the staging server for testing to avoid rate limits:
