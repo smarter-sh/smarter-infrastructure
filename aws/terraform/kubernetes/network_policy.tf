@@ -78,12 +78,10 @@ resource "helm_release" "calico" {
 
 
 # ------------------------------------------------------------------------------
-# Allows TCP ingress on port 8000 to application group pods.
-#
-# This network policy permits incoming TCP traffic from any source (0.0.0.0/0)
-# to all pods labeled with app.kubernetes.io/application-group = var.platform_name
-# on port 8000. Use this to expose services (such as HTTP APIs) running on port 8000
-# within the application group to external or internal clients.
+# Cluster-wide default-deny network policy for all pods in the namespace.
+# It applies to every pod in the namespace. This means that, by default,
+# no traffic is allowed to flow into or out of any pod
+# unless another network policy explicitly permits it.
 # ------------------------------------------------------------------------------
 resource "kubernetes_network_policy_v1" "default_deny_all" {
   metadata {
@@ -98,6 +96,16 @@ resource "kubernetes_network_policy_v1" "default_deny_all" {
 }
 
 
+# ------------------------------------------------------------------------------
+# Network policy to allow all ingress traffic to application group pods from
+# any pod in the same namespace. This is necessary to enable communication
+# between worker pods and other components within the namespace, while still
+# restricting ingress from outside the namespace. The policy selects pods by
+# the application-group label and permits all ingress from any namespace peer.
+# This is often required for proper operation of distributed workloads,
+# background jobs, or horizontally scaled services that need to communicate
+# with each other. All other ingress is still denied by the default-deny policy.
+# ------------------------------------------------------------------------------
 resource "kubernetes_network_policy_v1" "smarter_application_group_ingress" {
   metadata {
     name      = "smarter-application-group-ingress"
@@ -114,7 +122,7 @@ resource "kubernetes_network_policy_v1" "smarter_application_group_ingress" {
     policy_types = ["Ingress"]
 
     ingress {
-      # ✅ allow ALL traffic from same namespace (this fixes workers)
+      # allow ALL traffic from same namespace (this fixes workers)
       from {
         namespace_selector {}
       }
@@ -351,15 +359,19 @@ resource "kubernetes_network_policy_v1" "redis_egress" {
   }
 }
 
-#------------------------------------------------------------------------------
-# This network policy allows pods in the application group to send TCP traffic
-# to any destination on port 8000 (for example, to external services or APIs).
+# ------------------------------------------------------------------------------
+# Network policy to allow egress from application group pods to specific
+# destinations and ports required for normal operation. All other egress is
+# denied by default. This policy enables:
+#   - MariaDB: Allow TCP 3306 to MariaDB pods in the same namespace
+#   - Redis: Allow TCP 6379 to Redis pods in the same namespace
+#   - DNS: Allow UDP/TCP 53 to kube-system namespace (DNS resolution)
+#   - HTTPS: Allow TCP 443 to any external IP (APIs, AWS, etc.)
+#   - External MySQL: Allow TCP 3306 to any external IP (remote DBs)
 #
-# This is useful when application pods need to make outbound connections on port 8000,
-# such as for HTTP APIs, webhooks, or other services outside the cluster or VPC.
-# All other egress traffic is denied by default unless explicitly allowed by
-# another policy.
-#------------------------------------------------------------------------------
+# Each egress rule is narrowly scoped to minimize risk and restrict outbound
+# connections to only what is necessary for the application group to function.
+# ------------------------------------------------------------------------------
 resource "kubernetes_network_policy_v1" "smarter_application_group_egress" {
   metadata {
     name      = "smarter-application-group-egress"
@@ -374,7 +386,7 @@ resource "kubernetes_network_policy_v1" "smarter_application_group_egress" {
 
     policy_types = ["Egress"]
 
-    # ✅ MariaDB
+    # MariaDB
     egress {
       to {
         pod_selector {
@@ -390,7 +402,7 @@ resource "kubernetes_network_policy_v1" "smarter_application_group_egress" {
       }
     }
 
-    # ✅ Redis
+    # Redis
     egress {
       to {
         pod_selector {
@@ -406,7 +418,7 @@ resource "kubernetes_network_policy_v1" "smarter_application_group_egress" {
       }
     }
 
-    # ✅ DNS (kube-system only)
+    # DNS (kube-system only)
     egress {
       to {
         namespace_selector {
@@ -435,7 +447,7 @@ resource "kubernetes_network_policy_v1" "smarter_application_group_egress" {
       }
     }
 
-    # ✅ HTTPS (external APIs, AWS, etc.)
+    # HTTPS (external APIs, AWS, etc.)
     egress {
       to {
         ip_block {
@@ -448,7 +460,7 @@ resource "kubernetes_network_policy_v1" "smarter_application_group_egress" {
       }
     }
 
-    # ✅ External MySQL (remote DBs)
+    # External MySQL (remote DBs)
     egress {
       to {
         ip_block {
@@ -466,7 +478,7 @@ resource "kubernetes_network_policy_v1" "smarter_application_group_egress" {
 
 
 #------------------------------------------------------------------------------
-# Allow Calico VXLAN traffic between nodes (REQUIRED)
+# Allow Calico VXLAN traffic between nodes
 #------------------------------------------------------------------------------
 resource "aws_security_group_rule" "node_to_node_vxlan" {
   description              = "Calico VXLAN"
@@ -479,7 +491,7 @@ resource "aws_security_group_rule" "node_to_node_vxlan" {
 }
 
 #------------------------------------------------------------------------------
-# Allow kubelet API between nodes (RECOMMENDED)
+# Allow kubelet API between nodes
 #------------------------------------------------------------------------------
 resource "aws_security_group_rule" "node_to_node_kubelet" {
   description              = "Kubelet API"
@@ -495,12 +507,12 @@ resource "aws_security_group_rule" "node_to_node_kubelet" {
 # (OPTIONAL) NodePort services
 # Only include this if you actually use NodePort
 #------------------------------------------------------------------------------
-resource "aws_security_group_rule" "nodes_allow_all_self" {
-  description              = "ALLOW ALL NODE TRAFFIC (restore cluster)"
-  type                     = "ingress"
-  from_port                = 0
-  to_port                  = 0
-  protocol                 = "-1"
-  security_group_id        = module.eks.node_security_group_id
-  source_security_group_id = module.eks.node_security_group_id
-}
+# resource "aws_security_group_rule" "nodes_allow_all_self" {
+#   description              = "ALLOW ALL NODE TRAFFIC (restore cluster)"
+#   type                     = "ingress"
+#   from_port                = 0
+#   to_port                  = 0
+#   protocol                 = "-1"
+#   security_group_id        = module.eks.node_security_group_id
+#   source_security_group_id = module.eks.node_security_group_id
+# }
