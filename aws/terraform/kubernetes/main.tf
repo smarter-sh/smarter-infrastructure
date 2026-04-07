@@ -146,15 +146,6 @@ module "eks" {
       type        = "ingress"
       cidr_blocks = ["192.168.0.0/20"] # anywhere inside the VPC can talk to nodes on this port
     }
-    ingress_node_to_node = {
-      description = "Node-to-node traffic"
-      protocol    = "tcp"
-      from_port   = 1025
-      to_port     = 65535
-      type        = "ingress"
-      self        = true
-    }
-
     ingress_from_nlb = {
       description = "Allow traffic from NLB"
       type        = "ingress"
