@@ -79,14 +79,14 @@ module "eks" {
     # -------------------------------
 
     # Internal node-to-node communication on all ports from within VPC CIDR
-    ingress_node_to_node = {
-      description = "Smarter: Node to node communication within VPC"
-      protocol  = "-1"
-      from_port = 0
-      to_port   = 0
-      type      = "ingress"
-      self      = true
-    }
+    # ingress_node_to_node = {
+    #   description = "Smarter: Node to node communication within VPC"
+    #   protocol  = "-1"
+    #   from_port = 0
+    #   to_port   = 0
+    #   type      = "ingress"
+    #   self      = true
+    # }
 
     # Internal node-to-node communication on all ports from within VPC CIDR
     # this is potentially duplicative of the above rule, but it allows traffic
