@@ -25,8 +25,8 @@
 ###############################################################################
 
 locals {
-  db_port = 3306      # Default port for MariaDB
-  cache_port = 6379   # Default port for Redis
+  db_port    = 3306 # Default port for MariaDB
+  cache_port = 6379 # Default port for Redis
 }
 
 #------------------------------------------------------------------------------
@@ -48,10 +48,10 @@ locals {
 # the Kubernetes cluster.
 #------------------------------------------------------------------------------
 resource "helm_release" "calico" {
-  name       = "calico"
-  repository = "https://docs.tigera.io/calico/charts"
-  chart      = "tigera-operator"
-  namespace  = "tigera-operator"
+  name             = "calico"
+  repository       = "https://docs.tigera.io/calico/charts"
+  chart            = "tigera-operator"
+  namespace        = "tigera-operator"
   create_namespace = true
 
   values = [
@@ -59,13 +59,15 @@ resource "helm_release" "calico" {
       installation = {
         calicoNetwork = {
           bgp = "Disabled"
+
+          encapsulation = "VXLANCrossSubnet"
+
           ipPools = [
             {
-              blockSize = 26
-              cidr      = data.aws_vpc.smarter_vpc.cidr_block
-              encapsulation = "VXLANCrossSubnet"
-              natOutgoing   = "Enabled"
-              nodeSelector  = "all()"
+              blockSize    = 26
+              cidr         = data.aws_vpc.smarter_vpc.cidr_block
+              natOutgoing  = "Enabled"
+              nodeSelector = "all()"
             }
           ]
         }
@@ -83,9 +85,22 @@ resource "helm_release" "calico" {
 # on port 8000. Use this to expose services (such as HTTP APIs) running on port 8000
 # within the application group to external or internal clients.
 # ------------------------------------------------------------------------------
-resource "kubernetes_network_policy_v1" "smarter_application_group_ingress_8000" {
+resource "kubernetes_network_policy_v1" "default_deny_all" {
   metadata {
-    name      = "smarter-application-group-ingress-8000"
+    name      = "default-deny-all"
+    namespace = var.namespace
+  }
+
+  spec {
+    pod_selector {}
+    policy_types = ["Ingress", "Egress"]
+  }
+}
+
+
+resource "kubernetes_network_policy_v1" "smarter_application_group_ingress" {
+  metadata {
+    name      = "smarter-application-group-ingress"
     namespace = var.namespace
   }
 
@@ -99,14 +114,9 @@ resource "kubernetes_network_policy_v1" "smarter_application_group_ingress_8000"
     policy_types = ["Ingress"]
 
     ingress {
+      # ✅ allow ALL traffic from same namespace (this fixes workers)
       from {
-        ip_block {
-          cidr = "0.0.0.0/0"
-        }
-      }
-      ports {
-        protocol = "TCP"
-        port     = 8000
+        namespace_selector {}
       }
     }
   }
@@ -131,26 +141,26 @@ resource "kubernetes_network_policy_v1" "smarter_mariadb_allow_backend" {
   spec {
     pod_selector {
       match_labels = {
-        "app.kubernetes.io/name" = "mariadb"
+        "app.kubernetes.io/name"     = "mariadb"
         "app.kubernetes.io/instance" = var.platform_name
       }
     }
 
     policy_types = ["Ingress"]
 
-  ingress {
-    from {
-      pod_selector {
-        match_labels = {
-          "app.kubernetes.io/application-group" = var.platform_name
+    ingress {
+      from {
+        pod_selector {
+          match_labels = {
+            "app.kubernetes.io/application-group" = var.platform_name
+          }
         }
       }
+      ports {
+        protocol = "TCP"
+        port     = local.db_port
+      }
     }
-    ports {
-      protocol = "TCP"
-      port     = local.db_port
-    }
-  }
 
   }
 }
@@ -172,8 +182,8 @@ resource "kubernetes_network_policy_v1" "smarter_redis_allow_backend" {
   spec {
     pod_selector {
       match_labels = {
-        "app.kubernetes.io/name"     = "redis"
-        "app.kubernetes.io/instance" = var.platform_name
+        "app.kubernetes.io/name"      = "redis"
+        "app.kubernetes.io/instance"  = var.platform_name
         "app.kubernetes.io/component" = "master"
       }
     }
@@ -214,7 +224,7 @@ resource "kubernetes_network_policy_v1" "smarter_default_deny_mariadb" {
   spec {
     pod_selector {
       match_labels = {
-        "app.kubernetes.io/name" = "mariadb"
+        "app.kubernetes.io/name"     = "mariadb"
         "app.kubernetes.io/instance" = var.platform_name
       }
     }
@@ -230,8 +240,8 @@ resource "kubernetes_network_policy_v1" "smarter_default_deny_redis" {
   spec {
     pod_selector {
       match_labels = {
-        "app.kubernetes.io/name" = "redis"
-        "app.kubernetes.io/instance" = var.platform_name
+        "app.kubernetes.io/name"      = "redis"
+        "app.kubernetes.io/instance"  = var.platform_name
         "app.kubernetes.io/component" = "master"
       }
     }
@@ -355,7 +365,6 @@ resource "kubernetes_network_policy_v1" "smarter_application_group_egress" {
     name      = "smarter-application-group-egress"
     namespace = var.namespace
   }
-
   spec {
     pod_selector {
       match_labels = {
@@ -365,8 +374,68 @@ resource "kubernetes_network_policy_v1" "smarter_application_group_egress" {
 
     policy_types = ["Egress"]
 
+    # ✅ MariaDB
+    egress {
+      to {
+        pod_selector {
+          match_labels = {
+            "app.kubernetes.io/name"     = "mariadb"
+            "app.kubernetes.io/instance" = var.platform_name
+          }
+        }
+      }
+      ports {
+        protocol = "TCP"
+        port     = 3306
+      }
+    }
 
-    # Allow egress to any destination on TCP port 8000 (out of the VPC)
+    # ✅ Redis
+    egress {
+      to {
+        pod_selector {
+          match_labels = {
+            "app.kubernetes.io/name"     = "redis"
+            "app.kubernetes.io/instance" = var.platform_name
+          }
+        }
+      }
+      ports {
+        protocol = "TCP"
+        port     = 6379
+      }
+    }
+
+    # ✅ DNS (kube-system only)
+    egress {
+      to {
+        namespace_selector {
+          match_labels = {
+            "kubernetes.io/metadata.name" = "kube-system"
+          }
+        }
+      }
+      ports {
+        protocol = "UDP"
+        port     = 53
+      }
+    }
+
+    egress {
+      to {
+        namespace_selector {
+          match_labels = {
+            "kubernetes.io/metadata.name" = "kube-system"
+          }
+        }
+      }
+      ports {
+        protocol = "TCP"
+        port     = 53
+      }
+    }
+
+    # ✅ HTTPS (external APIs, AWS, etc.)
     egress {
       to {
         ip_block {
@@ -375,9 +444,63 @@ resource "kubernetes_network_policy_v1" "smarter_application_group_egress" {
       }
       ports {
         protocol = "TCP"
-        port     = 8000
+        port     = 443
       }
     }
 
+    # ✅ External MySQL (remote DBs)
+    egress {
+      to {
+        ip_block {
+          cidr = "0.0.0.0/0"
+        }
+      }
+      ports {
+        protocol = "TCP"
+        port     = 3306
+      }
+    }
   }
+}
+
+
+
+#------------------------------------------------------------------------------
+# Allow Calico VXLAN traffic between nodes (REQUIRED)
+#------------------------------------------------------------------------------
+resource "aws_security_group_rule" "node_to_node_vxlan" {
+  description              = "Calico VXLAN"
+  type                     = "ingress"
+  from_port                = 4789
+  to_port                  = 4789
+  protocol                 = "udp"
+  security_group_id        = module.eks.node_security_group_id
+  source_security_group_id = module.eks.node_security_group_id
+}
+
+#------------------------------------------------------------------------------
+# Allow kubelet API between nodes (RECOMMENDED)
+#------------------------------------------------------------------------------
+resource "aws_security_group_rule" "node_to_node_kubelet" {
+  description              = "Kubelet API"
+  type                     = "ingress"
+  from_port                = 10250
+  to_port                  = 10250
+  protocol                 = "tcp"
+  security_group_id        = module.eks.node_security_group_id
+  source_security_group_id = module.eks.node_security_group_id
+}
+
+#------------------------------------------------------------------------------
+# (OPTIONAL) NodePort services
+# Only include this if you actually use NodePort
+#------------------------------------------------------------------------------
+resource "aws_security_group_rule" "nodes_allow_all_self" {
+  description              = "ALLOW ALL NODE TRAFFIC (restore cluster)"
+  type                     = "ingress"
+  from_port                = 0
+  to_port                  = 0
+  protocol                 = "-1"
+  security_group_id        = module.eks.node_security_group_id
+  source_security_group_id = module.eks.node_security_group_id
 }
