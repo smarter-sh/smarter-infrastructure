@@ -14,20 +14,21 @@ locals {
   iam_admin_user_arn       = local.global_vars.locals.iam_admin_user_arn
 
   # Extract out common variables for reuse
-  unique_id                   = local.global_vars.locals.unique_id
-  namespace                  = local.stack_vars.locals.stack_name
-  cluster_name               = local.global_vars.locals.cluster_name
-  root_domain                = local.global_vars.locals.root_domain
-  platform_name              = local.global_vars.locals.platform_name
-  platform_region            = local.global_vars.locals.platform_region
-  aws_account_id             = local.global_vars.locals.aws_account_id
-  aws_region                 = local.global_vars.locals.aws_region
-  shared_resource_identifier = local.global_vars.locals.shared_resource_identifier
-  kubernetes_cluster_version = local.stack_vars.locals.kubernetes_cluster_version
-  eks_create_kms_key         = local.stack_vars.locals.eks_create_kms_key
-  eks_node_group_min_size    = local.stack_vars.locals.eks_node_group_min_size
-  eks_node_group_max_size    = local.stack_vars.locals.eks_node_group_max_size
+  unique_id                     = local.global_vars.locals.unique_id
+  namespace                     = local.stack_vars.locals.stack_name
+  cluster_name                  = local.global_vars.locals.cluster_name
+  root_domain                   = local.global_vars.locals.root_domain
+  platform_name                 = local.global_vars.locals.platform_name
+  platform_region               = local.global_vars.locals.platform_region
+  aws_account_id                = local.global_vars.locals.aws_account_id
+  aws_region                    = local.global_vars.locals.aws_region
+  shared_resource_identifier    = local.global_vars.locals.shared_resource_identifier
+  kubernetes_cluster_version    = local.stack_vars.locals.kubernetes_cluster_version
+  eks_create_kms_key            = local.stack_vars.locals.eks_create_kms_key
+  eks_node_group_min_size       = local.stack_vars.locals.eks_node_group_min_size
+  eks_node_group_max_size       = local.stack_vars.locals.eks_node_group_max_size
   eks_node_group_instance_types = local.stack_vars.locals.eks_node_group_instance_types
+  enable_enhanced_security      = local.stack_vars.locals.enable_enhanced_security
 
   # mcdaniel: FIX NOTE
   # we need to make a hard decision about whether or not we need to create a
@@ -42,6 +43,7 @@ locals {
     local.global_vars.locals.tags,
     {
     "create_kms_key" = local.stack_vars.locals.eks_create_kms_key,
+    "enable_enhanced_security" = local.stack_vars.locals.enable_enhanced_security,
     }
   )
 }
@@ -78,6 +80,7 @@ include {
 
 # These are the variables we have to pass in to use the module specified in the terragrunt configuration above
 inputs = {
+  enable_enhanced_security   = local.enable_enhanced_security
   platform_name              = local.platform_name
   iam_admin_user_arn         = local.iam_admin_user_arn
   aws_account_id             = local.aws_account_id

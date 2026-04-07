@@ -48,6 +48,7 @@ locals {
 # the Kubernetes cluster.
 #------------------------------------------------------------------------------
 resource "helm_release" "calico" {
+  count            = var.enable_enhanced_security ? 1 : 0
   name             = "calico"
   repository       = "https://docs.tigera.io/calico/charts"
   chart            = "tigera-operator"
@@ -84,6 +85,7 @@ resource "helm_release" "calico" {
 # unless another network policy explicitly permits it.
 # ------------------------------------------------------------------------------
 resource "kubernetes_network_policy_v1" "default_deny_all" {
+  count = var.enable_enhanced_security ? 1 : 0
   metadata {
     name      = "default-deny-all"
     namespace = var.namespace
@@ -107,6 +109,8 @@ resource "kubernetes_network_policy_v1" "default_deny_all" {
 # with each other. All other ingress is still denied by the default-deny policy.
 # ------------------------------------------------------------------------------
 resource "kubernetes_network_policy_v1" "smarter_application_group_ingress" {
+  count = var.enable_enhanced_security ? 1 : 0
+
   metadata {
     name      = "smarter-application-group-ingress"
     namespace = var.namespace
@@ -141,6 +145,8 @@ resource "kubernetes_network_policy_v1" "smarter_application_group_ingress" {
 # the database.
 #------------------------------------------------------------------------------
 resource "kubernetes_network_policy_v1" "smarter_mariadb_allow_backend" {
+  count = var.enable_enhanced_security ? 1 : 0
+
   metadata {
     name      = "mariadb-allow-backend"
     namespace = var.namespace
@@ -182,6 +188,7 @@ resource "kubernetes_network_policy_v1" "smarter_mariadb_allow_backend" {
 # improving security by preventing unauthorized pods from connecting to the cache.
 #------------------------------------------------------------------------------
 resource "kubernetes_network_policy_v1" "smarter_redis_allow_backend" {
+  count = var.enable_enhanced_security ? 1 : 0
   metadata {
     name      = "redis-allow-backend"
     namespace = var.namespace
@@ -225,6 +232,7 @@ resource "kubernetes_network_policy_v1" "smarter_redis_allow_backend" {
 # and all other ingress is denied by default.
 #------------------------------------------------------------------------------
 resource "kubernetes_network_policy_v1" "smarter_default_deny_mariadb" {
+  count = var.enable_enhanced_security ? 1 : 0
   metadata {
     name      = "default-deny-mariadb"
     namespace = var.namespace
@@ -241,6 +249,8 @@ resource "kubernetes_network_policy_v1" "smarter_default_deny_mariadb" {
 }
 
 resource "kubernetes_network_policy_v1" "smarter_default_deny_redis" {
+  count = var.enable_enhanced_security ? 1 : 0
+
   metadata {
     name      = "default-deny-redis"
     namespace = var.namespace
@@ -266,6 +276,7 @@ resource "kubernetes_network_policy_v1" "smarter_default_deny_redis" {
 # allow rules can reach application group pods, and all other ingress is denied by default.
 #------------------------------------------------------------------------------
 resource "kubernetes_network_policy_v1" "smarter_default_deny_smarter_application_group" {
+  count = var.enable_enhanced_security ? 1 : 0
   metadata {
     name      = "default-deny-smarter-application-group"
     namespace = var.namespace
@@ -291,6 +302,7 @@ resource "kubernetes_network_policy_v1" "smarter_default_deny_smarter_applicatio
 # connections, you can safely remove this policy.
 #------------------------------------------------------------------------------
 resource "kubernetes_network_policy_v1" "mariadb_egress" {
+  count = var.enable_enhanced_security ? 1 : 0
   metadata {
     name      = "mariadb-egress"
     namespace = var.namespace
@@ -330,6 +342,7 @@ resource "kubernetes_network_policy_v1" "mariadb_egress" {
 # you can safely remove this policy.
 #------------------------------------------------------------------------------
 resource "kubernetes_network_policy_v1" "redis_egress" {
+  count = var.enable_enhanced_security ? 1 : 0
   metadata {
     name      = "redis-egress"
     namespace = var.namespace
@@ -373,6 +386,7 @@ resource "kubernetes_network_policy_v1" "redis_egress" {
 # connections to only what is necessary for the application group to function.
 # ------------------------------------------------------------------------------
 resource "kubernetes_network_policy_v1" "smarter_application_group_egress" {
+  count = var.enable_enhanced_security ? 1 : 0
   metadata {
     name      = "smarter-application-group-egress"
     namespace = var.namespace
@@ -472,6 +486,20 @@ resource "kubernetes_network_policy_v1" "smarter_application_group_egress" {
         port     = 3306
       }
     }
+
+    # HTTP (required for Bastion's apt-get setup)
+    egress {
+      to {
+        ip_block {
+          cidr = "0.0.0.0/0"
+        }
+      }
+      ports {
+        protocol = "TCP"
+        port     = 80
+      }
+    }
+
   }
 }
 
@@ -481,6 +509,7 @@ resource "kubernetes_network_policy_v1" "smarter_application_group_egress" {
 # Allow Calico VXLAN traffic between nodes
 #------------------------------------------------------------------------------
 resource "aws_security_group_rule" "node_to_node_vxlan" {
+  count                    = var.enable_enhanced_security ? 1 : 0
   description              = "Calico VXLAN"
   type                     = "ingress"
   from_port                = 4789
@@ -494,6 +523,7 @@ resource "aws_security_group_rule" "node_to_node_vxlan" {
 # Allow kubelet API between nodes
 #------------------------------------------------------------------------------
 resource "aws_security_group_rule" "node_to_node_kubelet" {
+  count                    = var.enable_enhanced_security ? 1 : 0
   description              = "Kubelet API"
   type                     = "ingress"
   from_port                = 10250
@@ -508,6 +538,7 @@ resource "aws_security_group_rule" "node_to_node_kubelet" {
 # Only include this if you actually use NodePort
 #------------------------------------------------------------------------------
 # resource "aws_security_group_rule" "nodes_allow_all_self" {
+#   count = var.enable_enhanced_security ? 1 : 0
 #   description              = "ALLOW ALL NODE TRAFFIC (restore cluster)"
 #   type                     = "ingress"
 #   from_port                = 0

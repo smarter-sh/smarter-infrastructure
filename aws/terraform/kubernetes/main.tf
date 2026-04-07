@@ -39,41 +39,12 @@ locals {
     autoscaler_role_arn = local.cluster_autoscaler_role_arn
   })
 
-
   # Used by Karpenter config to determine correct partition (i.e. - `aws`, `aws-gov`, `aws-cn`, etc.)
   partition = data.aws_partition.current.partition
   tags = var.tags
-}
 
-module "eks" {
-  source                          = "terraform-aws-modules/eks/aws"
-  version                         = "~> 21"
-  endpoint_private_access         = true
-  endpoint_public_access          = true
-  create_cloudwatch_log_group     = false
-  enable_irsa                     = true
-  create_iam_role                 = true
-  enable_cluster_creator_admin_permissions = true
-  authentication_mode             = "API_AND_CONFIG_MAP"
-  cloudwatch_log_group_class      = "INFREQUENT_ACCESS"
-
-  name                            = var.cluster_name
-  kubernetes_version              = var.kubernetes_cluster_version
-  vpc_id                          = var.vpc_id
-  subnet_ids                      = var.private_subnets
-  control_plane_subnet_ids        = var.private_subnets
-  kms_key_administrators          = var.kms_key_owners
-  kms_key_owners                  = var.kms_key_owners
-  kms_key_users                   = var.kms_key_owners
-  kms_key_description             = "eks ${var.cluster_name} cluster encryption key"
-  tags = local.tags
-
-  compute_config = {
-   enabled = false
-  }
-
-  node_security_group_enable_recommended_rules = false
-  node_security_group_additional_rules = {
+  node_security_group_enable_recommended_rules = var.enable_enhanced_security ? false : true
+  node_security_group_additional_rules = var.enable_enhanced_security ? {
     # -------------------------------
     # INGRESS
     # -------------------------------
@@ -245,7 +216,39 @@ module "eks" {
     #   cidr_blocks = ["0.0.0.0/0"]
     # }
 
+  } : tomap({})
+}
+
+module "eks" {
+  source                          = "terraform-aws-modules/eks/aws"
+  version                         = "~> 21"
+  endpoint_private_access         = true
+  endpoint_public_access          = true
+  create_cloudwatch_log_group     = false
+  enable_irsa                     = true
+  create_iam_role                 = true
+  enable_cluster_creator_admin_permissions = true
+  authentication_mode             = "API_AND_CONFIG_MAP"
+  cloudwatch_log_group_class      = "INFREQUENT_ACCESS"
+
+  name                            = var.cluster_name
+  kubernetes_version              = var.kubernetes_cluster_version
+  vpc_id                          = var.vpc_id
+  subnet_ids                      = var.private_subnets
+  control_plane_subnet_ids        = var.private_subnets
+  kms_key_administrators          = var.kms_key_owners
+  kms_key_owners                  = var.kms_key_owners
+  kms_key_users                   = var.kms_key_owners
+  kms_key_description             = "eks ${var.cluster_name} cluster encryption key"
+  tags = local.tags
+
+  compute_config = {
+   enabled = false
   }
+
+  node_security_group_enable_recommended_rules = local.node_security_group_enable_recommended_rules
+  node_security_group_additional_rules = local.node_security_group_additional_rules
+
 
   # NOTE:
   # KMS key management.
