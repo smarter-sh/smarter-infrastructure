@@ -7,7 +7,11 @@
 # usage:      Smarter app infrastructure - Terraform configuration
 #             for AWS Route53 DNS zones and DNS records
 #------------------------------------------------------------------------------
+locals {
+  traefik_lb_hostname = data.kubernetes_service_v1.traefik.status[0].load_balancer[0].ingress[0].hostname
 
+  traefik_lb_name = split("-", local.traefik_lb_hostname)[0]
+}
 
 # -----------------------------------------------------------------------------
 # From Kubernetes shared infrastructure, managed by openedx_devops repo
@@ -18,7 +22,6 @@ data "kubernetes_service_v1" "traefik" {
     namespace = "traefik"
   }
 }
-data "aws_elb_hosted_zone_id" "main" {}
 
 # -----------------------------------------------------------------------------
 # root Domain: smarter.sh
@@ -51,13 +54,16 @@ resource "aws_route53_record" "environment_platform_domain_ns" {
   records = aws_route53_zone.environment_platform_domain.name_servers
 }
 
+data "aws_lb" "traefik" {
+  name = local.traefik_lb_name
+}
 resource "aws_route53_record" "environment_platform_domain" {
   zone_id = aws_route53_zone.environment_platform_domain.zone_id
   name    = local.environment_platform_domain
   type    = "A"
   alias {
-      name = data.kubernetes_service_v1.traefik.status[0].load_balancer[0].ingress[0].hostname
-      zone_id = data.aws_elb_hosted_zone_id.main.id
+      name = data.aws_lb.traefik.dns_name
+      zone_id = data.aws_lb.traefik.zone_id
       evaluate_target_health = true
     }
 }
@@ -83,8 +89,8 @@ resource "aws_route53_record" "environment_api_domain" {
   name    = local.environment_api_domain
   type    = "A"
   alias {
-      name = data.kubernetes_service_v1.traefik.status[0].load_balancer[0].ingress[0].hostname
-      zone_id = data.aws_elb_hosted_zone_id.main.id
+      name = data.aws_lb.traefik.dns_name
+      zone_id = data.aws_lb.traefik.zone_id
       evaluate_target_health = true
     }
 }

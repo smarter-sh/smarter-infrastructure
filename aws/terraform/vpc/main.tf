@@ -105,7 +105,7 @@ resource "aws_security_group" "admin" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  tags = local.tags
+  tags = merge(local.tags, {"Name" = "${var.name}-admin-sg"})
 }
 
 
@@ -113,7 +113,7 @@ resource "aws_key_pair" "bastion" {
   key_name   = "bastion"
   public_key = file(local.bastion_public_key_path)
 
-  tags = local.tags
+  tags = merge(local.tags, {"Name" = "bastion"})
 }
 resource "aws_instance" "bastion" {
   ami           = data.aws_ami.amazon_linux.id
