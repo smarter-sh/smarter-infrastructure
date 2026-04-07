@@ -8,10 +8,11 @@
 #        Terragrunt modules in this environment.
 #------------------------------------------------------------------------------
 locals {
-  global_vars = read_terragrunt_config(find_in_parent_folders("global.hcl"))
-  environment = "prod"
-  stack_name = "${local.global_vars.locals.platform_name}-${local.global_vars.locals.shared_resource_identifier}-${local.environment}"
-  tags            = {}
+  global_vars               = read_terragrunt_config(find_in_parent_folders("global.hcl"))
+  environment               = "prod"
+  stack_name                = "${local.global_vars.locals.platform_name}-${local.global_vars.locals.shared_resource_identifier}-${local.environment}"
+  enable_enhanced_security  = true
+  tags                      = {}
 
   #----------------------------------------------------------------------------
   # AWS Elastic Kubernetes service

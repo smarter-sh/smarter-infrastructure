@@ -6,6 +6,11 @@
 #
 # usage: create an EKS cluster
 #------------------------------------------------------------------------------
+variable "enable_enhanced_security" {
+  description = "Whether or not to enable enhanced security features for the EKS cluster, such as AWS GuardDuty, AWS Security Hub, and AWS Config. This variable is used to conditionally create resources and configure settings related to enhanced security for the EKS cluster."
+  type        = bool
+  default     = false
+}
 variable "aws_account_id" {
   type = string
 }

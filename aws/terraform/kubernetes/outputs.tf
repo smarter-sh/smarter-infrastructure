@@ -47,3 +47,8 @@ output "cluster_admin_users" {
 output "cluster_autoscaler_role_arn" {
   value = module.cluster_autoscaler_irsa_role.iam_role_arn
 }
+
+output "enable_enhanced_security" {
+  value = var.enable_enhanced_security
+  description = "Whether or not enhanced security features are enabled for the EKS cluster"
+}
