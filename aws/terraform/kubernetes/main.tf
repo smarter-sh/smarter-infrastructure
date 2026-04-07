@@ -17,6 +17,10 @@
 data "aws_partition" "current" {}
 data "aws_caller_identity" "current" {}
 data "aws_region" "current" {}
+data "aws_vpc" "smarter_vpc" {
+  id = var.vpc_id
+}
+
 
 locals {
   env_file = try(file("${path.module}/../../../../.env"), "")
@@ -73,25 +77,99 @@ module "eks" {
     # -------------------------------
     # INGRESS
     # -------------------------------
-    ingress_from_lb_https = {
-      description              = "Allow HTTPS from load balancer"
-      protocol                 = "tcp"
-      from_port                = 443
-      to_port                  = 443
-      type                     = "ingress"
-      cidr_blocks              = ["192.168.0.0/16"]
+
+    # Internal node-to-node communication on all ports from within VPC CIDR
+    ingress_node_to_node = {
+      description = "Smarter: Node to node communication within VPC"
+      protocol  = "-1"
+      from_port = 0
+      to_port   = 0
+      type      = "ingress"
+      self      = true
     }
 
-    ingress_from_lb_http = {
-      description              = "Allow HTTP from load balancer"
-      protocol                 = "tcp"
-      from_port                = 80
-      to_port                  = 80
-      type                     = "ingress"
-      cidr_blocks              = ["192.168.0.0/16"]
+    # Internal node-to-node communication on all ports from within VPC CIDR
+    # this is potentially duplicative of the above rule, but it allows traffic
+    # from other security groups in the same VPC
+    ingress_all_from_elb_sg = {
+      description   = "${var.platform_name}: All traffic from ELB SG"
+      protocol      = "-1"
+      from_port     = 0
+      to_port       = 0
+      type          = "ingress"
+      cidr_blocks              = [data.aws_vpc.smarter_vpc.cidr_block]
     }
 
+    # TCP port forwarding for NLB/LoadBalancer services
+    # for receiving external traffic from the Traefik Ingress Controller NLB
+    ingress_nlb_tcp_30283 = {
+      description   = "${var.platform_name}: NLB client port 30283"
+      protocol      = "tcp"
+      from_port     = 30000
+      to_port       = 32767
+      type          = "ingress"
+      cidr_blocks   = ["0.0.0.0/0"]
+    }
+
+    # ICMP rule for fragmentation required. This rule allows your nodes to
+    # receive ICMP "fragmentation needed" messages, which are essential for
+    # Path MTU Discovery. Without this, some network connections (especially
+    # those using large packets or VPNs) may break or experience connectivity
+    # issues.
+    ingress_icmp_frag_required = {
+      description   = "${var.platform_name}: ICMP fragmentation required, and DF flag set"
+      protocol      = "icmp"
+      from_port     = 3
+      to_port       = 4
+      type          = "ingress"
+      cidr_blocks   = ["0.0.0.0/0"]
+    }
+
+    # Cluster API to node kubelets (TCP 10250 from cluster SG)
+    ingress_cluster_api_kubelet = {
+      description   = "${var.platform_name}: Cluster API to node kubelets"
+      protocol      = "tcp"
+      from_port     = 10250
+      to_port       = 10250
+      type          = "ingress"
+      cidr_blocks              = [data.aws_vpc.smarter_vpc.cidr_block]
+    }
+
+    # Node to node CoreDNS (TCP/UDP 53 from node SG)
+    ingress_node_to_node_dns_tcp = {
+      description   = "${var.platform_name}: Node to node CoreDNS TCP"
+      protocol      = "tcp"
+      from_port     = 53
+      to_port       = 53
+      type          = "ingress"
+      cidr_blocks              = [data.aws_vpc.smarter_vpc.cidr_block]
+    }
+    ingress_node_to_node_dns_udp = {
+      description   = "${var.platform_name}: Node to node CoreDNS UDP"
+      protocol      = "udp"
+      from_port     = 53
+      to_port       = 53
+      type          = "ingress"
+      cidr_blocks              = [data.aws_vpc.smarter_vpc.cidr_block]
+    }
+
+    # -------------------------------
+    # EGRESS
+    # -------------------------------
+
+    # Internal node-to-node communication on all ports to within VPC CIDR
+    egress_node_to_node = {
+      description = "${var.platform_name}: Node to node communication within VPC"
+      protocol  = "-1"
+      from_port = 0
+      to_port   = 0
+      type      = "egress"
+      self      = true
+    }
+
+    # http responses to the outside world (e.g. for external DNS, cert manager, etc.)
     egress_https = {
+      description = "${var.platform_name}: HTTPS egress for external communication"
       protocol    = "tcp"
       from_port   = 443
       to_port     = 443
@@ -100,6 +178,7 @@ module "eks" {
     }
 
     egress_dns = {
+      description = "${var.platform_name}: DNS UDP egress for external communication"
       protocol    = "udp"
       from_port   = 53
       to_port     = 53
@@ -107,7 +186,7 @@ module "eks" {
       cidr_blocks = ["0.0.0.0/0"]
     }
     egress_dns_tcp = {
-      description = "DNS TCP fallback"
+      description = "${var.platform_name}: DNS TCP fallback egress for external communication"
       protocol    = "tcp"
       from_port   = 53
       to_port     = 53
@@ -115,59 +194,56 @@ module "eks" {
       cidr_blocks = ["0.0.0.0/0"]
     }
 
-  # -------------------------------
-  # EGRESS
-  # -------------------------------
 
-  # NTP (time sync — REQUIRED or TLS breaks)
-  egress_ntp = {
-    description = "NTP time sync"
-    protocol    = "udp"
-    from_port   = 123
-    to_port     = 123
-    type        = "egress"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
+    # NTP (time sync — REQUIRED or TLS breaks)
+    egress_ntp = {
+      description = "${var.platform_name}: NTP time sync"
+      protocol    = "udp"
+      from_port   = 123
+      to_port     = 123
+      type        = "egress"
+      cidr_blocks = ["0.0.0.0/0"]
+    }
 
-  egress_smtp_submission = {
-    description = "SMTP submission (TLS)"
+    egress_smtp_submission = {
+      description = "${var.platform_name}: SMTP submission (TLS)"
+      protocol    = "tcp"
+      from_port   = 587
+      to_port     = 587
+      type        = "egress"
+      cidr_blocks = ["0.0.0.0/0"]
+    }
+
+    egress_smtp = {
+      description = "${var.platform_name}: SMTP (legacy)"
+      protocol    = "tcp"
+      from_port   = 25
+      to_port     = 25
+      type        = "egress"
+      cidr_blocks = ["0.0.0.0/0"]
+    }
+
+    egress_ephemeral = {
+    description = "${var.platform_name}: Allow ephemeral response traffic"
     protocol    = "tcp"
-    from_port   = 587
-    to_port     = 587
+    from_port   = 1024
+    to_port     = 65535
     type        = "egress"
     cidr_blocks = ["0.0.0.0/0"]
-  }
+    }
 
-  egress_smtp = {
-    description = "SMTP (legacy)"
-    protocol    = "tcp"
-    from_port   = 25
-    to_port     = 25
-    type        = "egress"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
+    # -------------------------------
+    # OPTIONAL (DEBUGGING / TEMP)
+    # -------------------------------
 
-  egress_ephemeral = {
-  description = "Allow ephemeral response traffic"
-  protocol    = "tcp"
-  from_port   = 1024
-  to_port     = 65535
-  type        = "egress"
-  cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  # -------------------------------
-  # OPTIONAL (DEBUGGING / TEMP)
-  # -------------------------------
-
-  # egress_all_temp = {
-  #   description = "TEMP allow all egress (debug only)"
-  #   protocol    = "-1"
-  #   from_port   = 0
-  #   to_port     = 0
-  #   type        = "egress"
-  #   cidr_blocks = ["0.0.0.0/0"]
-  # }
+    # egress_all_temp = {
+    #   description = "TEMP allow all egress (debug only)"
+    #   protocol    = "-1"
+    #   from_port   = 0
+    #   to_port     = 0
+    #   type        = "egress"
+    #   cidr_blocks = ["0.0.0.0/0"]
+    # }
 
   }
 
