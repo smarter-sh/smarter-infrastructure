@@ -17,6 +17,7 @@ locals {
   platform_api_domain        = "api.${local.platform_subdomain}.${local.global_vars.locals.root_domain}"
   shared_resource_namespace  = "${local.shared_resource_identifier}-${local.global_vars.locals.aws_region}-${local.shared_resource_identifier}"
   environment_name           = "${local.global_vars.locals.platform_name}-${local.shared_resource_identifier}"
+  platform_name              = local.global_vars.locals.platform_name
 
   tags = merge(
     local.global_vars.locals.tags,
@@ -43,6 +44,7 @@ inputs = merge(
   local.global_vars.locals,
   local.stack_vars.locals,
   {
+  platform_name              = local.platform_name
   environment                = local.environment
   platform_subdomain         = local.platform_subdomain
   shared_resource_identifier = local.shared_resource_identifier

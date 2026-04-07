@@ -28,7 +28,10 @@ apiVersion: cert-manager.io/v1
 kind: ClusterIssuer
 metadata:
   name: ${target_domain}
-spec:
+  labels:
+      app.kubernetes.io/application-group: ${ app_name }
+      app.kubernetes.io/name: ${ app_name }
+  spec:
   acme:
     # The ACME server URL for Let's Encrypt production environment.
     # Use the staging server for testing to avoid rate limits:

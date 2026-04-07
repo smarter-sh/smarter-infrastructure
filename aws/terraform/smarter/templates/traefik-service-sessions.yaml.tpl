@@ -24,6 +24,9 @@ kind: TraefikService
 metadata:
   name: smarter
   namespace: ${environment_namespace}
+  labels:
+      app.kubernetes.io/application-group: ${ app_name }
+      app.kubernetes.io/name: ${ app_name }
 spec:
   weighted:
     services:

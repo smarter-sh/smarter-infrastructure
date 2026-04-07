@@ -9,6 +9,7 @@
 #------------------------------------------------------------------------------
 
 locals {
+  platform_name                 = var.platform_name
   environment                   = var.environment
   environment_namespace         = lower("${var.environment_name}")
   environment_marketing_domain  = "${var.root_domain}"

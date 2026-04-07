@@ -26,6 +26,9 @@ kind: Middleware
 metadata:
   name: cors
   namespace: ${environment_namespace}
+  labels:
+      app.kubernetes.io/application-group: ${ app_name }
+      app.kubernetes.io/name: ${ app_name }
 spec:
   headers:
     accessControlAllowOriginList:
