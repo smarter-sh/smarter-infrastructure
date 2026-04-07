@@ -24,6 +24,9 @@ kind: Middleware
 metadata:
   name: https-redirect
   namespace: ${environment_namespace}
+  labels:
+      app.kubernetes.io/application-group: ${ app_name }
+      app.kubernetes.io/name: ${ app_name }
 spec:
   redirectScheme:
     scheme: https

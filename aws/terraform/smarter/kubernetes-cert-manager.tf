@@ -12,6 +12,7 @@
 
 locals {
   issuer_platform_manifest = yamldecode(templatefile("${path.module}/templates/issuer.yml.tpl", {
+    app_name          = var.platform_name
     root_domain       = var.root_domain
     target_domain     = aws_route53_zone.environment_platform_domain.name
     aws_region        = var.aws_region
@@ -19,6 +20,7 @@ locals {
   }))
 
   issuer_api_manifest = yamldecode(templatefile("${path.module}/templates/issuer.yml.tpl", {
+    app_name          = var.platform_name
     root_domain       = var.root_domain
     target_domain     = aws_route53_zone.environment_api_domain.name
     aws_region        = var.aws_region

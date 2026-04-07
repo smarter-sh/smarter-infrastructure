@@ -7,6 +7,10 @@
 # usage: setup Kubernetes network policies for smarter application group.
 # This file provisions Calico as the CNI provider and sets up a set of Kubernetes
 # network policies to tightly control pod-to-pod communication within the cluster.
+# A collection of kubernetes_network_policy_v1 resources are defined that
+# dictate the kinds of traffic that can both enter and leave the various kinds
+# of pods within the application group.
+#
 # The policies accomplish the following:
 # - Restrict access to MariaDB and Redis pods, allowing only authorized backend pods
 #   (identified by specific labels) to connect on their respective ports.

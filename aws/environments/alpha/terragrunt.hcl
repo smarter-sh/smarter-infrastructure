@@ -11,6 +11,7 @@ locals {
   stack_vars    = read_terragrunt_config("../../stack/stack.hcl")
   environment   = "alpha"
   environment_name = "${local.global_vars.locals.platform_name}-${local.global_vars.locals.shared_resource_identifier}-${local.environment}"
+  platform_name              = local.global_vars.locals.platform_name
 }
 
 # Terragrunt will copy the Terraform configurations specified by the source parameter, along with any files in the
@@ -32,5 +33,6 @@ inputs = merge(
   {
     environment           = local.environment
     environment_name      = local.environment_name
+    platform_name         = local.platform_name
   }
 )
