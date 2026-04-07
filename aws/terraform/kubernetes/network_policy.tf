@@ -29,10 +29,6 @@ locals {
   cache_port = 6379   # Default port for Redis
 }
 
-data "aws_vpc" "smarter_vpc" {
-  id = var.vpc_id
-}
-
 #------------------------------------------------------------------------------
 # Calico is an open-source networking and network security solution for
 # containers, virtual machines, and native host-based workloads. In Kubernetes,
