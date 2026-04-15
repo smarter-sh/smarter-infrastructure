@@ -381,6 +381,7 @@ resource "kubernetes_network_policy_v1" "redis_egress" {
 #   - DNS: Allow UDP/TCP 53 to kube-system namespace (DNS resolution)
 #   - HTTPS: Allow TCP 443 to any external IP (APIs, AWS, etc.)
 #   - External MySQL: Allow TCP 3306 to any external IP (remote DBs)
+#   - HTTP: Allow TCP 80 to any external IP (for apt-get, etc.)
 #
 # Each egress rule is narrowly scoped to minimize risk and restrict outbound
 # connections to only what is necessary for the application group to function.
@@ -400,7 +401,7 @@ resource "kubernetes_network_policy_v1" "smarter_application_group_egress" {
 
     policy_types = ["Egress"]
 
-    # MariaDB
+    # pod-level access to MariaDB
     egress {
       to {
         pod_selector {
@@ -416,7 +417,7 @@ resource "kubernetes_network_policy_v1" "smarter_application_group_egress" {
       }
     }
 
-    # Redis
+    # pod-level access to Redis
     egress {
       to {
         pod_selector {
@@ -432,7 +433,7 @@ resource "kubernetes_network_policy_v1" "smarter_application_group_egress" {
       }
     }
 
-    # DNS (kube-system only)
+    # pod-level access to DNS (kube-system only)
     egress {
       to {
         namespace_selector {
@@ -447,6 +448,7 @@ resource "kubernetes_network_policy_v1" "smarter_application_group_egress" {
       }
     }
 
+    # pod-level access to DNS (kube-system only)
     egress {
       to {
         namespace_selector {
@@ -461,7 +463,7 @@ resource "kubernetes_network_policy_v1" "smarter_application_group_egress" {
       }
     }
 
-    # HTTPS (external APIs, AWS, etc.)
+    # pod-level access to HTTPS (external APIs, AWS, etc.)
     egress {
       to {
         ip_block {
@@ -474,7 +476,7 @@ resource "kubernetes_network_policy_v1" "smarter_application_group_egress" {
       }
     }
 
-    # External MySQL (remote DBs)
+    # pod-level access to External MySQL (remote DBs)
     egress {
       to {
         ip_block {
@@ -487,7 +489,7 @@ resource "kubernetes_network_policy_v1" "smarter_application_group_egress" {
       }
     }
 
-    # HTTP (required for Bastion's apt-get setup)
+    # pod-level access to HTTP (required for Bastion's apt-get setup)
     egress {
       to {
         ip_block {
