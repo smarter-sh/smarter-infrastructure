@@ -379,9 +379,7 @@ resource "kubernetes_network_policy_v1" "redis_egress" {
 #   - MariaDB: Allow TCP 3306 to MariaDB pods in the same namespace
 #   - Redis: Allow TCP 6379 to Redis pods in the same namespace
 #   - DNS: Allow UDP/TCP 53 to kube-system namespace (DNS resolution)
-#   - HTTPS: Allow TCP 443 to any external IP (APIs, AWS, etc.)
 #   - External MySQL: Allow TCP 3306 to any external IP (remote DBs)
-#   - HTTP: Allow TCP 80 to any external IP (for apt-get, etc.)
 #
 # Each egress rule is narrowly scoped to minimize risk and restrict outbound
 # connections to only what is necessary for the application group to function.
@@ -489,19 +487,6 @@ resource "kubernetes_network_policy_v1" "smarter_application_group_egress" {
       }
     }
 
-    # pod-level access to HTTP (required for Bastion's apt-get setup)
-    egress {
-      to {
-        ip_block {
-          cidr = "0.0.0.0/0"
-        }
-      }
-      ports {
-        protocol = "TCP"
-        port     = 80
-      }
-    }
-
     # Allow SMTP (AWS SES) - port 465 (SMTPS)
     egress {
       to {
@@ -531,7 +516,54 @@ resource "kubernetes_network_policy_v1" "smarter_application_group_egress" {
   }
 }
 
+resource "kubernetes_network_policy_v1" "smarter_bastion_egress" {
+  # Network policy to allow egress from bastion pods to any external IP on ports 80 and 443.
+  # This is necessary to allow bastion pods to access the internet for updates, patches,
+  # and external services. All other egress is denied by default. This policy enables:
+  #   - HTTP: Allow TCP 80 to any external IP (for apt-get, etc.)
+  #   - HTTPS: Allow TCP 443 to any external IP (APIs, AWS, etc.)
 
+  count = var.enable_enhanced_security ? 1 : 0
+  metadata {
+    name      = "smarter-bastion-egress"
+    namespace = var.namespace
+  }
+  spec {
+    pod_selector {
+      match_labels = {
+        "app.kubernetes.io/application-group" = var.platform_name
+        "app.kubernetes.io/name"              = "${var.platform_name}-bastion"
+      }
+    }
+
+    policy_types = ["Egress"]
+
+    # Allow ports 80 and 443for apt-get and other HTTP traffic
+    egress {
+      to {
+        ip_block {
+          cidr = "0.0.0.0/0"
+        }
+      }
+      ports {
+        protocol = "TCP"
+        port     = 80
+      }
+    }
+    egress {
+      to {
+        ip_block {
+          cidr = "0.0.0.0/0"
+        }
+      }
+      ports {
+        protocol = "TCP"
+        port     = 443
+      }
+    }
+
+  }
+}
 
 #------------------------------------------------------------------------------
 # Allow Calico VXLAN traffic between nodes
