@@ -502,6 +502,32 @@ resource "kubernetes_network_policy_v1" "smarter_application_group_egress" {
       }
     }
 
+    # Allow SMTP (AWS SES) - port 465 (SMTPS)
+    egress {
+      to {
+        ip_block {
+          cidr = "0.0.0.0/0"
+        }
+      }
+      ports {
+        protocol = "TCP"
+        port     = 465
+      }
+    }
+
+    # Allow SMTP (AWS SES) - port 587 (Submission)
+    egress {
+      to {
+        ip_block {
+          cidr = "0.0.0.0/0"
+        }
+      }
+      ports {
+        protocol = "TCP"
+        port     = 587
+      }
+    }
+
   }
 }
 

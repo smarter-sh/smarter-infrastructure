@@ -116,7 +116,8 @@ resource "aws_key_pair" "bastion" {
   tags = merge(local.tags, {"Name" = "bastion"})
 }
 resource "aws_instance" "bastion" {
-  ami           = data.aws_ami.amazon_linux.id
+  # ami           = data.aws_ami.amazon_linux.id
+  ami           = "ami-0dd624c7f457c3741"
   instance_type = "t3.micro"
   subnet_id     = module.vpc.public_subnets[0]
   key_name      = "bastion"
@@ -129,6 +130,10 @@ resource "aws_instance" "bastion" {
     volume_type = "gp3"
     delete_on_termination = true
     tags = merge(local.tags, {"Name" = "bastion-root"})
+  }
+
+  lifecycle {
+    prevent_destroy = true
   }
 }
 

@@ -236,10 +236,6 @@ module "eks" {
   vpc_id                          = var.vpc_id
   subnet_ids                      = var.private_subnets
   control_plane_subnet_ids        = var.private_subnets
-  kms_key_administrators          = var.kms_key_owners
-  kms_key_owners                  = var.kms_key_owners
-  kms_key_users                   = var.kms_key_owners
-  kms_key_description             = "eks ${var.cluster_name} cluster encryption key"
   tags = local.tags
 
   compute_config = {
