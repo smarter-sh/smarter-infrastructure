@@ -51,6 +51,7 @@ inputs = merge(
   local.stack_vars.locals,
   local.global_vars.locals,
  {
+  cluster_name            = local.cluster_name
   bastion_public_key_path = local.bastion_public_key_path
   aws_region              = local.aws_region
   name                    = "${local.resource_name}"

@@ -93,8 +93,8 @@ resource "aws_vpc_endpoint" "sts" {
   tags = local.tags
 }
 
-resource "aws_security_group" "admin" {
-  name        = "${var.name}-admin-sg"
+resource "aws_security_group" "bastion" {
+  name        = "${var.name}-bastion-sg"
   description = "Security group for bastion host"
   vpc_id      = module.vpc.vpc_id
 
@@ -105,7 +105,7 @@ resource "aws_security_group" "admin" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  tags = merge(local.tags, {"Name" = "${var.name}-admin-sg"})
+  tags = merge(local.tags, {"Name" = "${var.name}-bastion-sg"})
 }
 
 
@@ -122,7 +122,7 @@ resource "aws_instance" "bastion" {
   subnet_id     = module.vpc.public_subnets[0]
   key_name      = "bastion"
   iam_instance_profile = aws_iam_instance_profile.ssm.name
-  vpc_security_group_ids = [aws_security_group.admin.id]
+  vpc_security_group_ids = [aws_security_group.bastion.id]
   tags = merge(local.tags, {"Name" = "bastion"})
 
   root_block_device {
@@ -141,7 +141,10 @@ resource "aws_instance" "bastion" {
 resource "aws_eip" "bastion" {
   region = var.aws_region
   instance = aws_instance.bastion.id
-  tags = local.tags
+  tags = merge({
+    Name = "bastion"
+    "smarter/cluster_name" = var.cluster_name
+  }, local.tags)
 }
 
 resource "aws_iam_role" "ssm" {
