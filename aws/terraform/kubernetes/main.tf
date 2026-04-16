@@ -148,6 +148,16 @@ locals {
       cidr_blocks = ["0.0.0.0/0"]
     }
 
+    # http responses to the outside world (e.g. for external DNS, cert manager, etc.)
+    egress_http = {
+      description = "${var.platform_name}: HTTP egress for external communication"
+      protocol    = "tcp"
+      from_port   = 80
+      to_port     = 80
+      type        = "egress"
+      cidr_blocks = ["0.0.0.0/0"]
+    }
+
     egress_dns = {
       description = "${var.platform_name}: DNS UDP egress for external communication"
       protocol    = "udp"
