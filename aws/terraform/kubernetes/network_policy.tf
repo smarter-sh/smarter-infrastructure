@@ -513,6 +513,29 @@ resource "kubernetes_network_policy_v1" "smarter_application_group_egress" {
       }
     }
 
+    # Allow ports 80 and 443 for ApiPlugins and get_weather function.
+    egress {
+      to {
+        ip_block {
+          cidr = "0.0.0.0/0"
+        }
+      }
+      ports {
+        protocol = "TCP"
+        port     = 80
+      }
+    }
+    egress {
+      to {
+        ip_block {
+          cidr = "0.0.0.0/0"
+        }
+      }
+      ports {
+        protocol = "TCP"
+        port     = 443
+      }
+    }
   }
 }
 
