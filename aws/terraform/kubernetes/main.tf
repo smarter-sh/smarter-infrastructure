@@ -363,12 +363,13 @@ EOF
       }
 
 
+      # mcdaniel (may-2026): we're currently using around 10Gib of EBS storage per node on average.
       block_device_mappings = {
         xvda = {
           device_name = "/dev/xvda"
           ebs = {
             volume_type           = "gp3"
-            volume_size           = 75
+            volume_size           = 20
             delete_on_termination = true
           }
         }
@@ -380,21 +381,21 @@ EOF
       tags = merge(
         local.tags,
         {
-          Name = "eks-${var.shared_resource_identifier}-smarter"
+          Name                                            = "eks-${var.shared_resource_identifier}-smarter"
           "k8s.io/cluster-autoscaler/enabled"             = "true"
           "k8s.io/cluster-autoscaler/${var.cluster_name}" = "owned"
         },
       )
     }
     wordpress = {
-      capacity_type     = "SPOT"
-      enable_monitoring = false
-      cluster_enabled_log_types = []
-      min_size          = 2
-      max_size          = 5
-      desired_size      = 3
-      instance_types    = var.eks_node_group_instance_types
-      subnet_ids        = [var.private_subnets[0]]
+      capacity_type               = "SPOT"
+      enable_monitoring           = false
+      cluster_enabled_log_types   = []
+      min_size                    = 2
+      max_size                    = 5
+      desired_size                = 3
+      instance_types              = var.eks_node_group_instance_types
+      subnet_ids                  = [var.private_subnets[0]]
 
       node_repair_config = {
         enabled = true
@@ -408,7 +409,7 @@ EOF
           device_name = "/dev/xvda"
           ebs = {
             volume_type           = "gp3"
-            volume_size           = 75
+            volume_size           = 15
             delete_on_termination = true
           }
         }
