@@ -112,9 +112,11 @@ inputs = {
   kms_key_owners = [
     "${local.bastion_iam_arn}",
     "${local.iam_admin_user_arn}",
+    "arn:aws:iam::090511222473:user/kfuka",
   ]
   cluster_admin_users = [
     "${local.iam_admin_user_arn}",
+    "arn:aws:iam::090511222473:user/kfuka",
   ]
 
 }
