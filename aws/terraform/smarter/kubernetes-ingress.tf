@@ -28,6 +28,7 @@ resource "kubernetes_manifest" "platform_ingress" {
   }))
 
   depends_on = [
+    kubernetes_namespace_v1.smarter,
     aws_route53_zone.environment_platform_domain
   ]
 }
@@ -57,6 +58,7 @@ resource "kubernetes_manifest" "traefik-middleware-cors" {
   }))
 
   depends_on = [
+    kubernetes_namespace_v1.smarter,
     aws_route53_zone.environment_platform_domain
   ]
 }
@@ -70,6 +72,7 @@ resource "kubernetes_manifest" "traefik-middleware-http-redirect" {
   }))
 
   depends_on = [
+    kubernetes_namespace_v1.smarter,
     aws_route53_zone.environment_platform_domain
   ]
 }
@@ -82,6 +85,7 @@ resource "kubernetes_manifest" "traefik-service-sessions" {
   }))
 
   depends_on = [
+    kubernetes_namespace_v1.smarter,
     aws_route53_zone.environment_platform_domain
   ]
 }

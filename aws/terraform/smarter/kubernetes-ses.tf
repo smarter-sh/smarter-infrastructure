@@ -36,4 +36,7 @@ resource "kubernetes_secret_v1" "smtp_user" {
     SMTP_USERNAME = aws_iam_access_key.smtp_user.id
     SMTP_PASSWORD = aws_iam_access_key.smtp_user.ses_smtp_password_v4
   }
+  depends_on = [
+    kubernetes_namespace_v1.smarter
+   ]
 }
