@@ -40,6 +40,7 @@ resource "kubernetes_manifest" "issuer_platform" {
 resource "kubernetes_manifest" "issuer_api" {
   manifest = local.issuer_api_manifest
   depends_on = [
+    kubernetes_manifest.issuer_platform,
     kubernetes_namespace_v1.smarter,
     aws_route53_zone.environment_api_domain
   ]
