@@ -409,7 +409,7 @@ EOF
           device_name = "/dev/xvda"
           ebs = {
             volume_type           = "gp3"
-            volume_size           = 15
+            volume_size           = 20
             delete_on_termination = true
           }
         }
