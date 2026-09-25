@@ -59,38 +59,23 @@ module "vpc" {
 }
 
 # -----------------------------------------------------------------------------
-# create VPC endpoints for ECR and STS so that our backend resources can access
-# these services without going through the internet.
+# S3 gateway endpoint. Gateway endpoints are free, and keep S3 traffic
+# (including ECR image layer pulls, which are served from S3) off of the
+# NAT Gateway, avoiding its $0.05/GB data processing charge.
 #
-# see https://aws.amazon.com/es/blogs/containers/using-vpc-endpoint-policies-to-control-amazon-ecr-access/
-# for more info on ECR endpoints.
-#
-# usage:
-# $ aws ssm start-session --target <instance-id>
-# $ aws eks update-kubeconfig --region <region> --name <cluster-name>
+# note: ECR and STS interface endpoints were removed because they are billed
+# per AZ-hour (3 endpoints x 3 AZs = ~$74/month), which far exceeded the NAT
+# data processing charges they could offset.
 # -----------------------------------------------------------------------------
-resource "aws_vpc_endpoint" "ecr_api" {
+resource "aws_vpc_endpoint" "s3" {
   vpc_id            = module.vpc.vpc_id
-  service_name      = "com.amazonaws.${var.aws_region}.ecr.api"
-  vpc_endpoint_type = "Interface"
-  subnet_ids        = module.vpc.private_subnets
-  tags = local.tags
-}
-
-resource "aws_vpc_endpoint" "ecr_dkr" {
-  vpc_id            = module.vpc.vpc_id
-  service_name      = "com.amazonaws.${var.aws_region}.ecr.dkr"
-  vpc_endpoint_type = "Interface"
-  subnet_ids        = module.vpc.private_subnets
-  tags = local.tags
-}
-
-resource "aws_vpc_endpoint" "sts" {
-  vpc_id            = module.vpc.vpc_id
-  service_name      = "com.amazonaws.${var.aws_region}.sts"
-  vpc_endpoint_type = "Interface"
-  subnet_ids        = module.vpc.private_subnets
-  tags = local.tags
+  service_name      = "com.amazonaws.${var.aws_region}.s3"
+  vpc_endpoint_type = "Gateway"
+  route_table_ids = concat(
+    module.vpc.private_route_table_ids,
+    module.vpc.intra_route_table_ids,
+  )
+  tags = merge(local.tags, {"Name" = "${var.name}-s3"})
 }
 
 resource "aws_security_group" "bastion" {
