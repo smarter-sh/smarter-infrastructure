@@ -7,18 +7,18 @@
 # usage: create a new smarter environment
 #------------------------------------------------------------------------------
 locals {
-  global_vars = read_terragrunt_config(find_in_parent_folders("global.hcl"))
-
-  # environment vars
-  environment           = "test"
-  subdomain             = "${local.environment}.platform"
+  global_vars   = read_terragrunt_config(find_in_parent_folders("global.hcl"))
+  stack_vars    = read_terragrunt_config("../../stack/stack.hcl")
+  environment   = "alpha"
+  environment_name = "${local.global_vars.locals.platform_name}-${local.global_vars.locals.shared_resource_identifier}-${local.environment}"
+  platform_name              = local.global_vars.locals.platform_name
 }
 
 # Terragrunt will copy the Terraform configurations specified by the source parameter, along with any files in the
 # working directory, into a temporary folder, and execute your Terraform commands in that folder.
 
 terraform {
-  source = "..//terraform"
+  source = "../../terraform/smarter"
 }
 
 # Include all settings from the root terragrunt.hcl file
@@ -29,8 +29,10 @@ include {
 # These are the variables we have to pass in to use the module specified in the terragrunt configuration above
 inputs = merge(
   local.global_vars.locals,
+  local.stack_vars.locals,
   {
-    environment  = local.environment
-    subdomain    = local.subdomain
+    environment           = local.environment
+    environment_name      = local.environment_name
+    platform_name         = local.platform_name
   }
 )

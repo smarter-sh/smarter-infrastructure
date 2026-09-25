@@ -1,0 +1,595 @@
+#------------------------------------------------------------------------------
+# written by: Lawrence McDaniel
+#             https://lawrencemcdaniel.com/
+#
+# date: Mar-2023
+#
+# usage: create an EKS cluster with one managed node group for EC2
+#        plus a Fargate profile for serverless computing.
+#
+# Load Docker Hub credentials from .env file
+#
+# Technical documentation:
+# - https://docs.aws.amazon.com/kubernetes
+# - https://registry.terraform.io/terraform/terraform-aws-modules/eks/aws/
+# - https://repost.aws/knowledge-center/execute-user-data-ec2
+#------------------------------------------------------------------------------
+data "aws_partition" "current" {}
+data "aws_caller_identity" "current" {}
+data "aws_region" "current" {}
+data "aws_vpc" "smarter_vpc" {
+  id = var.vpc_id
+}
+
+
+locals {
+  env_file = try(file("${path.module}/../../../../.env"), "")
+  env_vars = { for line in split("\n", local.env_file) :
+    split("=", line)[0] => split("=", line)[1]
+    if length(regexall("^[A-Z_]+=.+", line)) > 0
+  }
+  docker_username = lookup(local.env_vars, "DOCKER_USERNAME", "")
+  docker_pat      = lookup(local.env_vars, "DOCKER_PAT", "")
+
+  autoscaler_role = "${var.cluster_name}-cluster-autoscaler"
+  cluster_autoscaler_role_arn = module.cluster_autoscaler_irsa_role.iam_role_arn
+  templatefile_cluster_autoscaler = templatefile("${path.module}/config/cluster-autoscaler.yaml.tpl", {
+    cluster_name  = var.cluster_name
+    region = data.aws_region.current.id
+    autoscaler_role_arn = local.cluster_autoscaler_role_arn
+  })
+
+  # Used by Karpenter config to determine correct partition (i.e. - `aws`, `aws-gov`, `aws-cn`, etc.)
+  partition = data.aws_partition.current.partition
+  tags = var.tags
+
+  node_security_group_enable_recommended_rules = var.enable_enhanced_security ? false : true
+  node_security_group_additional_rules = var.enable_enhanced_security ? {
+    # -------------------------------
+    # INGRESS
+    # -------------------------------
+
+    # Internal node-to-node communication on all ports from within VPC CIDR
+    # ingress_node_to_node = {
+    #   description = "Smarter: Node to node communication within VPC"
+    #   protocol  = "-1"
+    #   from_port = 0
+    #   to_port   = 0
+    #   type      = "ingress"
+    #   self      = true
+    # }
+
+    # Internal node-to-node communication on all ports from within VPC CIDR
+    # this is potentially duplicative of the above rule, but it allows traffic
+    # from other security groups in the same VPC
+    ingress_all_from_elb_sg = {
+      description   = "${var.platform_name}: All traffic from ELB SG"
+      protocol      = "-1"
+      from_port     = 0
+      to_port       = 0
+      type          = "ingress"
+      cidr_blocks              = [data.aws_vpc.smarter_vpc.cidr_block]
+    }
+
+    # TCP port forwarding for NLB/LoadBalancer services
+    # for receiving external traffic from the Traefik Ingress Controller NLB
+    ingress_nlb_tcp_30283 = {
+      description   = "${var.platform_name}: NLB client port 30283"
+      protocol      = "tcp"
+      from_port     = 30000
+      to_port       = 32767
+      type          = "ingress"
+      cidr_blocks   = ["0.0.0.0/0"]
+    }
+
+    # ICMP rule for fragmentation required. This rule allows your nodes to
+    # receive ICMP "fragmentation needed" messages, which are essential for
+    # Path MTU Discovery. Without this, some network connections (especially
+    # those using large packets or VPNs) may break or experience connectivity
+    # issues.
+    ingress_icmp_frag_required = {
+      description   = "${var.platform_name}: ICMP fragmentation required, and DF flag set"
+      protocol      = "icmp"
+      from_port     = 3
+      to_port       = 4
+      type          = "ingress"
+      cidr_blocks   = ["0.0.0.0/0"]
+    }
+
+    # Cluster API to node kubelets (TCP 10250 from cluster SG)
+    ingress_cluster_api_kubelet = {
+      description   = "${var.platform_name}: Cluster API to node kubelets"
+      protocol      = "tcp"
+      from_port     = 10250
+      to_port       = 10250
+      type          = "ingress"
+      cidr_blocks              = [data.aws_vpc.smarter_vpc.cidr_block]
+    }
+
+    # Node to node CoreDNS (TCP/UDP 53 from node SG)
+    ingress_node_to_node_dns_tcp = {
+      description   = "${var.platform_name}: Node to node CoreDNS TCP"
+      protocol      = "tcp"
+      from_port     = 53
+      to_port       = 53
+      type          = "ingress"
+      cidr_blocks              = [data.aws_vpc.smarter_vpc.cidr_block]
+    }
+    ingress_node_to_node_dns_udp = {
+      description   = "${var.platform_name}: Node to node CoreDNS UDP"
+      protocol      = "udp"
+      from_port     = 53
+      to_port       = 53
+      type          = "ingress"
+      cidr_blocks              = [data.aws_vpc.smarter_vpc.cidr_block]
+    }
+
+    # -------------------------------
+    # EGRESS
+    # -------------------------------
+
+    # Internal node-to-node communication on all ports to within VPC CIDR
+    egress_node_to_node = {
+      description = "${var.platform_name}: Node to node communication within VPC"
+      protocol  = "-1"
+      from_port = 0
+      to_port   = 0
+      type      = "egress"
+      self      = true
+    }
+
+    # http responses to the outside world (e.g. for external DNS, cert manager, etc.)
+    egress_https = {
+      description = "${var.platform_name}: HTTPS egress for external communication"
+      protocol    = "tcp"
+      from_port   = 443
+      to_port     = 443
+      type        = "egress"
+      cidr_blocks = ["0.0.0.0/0"]
+    }
+
+    # http responses to the outside world (e.g. for external DNS, cert manager, etc.)
+    egress_http = {
+      description = "${var.platform_name}: HTTP egress for external communication"
+      protocol    = "tcp"
+      from_port   = 80
+      to_port     = 80
+      type        = "egress"
+      cidr_blocks = ["0.0.0.0/0"]
+    }
+
+    egress_dns = {
+      description = "${var.platform_name}: DNS UDP egress for external communication"
+      protocol    = "udp"
+      from_port   = 53
+      to_port     = 53
+      type        = "egress"
+      cidr_blocks = ["0.0.0.0/0"]
+    }
+    egress_dns_tcp = {
+      description = "${var.platform_name}: DNS TCP fallback egress for external communication"
+      protocol    = "tcp"
+      from_port   = 53
+      to_port     = 53
+      type        = "egress"
+      cidr_blocks = ["0.0.0.0/0"]
+    }
+
+
+    # NTP (time sync — REQUIRED or TLS breaks)
+    egress_ntp = {
+      description = "${var.platform_name}: NTP time sync"
+      protocol    = "udp"
+      from_port   = 123
+      to_port     = 123
+      type        = "egress"
+      cidr_blocks = ["0.0.0.0/0"]
+    }
+
+    egress_smtp_submission = {
+      description = "${var.platform_name}: SMTP submission (TLS)"
+      protocol    = "tcp"
+      from_port   = 587
+      to_port     = 587
+      type        = "egress"
+      cidr_blocks = ["0.0.0.0/0"]
+    }
+
+    egress_smtp = {
+      description = "${var.platform_name}: SMTP (legacy)"
+      protocol    = "tcp"
+      from_port   = 25
+      to_port     = 25
+      type        = "egress"
+      cidr_blocks = ["0.0.0.0/0"]
+    }
+
+    egress_ephemeral = {
+    description = "${var.platform_name}: Allow ephemeral response traffic"
+    protocol    = "tcp"
+    from_port   = 1024
+    to_port     = 65535
+    type        = "egress"
+    cidr_blocks = ["0.0.0.0/0"]
+    }
+
+    # -------------------------------
+    # OPTIONAL (DEBUGGING / TEMP)
+    # -------------------------------
+
+    # egress_all_temp = {
+    #   description = "TEMP allow all egress (debug only)"
+    #   protocol    = "-1"
+    #   from_port   = 0
+    #   to_port     = 0
+    #   type        = "egress"
+    #   cidr_blocks = ["0.0.0.0/0"]
+    # }
+
+  } : tomap({})
+}
+
+module "eks" {
+  source                          = "terraform-aws-modules/eks/aws"
+  version                         = "~> 21"
+  endpoint_private_access         = true
+  endpoint_public_access          = true
+  create_cloudwatch_log_group     = false
+  enable_irsa                     = true
+  create_iam_role                 = true
+  enable_cluster_creator_admin_permissions = true
+  authentication_mode             = "API_AND_CONFIG_MAP"
+  cloudwatch_log_group_class      = "INFREQUENT_ACCESS"
+
+  name                            = var.cluster_name
+  kubernetes_version              = var.kubernetes_cluster_version
+  vpc_id                          = var.vpc_id
+  subnet_ids                      = var.private_subnets
+  control_plane_subnet_ids        = var.private_subnets
+  tags = local.tags
+
+  compute_config = {
+   enabled = false
+  }
+
+  node_security_group_enable_recommended_rules = local.node_security_group_enable_recommended_rules
+  node_security_group_additional_rules = local.node_security_group_additional_rules
+
+
+  # NOTE:
+  # KMS key management.
+  # ---------------------------------------------------------------------------
+  # larger organizations might want to change these two settings
+  # in order to further restrict which IAM users have access to
+  # the AWS EKS Kubernetes Secrets. Note that at cluster creation,
+  # this key is benign since Kubernetes secrets encryption
+  # is not enabled by default.
+  #
+  # AWS EKS KMS console: https://us-east-2.console.aws.amazon.com/kms/home
+  #
+  # audit your AWS EKS KMS key access by running:
+  # aws kms get-key-policy --key-id ADD-YOUR-KEY-ID-HERE --region us-east-2 --policy-name default --output text
+  #
+  # add the bastion IAM user to aws-auth.mapUsers so that
+  # kubectl and k9s work from inside the bastion server by default.
+  #
+  # Cluster access entry
+  # access_entries = {
+  #   bastion = {
+  #     kubernetes_groups = []
+  #     principal_arn     = var.bastion_iam_arn
+
+  #     policy_associations = {
+  #       admin = {
+  #         policy_arn = "arn:${local.partition}:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy"
+  #         access_scope = {
+  #           type = "cluster"
+  #         }
+  #       }
+  #     }
+  #   }
+  # }
+  # ---------------------------------------------------------------------------
+
+
+  # Required add-ons for basic cluster functionality. Avoid
+  # adding unnecessary configuration details. The default settings work well
+  # for most use cases.
+  addons = {
+      coredns                = {}
+      eks-pod-identity-agent = {
+        before_compute = true
+      }
+      kube-proxy             = {}
+      vpc-cni                = {
+        before_compute = true
+      }
+    aws-ebs-csi-driver = {
+      service_account_role_arn = aws_iam_role.AmazonEKS_EBS_CSI_DriverRole.arn
+    }
+  }
+
+
+
+  eks_managed_node_groups = {
+    smarter = {
+      capacity_type     = "SPOT"
+      enable_monitoring = false
+      cluster_enabled_log_types = []
+      min_size          = var.eks_node_group_min_size
+      max_size          = var.eks_node_group_max_size
+      desired_size      = var.eks_node_group_min_size
+      instance_types    = var.eks_node_group_instance_types
+      subnet_ids        = var.private_subnets
+
+
+      node_repair_config = {
+        enabled = true
+        update_config = {
+          max_unavailable_percentage = 33
+        }
+      }
+
+
+      # Configure containerd to transparently redirect Docker Hub to ECR pull-through cache
+      # Pods continue using docker.io/image:tag - no manifest changes needed
+      pre_bootstrap_user_data = <<-EOT
+        #!/bin/bash
+        set -e
+
+        # Configure containerd registry mirror for docker.io
+        mkdir -p /etc/containerd/certs.d/docker.io
+        cat > /etc/containerd/certs.d/docker.io/hosts.toml <<'EOF'
+server = "https://registry-1.docker.io"
+
+[host."https://${data.aws_caller_identity.current.account_id}.dkr.ecr.${data.aws_region.current.region}.amazonaws.com/docker-hub"]
+  capabilities = ["pull", "resolve"]
+
+[host."https://registry-1.docker.io"]
+  capabilities = ["pull", "resolve"]
+EOF
+      EOT
+
+      iam_role_additional_policies = {
+        AmazonEKSWorkerNodePolicy         = "arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy"
+        AmazonEKS_CNI_Policy              = "arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy"
+        AmazonEC2ContainerRegistryReadOnly = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
+
+        # Required by EBS CSI Add-on
+        AmazonEBSCSIDriverPolicy = data.aws_iam_policy.AmazonEBSCSIDriverPolicy.arn
+
+        # Required for ECR pull-through cache
+        ECRPullThroughCache = aws_iam_policy.ecr_pull_through_cache.arn
+      }
+
+
+      # mcdaniel (may-2026): we're currently using around 10Gib of EBS storage per node on average.
+      block_device_mappings = {
+        xvda = {
+          device_name = "/dev/xvda"
+          ebs = {
+            volume_type           = "gp3"
+            volume_size           = 20
+            delete_on_termination = true
+          }
+        }
+      }
+
+      labels = {
+        node-group = "smarter"
+      }
+      tags = merge(
+        local.tags,
+        {
+          Name                                            = "eks-${var.shared_resource_identifier}-smarter"
+          "k8s.io/cluster-autoscaler/enabled"             = "true"
+          "k8s.io/cluster-autoscaler/${var.cluster_name}" = "owned"
+        },
+      )
+    }
+    wordpress = {
+      capacity_type               = "SPOT"
+      enable_monitoring           = false
+      cluster_enabled_log_types   = []
+      min_size                    = 2
+      max_size                    = 5
+      desired_size                = 3
+      instance_types              = var.eks_node_group_instance_types
+      subnet_ids                  = [var.private_subnets[0]]
+
+      node_repair_config = {
+        enabled = true
+        update_config = {
+          max_unavailable_percentage = 33
+        }
+      }
+
+      block_device_mappings = {
+        xvda = {
+          device_name = "/dev/xvda"
+          ebs = {
+            volume_type           = "gp3"
+            volume_size           = 15
+            delete_on_termination = true
+          }
+        }
+      }
+
+      labels = {
+        node-group = "wordpress"
+      }
+      tags = merge(
+        local.tags,
+        {
+          Name = "eks-${var.shared_resource_identifier}-wordpress"
+        },
+      )
+    }
+  }
+
+}
+
+
+
+#==============================================================================
+#                             SUPPORTING RESOURCES
+#==============================================================================
+resource "aws_iam_policy" "cluster_autoscaler" {
+  name = "cluster-autoscaler"
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "autoscaling:SetDesiredCapacity",
+          "autoscaling:TerminateInstanceInAutoScalingGroup"
+        ]
+        Resource = "*"
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          "autoscaling:DescribeAutoScalingGroups",
+          "autoscaling:DescribeAutoScalingInstances",
+          "autoscaling:DescribeTags",
+          "ec2:DescribeLaunchTemplateVersions"
+        ]
+        Resource = "*"
+      }
+    ]
+  })
+}
+module "cluster_autoscaler_irsa_role" {
+  source  = "terraform-aws-modules/iam/aws//modules/iam-role-for-service-accounts-eks"
+  version = "5.28.0"
+
+  role_name = local.autoscaler_role
+  cluster_autoscaler_cluster_names = [var.cluster_name]
+  attach_cluster_autoscaler_policy = true
+
+  oidc_providers = {
+    main = {
+      provider_arn               = module.eks.oidc_provider_arn
+      namespace_service_accounts = ["kube-system:cluster-autoscaler"]
+    }
+  }
+
+  tags = local.tags
+}
+
+resource "helm_release" "cluster_autoscaler" {
+  name       = "cluster-autoscaler"
+  repository = "https://kubernetes.github.io/autoscaler"
+  chart      = "cluster-autoscaler"
+
+  namespace = "kube-system"
+  values = [
+    local.templatefile_cluster_autoscaler
+  ]
+}
+
+
+#==============================================================================
+# AWS ECR Pull-Through Cache Policy
+#==============================================================================
+resource "aws_iam_policy" "ecr_pull_through_cache" {
+  name        = "${var.cluster_name}-ecr-pull-through-cache"
+  description = "Allow EKS nodes to pull from ECR pull-through cache"
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "ecr:GetAuthorizationToken",
+          "ecr:BatchCheckLayerAvailability",
+          "ecr:GetDownloadUrlForLayer",
+          "ecr:BatchGetImage"
+        ]
+        Resource = "*"
+      }
+    ]
+  })
+
+  tags = local.tags
+}
+
+
+resource "aws_secretsmanager_secret" "dockerhub_credentials" {
+  name        = "ecr-pullthroughcache/docker-${var.cluster_name}/${var.unique_id}"
+  description = "Docker Hub credentials for ECR pull-through cache"
+
+  tags = local.tags
+}
+
+resource "aws_secretsmanager_secret_version" "dockerhub_credentials" {
+  secret_id = aws_secretsmanager_secret.dockerhub_credentials.id
+  secret_string = jsonencode({
+    username    = local.docker_username
+    accessToken = local.docker_pat
+  })
+}
+
+resource "aws_ecr_pull_through_cache_rule" "dockerhub" {
+  ecr_repository_prefix = substr("${var.cluster_name}-docker-${var.unique_id}", 0, 30)
+  upstream_registry_url = "registry-1.docker.io"
+  credential_arn        = aws_secretsmanager_secret.dockerhub_credentials.arn
+}
+
+
+#==============================================================================
+# Certificate Manager Route53 Update Policy
+#==============================================================================
+resource "aws_iam_policy" "MANUAL_route53_update_records" {
+  name        = "eks-route53-cert-manager-${var.cluster_name}"
+  description = "Allow cert-manager on EKS nodes to manage Route53 DNS records"
+  policy      = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "route53:ChangeResourceRecordSets",
+          "route53:ListResourceRecordSets"
+        ]
+        Resource = "arn:aws:route53:::hostedzone/*"
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          "route53:GetChange"
+        ]
+        Resource = "arn:aws:route53:::change/*"
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          "route53:ListHostedZones"
+        ]
+        Resource = "*"
+      }
+    ]
+  })
+}
+
+# -----------------------------------------------------------------------------
+# Assign the cluster admin role to our custom list of IAM users.
+# -----------------------------------------------------------------------------
+resource "aws_iam_user_policy" "cluster_admin_assume_role" {
+  for_each = { for arn in var.cluster_admin_users : arn => element(split("/", arn), length(split("/", arn)) - 1) }
+
+  user = each.value
+  name = "${var.cluster_name}-cluster-admin-assume-role-${each.value}"
+  policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [
+      {
+        Effect = "Allow",
+        Action = "sts:AssumeRole",
+        Resource = module.eks.cluster_iam_role_arn
+      }
+    ]
+  })
+}

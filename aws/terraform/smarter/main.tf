@@ -1,0 +1,47 @@
+#------------------------------------------------------------------------------
+# written by: Lawrence McDaniel
+#             https://lawrencemcdaniel.com/
+#
+# date:       July-2023
+#
+# usage:      Smarter app infrastructure - set environment variables and tags
+#             for this environment.
+#------------------------------------------------------------------------------
+
+locals {
+  platform_name                 = var.platform_name
+  environment                   = var.environment
+  environment_namespace         = lower("${var.environment_name}")
+  environment_marketing_domain  = "${var.root_domain}"
+
+  environment_prefix = (var.environment == "prod" && var.platform_subdomain != "local") ? "" : (var.platform_subdomain != "local" ? "${var.environment}." : "${var.platform_subdomain}.")
+
+
+  environment_platform_domain   = var.platform_subdomain != "local" ? "${local.environment_prefix}${var.platform_domain}" : var.platform_domain
+                                # alpha.platform.example.com
+
+  environment_api_domain        = var.platform_subdomain != "local" ? "${local.environment_prefix}${var.platform_api_domain}" : var.platform_api_domain
+                                #  alpha.api.platform.example.com
+
+  ecr_repository_name           = var.platform_subdomain != "local" ? local.environment_namespace : "${var.platform_name}-${var.platform_subdomain}"
+  ecr_repository_image          = "${var.aws_account_id}.dkr.ecr.${var.aws_region}.amazonaws.com/${local.ecr_repository_name}:latest"
+
+  mysql_database                = substr(replace(var.environment_name, "-", "_"), -64, -1)
+  mysql_username                = local.mysql_database
+
+  s3_bucket_name                = var.platform_subdomain != "local" ?  "${local.environment_prefix}${var.platform_subdomain}.${var.root_domain}" : "${local.environment_prefix}${var.root_domain}"
+                                # alpha.platform.example.com or local.example.com
+
+  tags = merge(
+    var.tags,
+    {
+      "smarter/environment"                   = local.environment
+      "smarter/environment_name"              = var.environment_name
+      "smarter/environment_namespace"         = local.environment_namespace
+      "smarter/environment_platform_domain"   = local.environment_platform_domain
+      "smarter/environment_api_domain"        = local.environment_api_domain
+      "smarter/environment_marketing_domain"  = local.environment_marketing_domain
+    }
+  )
+
+}

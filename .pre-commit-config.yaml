@@ -1,93 +1,86 @@
-default_language_version:
-  # default language version for each language
-  python: python3.11
 repos:
-  - repo: https://github.com/asottile/pyupgrade
-    rev: v3.15.2
-    hooks:
-      - id: pyupgrade
   - repo: https://github.com/codespell-project/codespell
-    rev: v2.2.6
+    rev: v2.4.1
     hooks:
       - id: codespell
         args: ["--ignore-words=codespell.txt"]
-        exclude: '\.svg$|^smarter/smarter/static/|^helm/'
-  - repo: local
-    hooks:
-      - id: eslint
-        name: eslint
-        entry: bash -c 'cd client && npx eslint'
-        language: node
-        types: [javascript]
-        files: ^client/
-  - repo: https://github.com/pre-commit/mirrors-prettier
-    rev: v4.0.0-alpha.8
-    hooks:
-      - id: prettier
-        exclude: "^smarter/|^helm/"
-  - repo: https://github.com/psf/black
-    rev: 24.4.2
-    hooks:
-      - id: black
-  - repo: https://github.com/PyCQA/flake8
-    rev: 7.0.0
-    hooks:
-      - id: flake8
-  - repo: https://github.com/PyCQA/isort
-    rev: 5.13.2
-    hooks:
-      - id: isort
-        args: ["--settings-path=pyproject.toml"]
-  # - repo: local
-  #   hooks:
-  #     - id: pylint
-  #       name: pylint
-  #       entry: ./scripts/run_pylint.sh
-  #       language: script
-  #       types: [python]
-  - repo: https://github.com/PyCQA/bandit
-    rev: 1.7.8
-    hooks:
-      - id: bandit
-        args: ["-ll"]
+        exclude: '\\.terraform/|\\.terragrunt-cache/'
+        files: '^aws/'
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.6.0
+    rev: v6.0.0
     hooks:
       # See https://pre-commit.com/hooks.html for more hooks
       #- id: check-added-large-files
       - id: fix-byte-order-marker
+        files: '^aws/'
+        exclude: '\\.terraform/|\\.terragrunt-cache/'
       - id: check-case-conflict
+        files: '^aws/'
+        exclude: '\\.terraform/|\\.terragrunt-cache/'
       - id: check-json
-        exclude: ".*/reactapp/.*"
+        files: '^aws/'
+        exclude: '\\.terraform/|\\.terragrunt-cache/'
       - id: check-merge-conflict
+        files: '^aws/'
+        exclude: '\\.terraform/|\\.terragrunt-cache/'
       - id: check-symlinks
+        files: '^aws/'
+        exclude: '\\.terraform/|\\.terragrunt-cache/'
       - id: check-toml
+        files: '^aws/'
+        exclude: '\\.terraform/|\\.terragrunt-cache/'
       - id: check-xml
-        exclude: "smarter/smarter/static/"
+        files: '^aws/'
+        exclude: '\\.terraform/|\\.terragrunt-cache/'
       - id: check-yaml
-        exclude: "^helm/"
+        files: '^aws/'
+        exclude: '\\.terraform/|\\.terragrunt-cache/'
       - id: destroyed-symlinks
+        files: '^aws/'
+        exclude: '\\.terraform/|\\.terragrunt-cache/'
       - id: detect-aws-credentials
         args: ["--allow-missing-credentials"]
+        files: '^aws/'
+        exclude: '\\.terraform/|\\.terragrunt-cache/'
       - id: detect-private-key
+        files: '^aws/'
+        exclude: '\\.terraform/|\\.terragrunt-cache/'
       - id: end-of-file-fixer
+        files: '^aws/'
+        exclude: '\\.terraform/|\\.terragrunt-cache/'
       - id: forbid-new-submodules
+        files: '^aws/'
+        exclude: '\\.terraform/|\\.terragrunt-cache/'
       - id: trailing-whitespace
+        files: '^aws/'
+        exclude: '\\.terraform/|\\.terragrunt-cache/'
       - id: check-case-conflict
+        files: '^aws/'
+        exclude: '\\.terraform/|\\.terragrunt-cache/'
       - id: check-merge-conflict
+        files: '^aws/'
+        exclude: '\\.terraform/|\\.terragrunt-cache/'
       - id: debug-statements
+        files: '^aws/'
+        exclude: '\\.terraform/|\\.terragrunt-cache/'
   - repo: https://github.com/gruntwork-io/pre-commit
-    rev: v0.1.23 # Get the latest from: https://github.com/gruntwork-io/pre-commit/releases
+    rev: v0.1.30 # Get the latest from: https://github.com/gruntwork-io/pre-commit/releases
     hooks:
       - id: terraform-fmt
+        files: '^aws/.*\\.tf$'
+        exclude: '\.terraform/|\.terragrunt-cache/'
       - id: terraform-validate
+        files: '^aws/.*\\.tf$'
+        exclude: '\.terraform/|\.terragrunt-cache/'
       # - id: tflint    # requires too much extra installation in GitHub Actions.
   - repo: https://github.com/alessandrojcm/commitlint-pre-commit-hook
-    rev: v9.16.0
+    rev: v9.24.0
     hooks:
       - id: commitlint
         stages: [commit-msg]
         additional_dependencies: ["@commitlint/config-angular"]
+        files: '^aws/'
+        exclude: '\\.terraform/|\\.terragrunt-cache/'
 ci:
   # for more information, see https://pre-commit.ci
   autofix_commit_msg: |
@@ -95,7 +88,7 @@ ci:
   autofix_prs: true
   autoupdate_branch: ""
   autoupdate_commit_msg: "[pre-commit.ci] pre-commit autoupdate"
-  autoupdate_schedule: weekly
+  autoupdate_schedule: quarterly
   skip:
     [
       terraform-fmt,

@@ -1,0 +1,151 @@
+#------------------------------------------------------------------------------
+# written by: Lawrence McDaniel
+#             https://lawrencemcdaniel.com/
+#
+# date: Mar-2023
+#
+# usage: create an EKS cluster
+#------------------------------------------------------------------------------
+variable "enable_enhanced_security" {
+  description = "Whether or not to enable enhanced security features for the EKS cluster, such as AWS GuardDuty, AWS Security Hub, and AWS Config. This variable is used to conditionally create resources and configure settings related to enhanced security for the EKS cluster."
+  type        = bool
+  default     = false
+}
+variable "aws_account_id" {
+  type = string
+}
+
+variable "shared_resource_identifier" {
+  type = string
+}
+
+variable "root_domain" {
+  type = string
+}
+
+variable "platform_name" {
+  type = string
+}
+
+variable "namespace" {
+  type = string
+}
+
+variable "cluster_name" {
+  type = string
+}
+
+variable "aws_region" {
+  type = string
+}
+
+variable "vpc_id" {
+  type = string
+}
+
+variable "private_subnets" {
+  type = list(string)
+}
+
+variable "tags" {
+  description = "A map of tags to add to all resources. Tags added to launch configuration or templates override these values for ASG Tags only."
+  type        = map(string)
+  default     = {}
+}
+
+variable "enable_irsa" {
+  type    = bool
+  default = true
+}
+
+variable "kubernetes_cluster_version" {
+  type = string
+}
+
+variable "eks_create_kms_key" {
+  type = bool
+}
+
+
+variable "map_users" {
+  description = "Additional IAM users to add to the aws-auth configmap."
+  type = list(object({
+    userarn  = string
+    username = string
+    groups   = list(string)
+  }))
+  default = []
+}
+
+variable "map_roles" {
+  description = "Additional IAM roles to add to the aws-auth configmap."
+  type = list(object({
+    userarn  = string
+    username = string
+    groups   = list(string)
+  }))
+  default = []
+}
+
+variable "bastion_iam_arn" {
+  type = string
+}
+
+variable "kms_key_owners" {
+  type    = list(any)
+  default = []
+}
+
+variable "smarter_group_min_size" {
+  type    = number
+  default = 0
+}
+
+variable "smarter_group_max_size" {
+  type    = number
+  default = 1
+}
+
+variable "smarter_group_desired_size" {
+  type    = number
+  default = 3
+}
+
+variable "eks_node_group_min_size" {
+  type    = number
+  default = 0
+}
+
+variable "eks_node_group_max_size" {
+  type    = number
+  default = 2
+}
+
+variable "arm64_group_desired_size" {
+  type    = number
+  default = 2
+}
+
+variable "iam_admin_user_arn" {
+    type = string
+}
+
+variable "eks_node_group_instance_types" {
+  description = "List of instance types for the EKS node group."
+  type        = list(string)
+  default     = ["t3.large", "m5.large", "c5.large"]
+}
+
+variable "cluster_admin_users" {
+  description = "List of IAM user ARNs to be added as cluster admins in the aws-auth configmap and KMS key owner list (if KMS encryption is enabled for EKS secrets)."
+  type        = list(string)
+  default     = []
+
+}
+
+
+variable "unique_id" {
+  description = "A unique identifier to force resource recreation when needed. This can be set to a random string or a timestamp to ensure that resources are recreated when this value changes."
+  type        = string
+  default     = ""
+}

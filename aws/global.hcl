@@ -12,36 +12,47 @@ locals {
     ###############################################################################
     # AWS CLI parameters
     ###############################################################################
-    aws_account_id             = get_env("AWS_ACCOUNT_ID", "SET-ME-PLEASE")
+    bastion_public_key_path    = get_env("BASTION_PUBLIC_KEY_PATH", "/Users/mcdaniel/.ssh/lpm0073.pub")
+    iam_admin_user_arn         = get_env("IAM_ADMIN_USER_ARN", "SET-ME-IN-DOT-ENV")
+    aws_account_id             = get_env("AWS_ACCOUNT_ID", "SET-ME-IN-DOT-ENV")
     aws_profile                = get_env("AWS_PROFILE", "default")
-    aws_region                 = get_env("AWS_REGION", "us-east-2")
+    aws_region                 = get_env("AWS_REGION", "ca-central-1")
     root_domain                = get_env("ROOT_DOMAIN", "smarter.sh")
+    mysql_root_username        = get_env("MYSQL_ROOT_USERNAME", "SET-ME-IN-DOT-ENV")
+    mysql_root_password        = get_env("MYSQL_ROOT_PASSWORD", "SET-ME-IN-DOT-ENV")
+    unique_id                  = get_env("UNIQUE_ID", "123456789012")
+    cost_code                  = get_env("COST_CODE", "smarter")
 
-    shared_resource_identifier = "smarter"
-    eks_cluster_name           = "apps-hosting-service"
-    mysql_host                 = "mysql.service.lawrencemcdaniel.com"
+    platform_region            = "ca"
+    platform_name              = "smarter"
+    platform_subdomain         = get_env("PLATFORM_SUBDOMAIN", "platform")
+    shared_resource_identifier = local.platform_subdomain
+    platform_domain            = "${local.platform_subdomain}.${local.root_domain}"
+    platform_api_domain        = "api.${local.platform_subdomain}.${local.root_domain}"
+    mysql_host                 = "smarter-mariadb"
     mysql_port                 = "3306"
+    cluster_name               = "${local.platform_name}-${local.shared_resource_identifier}-${local.platform_region}-${local.unique_id}"
     tags = {
+      "smarter"                   = "true",
       "terraform"                 = "true",
-      "project"                   = "Querium Smarter"
-      "contact"                   = "Lawrence McDaniel - https://lawrencemcdaniel.com/"
+      "smarter/contact"           = "Lawrence McDaniel - https://lawrencemcdaniel.com/"
+      "smarter/cost_code"         = local.cost_code,
       "smarter/root_domain"       = local.root_domain
-      "smarter/eks_cluster_name"  = local.eks_cluster_name
+      "smarter/cluster_name"      = local.cluster_name
       "smarter/mysql_host"        = local.mysql_host
+      "smarter/platform_subdomain" = local.platform_subdomain
+      "smarter/platform_name"     = local.platform_name,
+      "smarter/platform_region"   = local.platform_region,
+      "smarter/unique_id"         = local.unique_id
     }
-
-    ###############################################################################
-    # OpenAI API parameters
-    ###############################################################################
-    openai_endpoint_image_n    = 4
-    openai_endpoint_image_size = "1024x768"
-
 
     ###############################################################################
     # CloudWatch logging parameters
     ###############################################################################
     logging_level = "INFO"
 
+    shared_resource_namespace  = "${local.shared_resource_identifier}-${local.aws_region}-${local.shared_resource_identifier}"
+    services_subdomain         = "services.${local.root_domain}"
 }
 
 inputs = {
@@ -50,8 +61,11 @@ inputs = {
     aws_region                 = local.aws_region
     root_domain                = local.root_domain
     shared_resource_identifier = local.shared_resource_identifier
-    eks_cluster_name           = local.eks_cluster_name
+    cluster_name               = local.cluster_name
+    mysql_root_username        = local.mysql_root_username
+    mysql_root_password        = local.mysql_root_password
     mysql_host                 = local.mysql_host
     mysql_port                 = local.mysql_port
-    tags                       = local.tags
+    platform_api_domain        = local.platform_api_domain
+    bastion_public_key_path    = local.bastion_public_key_path
 }

@@ -1,133 +1,230 @@
-# Querium Smarter
+# The Smarter Project - AWS Infrastructure
 
-[![OpenAI](https://a11ybadges.com/badge?logo=openai)](https://platform.openai.com/)
-[![LangChain](https://a11ybadges.com/badge?text=LangChain&badgeColor=0834ac)](https://www.langchain.com/)
 [![Amazon AWS](https://a11ybadges.com/badge?logo=amazonaws)](https://aws.amazon.com/)
-[![Bootstrap](https://a11ybadges.com/badge?logo=bootstrap)](https://getbootstrap.com/)
-[![ReactJS](https://a11ybadges.com/badge?logo=react)](https://react.dev/)
-[![NPM](https://a11ybadges.com/badge?logo=npm)](https://www.npmjs.com/)
-[![Python](https://a11ybadges.com/badge?logo=python)](https://www.python.org/)
-[![Django](https://a11ybadges.com/badge?logo=django)](https://www.djangoproject.com/)
 [![Terraform](https://a11ybadges.com/badge?logo=terraform)](https://www.terraform.io/)<br>
-[![Unit Tests](https://github.com/QueriumCorp/smarter/actions/workflows/test.yml/badge.svg?branch=main)](https://github.com/QueriumCorp/smarter/actions/workflows/releaseController.yml)
-![Release Status](https://github.com/QueriumCorp/smarter/actions/workflows/release.yml/badge.svg?branch=main)
-![Auto Assign](https://github.com/QueriumCorp/smarter/actions/workflows/auto-assign.yml/badge.svg)
+[![Kubernetes](https://img.shields.io/badge/Kubernetes-326ce5?logo=kubernetes&logoColor=white)](https://kubernetes.io/)
 [![License: AGPL v3](https://img.shields.io/badge/License-AGPL_v3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0)
 [![hack.d Lawrence McDaniel](https://img.shields.io/badge/hack.d-Lawrence%20McDaniel-orange.svg)](https://lawrencemcdaniel.com)
 
-**Smarter is an enterprise-class platform for designing and managing chat solutions. Think of Smarter as the 'Redhat Linux' of chat.**
+This repo contains [Terraform](https://developer.hashicorp.com/terraform) source code for creating the AWS cloud
+infrastructure that supports the [Smarter Api and web platform](https://github.com/smarter-sh/smarter).
 
-Smarter gives prompt engineering teams an intuitive workbench approach to designing, prototyping, testing, deploying and managing powerful chat solutions for common corporate use cases including customer sales support, vendor/supplier management, human resources, and more. Smarter is compatible with a wide variety of chatbot UI front ends for technology ecosystems such as NPM, Wordpress, Squarespace, Drupal, Office 365, Sharepoint, .Net, Netsuite, salesforce.com, and SAP. It is developed to support prompt engineering teams working in large organizations. Accordindly, Smarter provides common enterprise features such as security, accounting cost codes, and audit capabilities.
+[Smarter](https://smarter.sh/) is a declarative extensible AI authoring and resource management system.
+It is used as an instructional tool at [University of British Columbia](https://www.ubc.ca/)
+for teaching cloud computing at scale, and generative AI prompt engineering
+techniques including advanced use of LLM tool calling involving secure
+integrations to remote data sources like Sql databases and remote Apis.
 
-Smarter is LLM provider-agnostic, and provides seamless integrations to a continuously evolving list of value added services for security management, prompt content moderation, audit, cost accounting, and workflow management. It can be used as a pay-as-you-go, platform as a service, or, installed in your own AWS cloud account and supported by Querium's professional services team. It can also be installed on-premise in a hybrid model.
+## At A Glance
 
-Smarter is cost effective when running at scale. It is extensible and architected on the philosophy of a compact core that does not require customization nor forking. It is horizontally scalable. It is natively multi-tenant, and can be installed alongside your existing systems. The principal technologies in the Smarter platform stack include:
+Creates a standalone AWS EKS ([Elastic Kubernetes Service](https://aws.amazon.com/pm/eks/)) Kubernetes cluster
+inside of a dedicated VPC ([Virtual Private Cloud](https://aws.amazon.com/vpc/)), and installs supporting [Helm](https://helm.sh/)
+packages for [Traefik](https://traefik.io/traefik) and [Cert-Manager](https://cert-manager.io/), for implementing the necessary cloud
+support behind traditional TLS-terminated ingresses. Terraform tags all
+resources for tracking purposes.
 
-- Ubuntu Linux
-- Docker/Kubernetes/Helm
-- MySQL
-- Redis
-- Terraform/awscli/Boto3
-- Python/Django
-- Pytest/Pluggy
-- Langchain
-- Pydantic
-- ReactJS/Bootstrap
-- Go lang
-- GitHub Actions
+This infrastructure is designed to host multiple Smarter environments on the same
+Kubernetes cluster (ie alpha, beta, next, prod). Additional envionment-specific
+AWS resources that this project fully manages include:
 
-## Designed by for prompt engineers
+- VPC (Virtual Private Cloud)
+- IAM (Identity Access Management) Roles, Users, and Policies
+- Cloudfront Content Delivery network
+- Elastic Container Registry for private Smarter app repos (optional)
+- Route53 DNS records
+- S3 storage bucket
+- Simple Email Service configuration
+- Certificate Manager
 
-Smarter provides design teams with a web console, and a convenient yaml manifest-based command-line interface for Windows, macOS, and Linux.
+**Important**: You will need an AWS IAM key-pair with sufficient permissions to manage the complete lifecycle
+of all AWS resources referenced in this repo, as well as any further permissions that these resources need.
+For example, AWS EKS requires extensive EC2 permissions in order for it to operate.
 
-### Plugin Architecture
+## Client Software Prerequisites & Minimum Hardware Requiments
 
-Smarter features a unique Plugin architecture for extending the knowledge domain of any LLM aimed at generative AI text completions. Smarter Plugins are uncharacteristically accurate, highly cost effective, and have been designed around the needs of enterprise customers. Its unique 'selector' feature gives prompt engineers a sosphisticated strategy for managing when and how LLM's can make use of Smarter Plugin's powerful data integrations, which include the following:
+### Software
 
-- **Static**: an easy to implement scheme in which your private data is simply included in yaml Plugin manifest file.
-- **Sql**: a flexible parameterized manifest scheme that exposes query parameters to the LLM, enabling it to make precise requests via proxy to your corporate databases.
-- **Rest Api**: Similarly, you can also configure proxy connections to your Rest Api's, enabling the LLM to make precise requests to an unlimited range of private data sources.
+- [Terraform](https://developer.hashicorp.com/terraform)
+- [Terragrunt](https://terragrunt.gruntwork.io/)
+- [kubectl](https://kubernetes.io/docs/tasks/tools/)
+- [aws command-line interface](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html)
 
-### Yaml Manifest Resource Management
 
-Smarter brings a [yaml-based manifest file](./smarter/smarter/apps/plugin/data/sample-plugins/example-configuration.yaml) approach to prompt engineering, originally inspired by the [kubectl](https://kubernetes.io/docs/reference/kubectl/) command-line interface for [Kubernetes](https://kubernetes.io/).
+*For developers who contribute to this project*:
 
-### Smarter ChatBot APIs
+- Node
+- Python
 
-The following collection of rest api url endpoints are implemented for all Smarter chatbot, where `example` is the name of the chatbot. The chatbot sandbox React app and configuration api are available via these two url's, both of which require authentication and are only available to user associated with the Account to which the chatbot belongs.
+### Hardware
 
-```console
-https://platform.smarter.sh/chatapp/example/
-https://platform.smarter.sh/chatapp/example/config/
-```
+- CPU: 4+ cores (modern Intel/AMD or Apple Silicon)
+- RAM: 16 GB minimum (32 GB recommended for very large plans)
+- Storage: SSD with at least 35 GB free (Terraform state and .terraform directories can grow very large)
+- Network: Reliable broadband (for AWS API calls and module downloads)
+- OS: macOS, Linux, or Windows (WSL2 recommended for Windows)
 
-Chatbot REST api's are available at several different styles of url endpoint depending on your needs. Deployed chatbots are accessible via either of these two styles. These url's do not require authentication (ie they are publicly accessible) unless the customer chooses to add an optional api key.
+## Terraform Configuration
 
-```console
-https://example.3141-5926-5359.api.platform.smarter.sh/chatbot/
-https://custom-domain.com/chatbot/
-```
+All installation parameters are provided as environment variables. You should not need to edit
+Terraform code as part of your installation process. Review the following files. Adjust as necessary.
+The default hcl settings should work in most cases. **Avoid modifying the hcl files, unless you are
+familiar with Terraform and Terragrunt and you are highly experienced with the AWS resources
+that this project creates, as there could be unintended consequences.**
 
-Additionally, there's a sandbox url which works with Django authentication and is accessible regardless of the chatbot's deployment status.
+- [.env](./.env.example)
+- [aws/global.hcl](./aws/global.hcl)
+- [aws/terragrunt.hcl](./aws/terragrunt.hcl)
+- [aws/stack/stack.hcl](./aws/stack/stack.hcl)
 
-```console
-https://platform.smarter.sh/api/v0/chatbots/1/chatbot/
-```
+### Environment Variables
 
-### ChatBot API
+Running `make` in a terminal window, in the root of this repo will automatically initialize a `.env` file for you. Otherwise, create a .env file
+in the root of the repo with the values described below. Also note that use of
+the Terraform built-in command `get_env("SOME_ENVIRONMENT_VARIABLE")` is strictly limited to '[aws/global.hcl](./aws/global.hcl)'.
 
-Customers can deploy personalized ChatBots with a choice of domain. The default URL format is as follows.
-
-- api: [user-defined-subdomain].####-####-####.api.smarter.sh/chatbot/
-- webapp: [user-defined-subdomain].####-####-####.api.smarter.sh/chatbot/webapp/
-
-Customers can optionally register a custom domain which typically can be verified and activated in around 4 hours.
-
-## Developer Quickstart
-
-See onboarding videos:
-
-- [Querium Smarter Developer Onboarding #1](https://youtu.be/-hZEO9sMm1s)
-- [Smarter Developer Workflow Tutorial](https://youtu.be/XolFLX1u9Kg)
-
-Works with Linux, Windows and macOS environments.
-
-1. Verify project requirements: [Python 3.11](https://www.python.org/), [NPM](https://www.npmjs.com/) [Docker](https://www.docker.com/products/docker-desktop/), and [Docker Compose](https://docs.docker.com/compose/install/). Docker will need around 1 vCPU, 2Gib memory, and 30Gib of storage space.
-
-2. Run `make` and add your credentials to the newly created `.env` file in the root of the repo.
-
-3. Initialize, build and run the application locally.
+**IMPORTANT**: You'll need to run `set -a; source .env; set +a` in order for
+these environment variables to become visible inside of running Terraform code.
+Afterwards, values of the form `get_env("AWS_REGION", "ca-central-1")` can see the environment variables that you have set in your .env file.
 
 ```console
-git clone https://github.com/QueriumCorp/smarter.git
-make                # scaffold a .env file in the root of the repo
-                    #
-                    # ****************************
-                    # STOP HERE!
-                    # ****************************
-                    # Add your credentials to .env located in the project root folder.
-                    #
-make python-init    # initialize Python virtual environment used for code auto-completion and linting
-make docker-init    # initialize dev environment, build & init docker.
-make docker-build   # builds and configures all docker containers
-make docker-run     # runs all docker containers and starts a local web server http://127.0.0.1:8000/
+IAM_ADMIN_USER_ARN=arn:aws:iam::123456789012:user/username
+
+AWS_REGION=us-east-1
+AWS_ACCOUNT_ID=123456789012
+AWS_PROFILE=SET-ME-PLEASE
+
+ROOT_DOMAIN=example.com
+MYSQL_ROOT_USERNAME=root
+MYSQL_ROOT_PASSWORD=SET-ME-PLEASE
+PLATFORM_SUBDOMAIN=platform
+COST_CODE=SET-ME-PLEASE
+UNIQUE_ID=SET-ME-PLEASE
+
+DOCKER_USERNAME=docker_username
+DOCKER_PAT=docker_personal_access_token
 ```
 
-_AWS Infrastructure Engineers: you additionally will need [AWS Account](https://aws.amazon.com/free/) and [CLI](https://aws.amazon.com/cli/) access, and [Terraform](https://www.terraform.io/). Make sure to eview and edit the master [Terraform configuration](./api/terraform/terraform.tfvars) file._
+#### Definitions
+
+`IAM_ADMIN_USER_ARN`: (Required) The AWS existing IAM user that will own the
+EKS Kubernetes cluster. Specifically, in configMap.aws-auth, an entry will
+be created in mapUsers that adds this IAM user to the
+Kubernetes system:master group.
+
+`AWS_REGION`: (Optional) Defaults to 'us-east-1'. The AWS data center from
+which all resources will be created. Certain exceptions apply due to
+technical/service constraints, where noted. For example, AWS Cloudfront
+only accepts ssl certificates from us-east-1, IAM resources and Route53 are
+globally managed, etcetera.
+
+`AWS_ACCOUNT_ID`: (Required) your 12-digit AWS Account number, found in the
+top-right corner of the AWS web console after having authenticated.
+
+`AWS_PROFILE`: (Optional) but strongly recommended as an alternative to persisting
+your AWS key-pair to this .env file. If it exists, the aws cli will automatically
+cross-reference your AWS_PROFILE name to the assigned AWS Keypair. This is the
+sole AWS credential for the entire project. **Note:** if you do not provide a
+AWS_PROFILE then you must provide AWS_ACCESS_KEY_ID & AWS_SECRET_ACCESS_KEY.
+See [Configuration and credential file settings in the AWS CLI](https://docs.aws.amazon.com/cli/v1/userguide/cli-configure-files.html)
+
+`ROOT_DOMAIN`: (Required) example: 'ai.my-university.edu'.
+Importantly, Your ROOT_DOMAIN **MUST** be managed by AWS Route53 DNS service.
+These Terraform modules as well as the Smarter Python-Django codebase itself
+expect to find an AWS Route53 HostedZone for this domain. Technically, this is
+the 'base' domain in that Smarter in point of fact, allows subdomains.
+
+`MYSQL_ROOT_USERNAME` & `MYSQL_ROOT_PASSWORD`: (Optional) the MySql root
+credentials for the existing MySql backing service for the entire Smarter
+installation. This pair, to the extent that you are using existing, shared
+Mysql infrastructure such as AWS RDS (Relational Database Service), are used
+for creating the MySql database, and the actual MySql
+user and password for your installation, on a per-environment basis. That is, each of
+alpha, beta, next, prod has its own credentials, generated from the root
+credentials and persisted to Kubernetes Secrets.
+
+`PLATFORM_SUBDOMAIN`: (Optional) Defaults to 'platform'. This value becomes the base
+subdomain for environmnents, and also the middle values of Kubernetes
+environment namespaces. Examples: the domain 'platform.smarter.sh', and the
+namespace 'smarter-platform-prod'. Changing the value post-deployment is
+technically feasible, though **highly** disruptive, so choose this value
+carefully. For environments hosted at 'smarter.sh' this is the client code.
+Example: 'ubc.smarter.sh', and 'smarter-ubc-prod'.
+
+`COST_CODE`: (Optional) Defaults to 'smarter'. Generally this should be the
+same value as `PLATFORM_SUBDOMAIN`. This become a global AWS tag that is added
+to every AWS resource of the installation.
+
+`UNIQUE_ID`: (Optional) Defaults to 'YYYYMMDDHHMM' of the current datetime.
+More generally, this is a string value that is suffixed to AWS resources, as
+necessary, to ensure global uniqueness throughout the AWS account. Best
+practice is to use an alpha-numeric value that carries some meaning for the
+installation. For example, a datestamp like 'eval' or 'live'. This value
+becomes a global tag that is added to all AWS resources.
+
+`DOCKER_USERNAME` & `DOCKER_PAT`: (Required). These are propagated to EC2
+instances when they are created. These credentials are used for authenticating
+to DockerHub Api. Authenticating to DockerHub exponentially increases the
+number of requests that you can make before throttling is triggered. Moreover,
+this project also sets up a Docker caching mechanism via AWS Elastic Container
+Registry which additionally significantly reduce Api requests to Dockerhub. This
+not only significantly speeds up deployments, but also significantly reduces the
+risk of DockerHub throttling your Api requests.
+
+## Usage
+
+Build the Kubernetes Cluster
+
+```console
+cd aws/stack/
+terragrunt run-all init
+terragrunt run-all apply
+```
+
+Build a Smarter Environment
+
+```console
+cd aws/environments/prod
+terragrunt run-all init
+terragrunt run-all apply
+```
+
+Configure kubectl for use in your local development environment
+
+```console
+aws eks update-kubeconfig --region <region> --name <cluster_name>
+kubectl get namespaces
+```
+
+If you are new to Kubernetes then [k9s](https://k9scli.io/) is highly
+recommended as a visual adminstrative tool for monitoring your
+Kubernetes resources.
+
+## AWS Resource Tags
+
+These Terraform modules create several tags that are applied globally to all
+AWS resources. These are useful for tracking, reporting and cost accounting
+purposes. Tags include, but are not limited to the following:
+
+```console
+smarter=TRUE
+smarter/contact=Lawrence McDaniel - https://lawrencemcdaniel.com/
+smarter/cost_code=smarter
+smarter/cluster_name=smarter-platform-us-202602121853
+smarter/mysql_host=mysql.service.localhost
+smarter/platform_name=smarter
+smarter/platform_region=us
+smarter/platform_subdomain=platform
+smarter/root_domain=ai.my-university.edu
+smarter/unique_id=202602121853
+terraform=TRUE
+```
 
 ## Documentation
 
-Detailed documentation for each endpoint is available here: [Documentation](./doc/examples/)
+See: [https://docs.smarter.sh/](https://docs.smarter.sh/)
 
 ## Support
 
 Please report bugs to the [GitHub Issues Page](https://github.com/QueriumCorp/smarter/issues) for this project.
-
-## Developers
-
-Please see:
-
-- the [Developer Setup Guide](./doc/CONTRIBUTING.md)
-- and these [commit comment guidelines](./doc/SEMANTIC_VERSIONING.md) 😬😬😬 for managing CI rules for automated semantic releases.
 
 You can also contact [Lawrence McDaniel](https://lawrencemcdaniel.com/contact) directly.

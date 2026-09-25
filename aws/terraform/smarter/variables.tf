@@ -1,0 +1,95 @@
+#------------------------------------------------------------------------------
+# written by: Lawrence McDaniel
+#             https://lawrencemcdaniel.com/
+#
+# date:       July-2023
+#
+# usage:      Smarter app infrastructure - Terraform variable declarations
+#------------------------------------------------------------------------------
+variable "shared_resource_identifier" {
+  description = "A common identifier/prefix for resources created for this demo"
+  type        = string
+  default     = "openai"
+}
+
+variable "aws_account_id" {
+  description = "12-digit AWS account number"
+  type        = string
+}
+variable "aws_region" {
+  description = "A valid AWS data center region code"
+  type        = string
+  default     = "us-east-1"
+}
+
+variable "tags" {
+  description = "A map of tags to add to all resources. Tags added to launch configuration or templates override these values."
+  type        = map(string)
+  default     = {}
+}
+
+variable "root_domain" {
+  description = "a valid Internet domain name which you directly control using AWS Route53 in this account"
+  type        = string
+  default     = "smarter.sh"
+}
+
+variable "platform_name" {
+  description = "the name of the platform (e.g. smarter)"
+  type        = string
+  default     = "smarter"
+}
+variable "platform_subdomain" {
+  description = "a valid Internet domain name which you directly control using AWS Route53 in this account"
+  type        = string
+  default     = "alpha"
+}
+
+variable "platform_domain"{
+  description = "a valid Internet domain name which you directly control using AWS Route53 in this account"
+  type        = string
+  default     = "platform.smarter.sh"
+}
+
+variable "platform_api_domain" {
+  description = "a valid Internet domain name which you directly control using AWS Route53 in this account"
+  type        = string
+  default     = "api.platform.smarter.sh"
+}
+
+variable "environment" {
+  description = "the environment name (e.g. local, alpha, beta, next, prod)"
+  type        = string
+  default     = "local"
+}
+
+variable "environment_name" {
+  description = "the environment name prefixed with the stack name (e.g. smarter-alpha)"
+  type        = string
+}
+
+variable "cluster_name" {
+  description = "name of the existing EKS cluster"
+  type        = string
+}
+
+variable "mysql_host" {
+  description = "hostname of the existing MySQL database"
+  type        = string
+}
+
+variable "mysql_port" {
+  description = "port number of the existing MySQL database"
+  type        = string
+  default     = "3306"
+}
+
+variable "mysql_root_username" {
+  description = "root username of the existing MySQL database"
+  type        = string
+  default     = "root"
+}
+variable "mysql_root_password" {
+  description = "root password of the existing MySQL database"
+  type        = string
+}

@@ -1,9 +1,22 @@
 SHELL := /bin/bash
 include .env
+export PATH := /usr/local/bin:$(PATH)
+export
+
+# assuming that some version -- ANY version -- of python is available in the path
+# anything should do.
+ifeq ($(OS),Windows_NT)
+    PYTHON := python.exe
+    ACTIVATE_VENV := venv\Scripts\activate
+else
+    PYTHON := python
+    ACTIVATE_VENV := source venv/bin/activate
+endif
+PIP := $(PYTHON) -m pip
 
 ifneq ("$(wildcard .env)","")
 else
-    $(shell cp ./doc/example-dot-env .env)
+	$(shell sed "s/SET-ME-PLEASE/$(shell date +%Y%m%d%H%M)/" .env.example > .env)
 endif
 
 .PHONY: init clean lint analyze release pre-commit-init pre-commit-run python-init terraform-build terraform-clean
@@ -20,6 +33,9 @@ init:
 clean:
 	make terraform-clean
 
+kubeconfig-update:
+	aws eks update-kubeconfig --region ca-central-1 --name smarter-ubc-ca
+
 
 # ---------------------------------------------------------
 # Code management
@@ -31,8 +47,13 @@ analyze:
 	cloc . --exclude-ext=svg,json,zip --fullpath --not-match-d=smarter/smarter/static/assets/ --vcs=git
 
 pre-commit-init:
-	pre-commit install
-	pre-commit autoupdate
+	$(PYTHON) -m venv venv && \
+	$(ACTIVATE_VENV) && \
+	$(PIP) install --upgrade pip && \
+	$(PIP) install pre-commit && \
+	npm install  && \
+	pre-commit install && \
+	pre-commit autoupdate && \
 	pre-commit run --all-files
 
 pre-commit-run:
