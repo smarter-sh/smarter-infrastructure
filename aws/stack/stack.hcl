@@ -22,11 +22,16 @@ locals {
   #----------------------------------------------------------------------------
   kubernetes_cluster_version = "1.36"
   eks_create_kms_key         = false
-  eks_node_group_min_size    = 0
+  eks_node_group_min_size    = 3
   eks_node_group_max_size    = 15
   # The smarter Docker container is built for both AMD64 and ARM64 architectures,
   # so we can use either type of instance. AMD64 is the more common of the two,
   # so this is our default.
+  #
+  # Every type has at least 8 GiB of memory. The compute optimized c-family
+  # .large types have 4 GiB, which the smarter app pod (a 2Gi request) and the
+  # Celery workers outgrow together during a rolling deploy: the node runs out
+  # of memory and the kubelet evicts pods.
   amd64_instance_types       = [
     "t3.large",
     "t3a.large",
@@ -34,17 +39,13 @@ locals {
     "m6a.large",
     "m5.large",
     "m4.large",
-    "c5.large",
   ]
   graviton_instance_types    = [
     "t4g.large",
-    "c6g.large",
     "m6g.large",
     "r6g.large",
-    "c7g.large",
     "m7g.large",
     "r7g.large",
-    "c8g.large",
     "r8g.large",
     "m8g.large"
   ]
