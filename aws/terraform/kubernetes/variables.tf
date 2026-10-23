@@ -131,9 +131,9 @@ variable "iam_admin_user_arn" {
 }
 
 variable "eks_node_group_instance_types" {
-  description = "List of instance types for the EKS node group."
+  description = "List of instance types for the EKS node group. Each needs at least 8 GiB of memory."
   type        = list(string)
-  default     = ["t3.large", "m5.large", "c5.large"]
+  default     = ["t3.large", "m5.large"]
 }
 
 variable "cluster_admin_users" {
