@@ -12,17 +12,17 @@ terraform {
   required_providers {
     local = "~> 2.4"
     random = {
-      source  = "hashicorp/random"
+      source = "hashicorp/random"
     }
 
     aws = {
-      source  = "hashicorp/aws"
+      source = "hashicorp/aws"
     }
     helm = {
-      source  = "hashicorp/helm"
+      source = "hashicorp/helm"
     }
     kubernetes = {
-      source  = "hashicorp/kubernetes"
+      source = "hashicorp/kubernetes"
     }
   }
 }

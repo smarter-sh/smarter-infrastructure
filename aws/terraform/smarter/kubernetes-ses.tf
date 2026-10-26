@@ -38,5 +38,5 @@ resource "kubernetes_secret_v1" "smtp_user" {
   }
   depends_on = [
     kubernetes_namespace_v1.smarter
-   ]
+  ]
 }

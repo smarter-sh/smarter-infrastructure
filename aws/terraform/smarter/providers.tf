@@ -21,10 +21,10 @@ terraform {
 
   required_providers {
     aws = {
-      source  = "hashicorp/aws"
+      source = "hashicorp/aws"
     }
     null = {
-      source  = "hashicorp/null"
+      source = "hashicorp/null"
     }
     kubernetes = {
       source  = "hashicorp/kubernetes"
@@ -34,8 +34,8 @@ terraform {
 }
 provider "kubernetes" {
 
-  config_path = "~/.kube/config"
-  config_context = "smarter-ubc-ca-202602121853"
+  config_path            = "~/.kube/config"
+  config_context         = "smarter-ubc-ca-202602121853"
   host                   = data.aws_eks_cluster.eks.endpoint
   cluster_ca_certificate = base64decode(data.aws_eks_cluster.eks.certificate_authority[0].data)
   token                  = data.aws_eks_cluster_auth.eks.token

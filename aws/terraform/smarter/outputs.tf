@@ -70,17 +70,17 @@ output "issuer_platform_manifest" {
 }
 
 output "domain" {
-    value = local.environment_platform_domain
+  value = local.environment_platform_domain
 }
 
 output "namespace" {
-    value = local.environment_namespace
+  value = local.environment_namespace
 }
 
 output "aws_region" {
-    value = var.aws_region
+  value = var.aws_region
 }
 
 output "hosted_zone_id" {
-    value = aws_route53_zone.environment_platform_domain.zone_id
+  value = aws_route53_zone.environment_platform_domain.zone_id
 }

@@ -39,10 +39,10 @@ resource "kubernetes_secret_v1" "mysql_root" {
   }
 
   data = {
-    MYSQL_ROOT_USERNAME   = var.mysql_root_username
-    MYSQL_ROOT_PASSWORD   = var.mysql_root_password
-    MYSQL_HOST            = var.mysql_host
-    MYSQL_PORT            = var.mysql_port
+    MYSQL_ROOT_USERNAME = var.mysql_root_username
+    MYSQL_ROOT_PASSWORD = var.mysql_root_password
+    MYSQL_HOST          = var.mysql_host
+    MYSQL_PORT          = var.mysql_port
   }
 
   depends_on = [kubernetes_namespace_v1.smarter]
