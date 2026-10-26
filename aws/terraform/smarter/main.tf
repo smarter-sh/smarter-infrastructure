@@ -31,6 +31,8 @@ locals {
 
   s3_bucket_name                = var.platform_subdomain != "local" ?  "${local.environment_prefix}${var.platform_subdomain}.${var.root_domain}" : "${local.environment_prefix}${var.root_domain}"
                                 # alpha.platform.example.com or local.example.com
+  s3_backup_bucket_name         = "backups.${local.s3_bucket_name}"
+                                # backups.alpha.platform.example.com: private, see s3.tf
 
   tags = merge(
     var.tags,

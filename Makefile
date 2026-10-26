@@ -9,7 +9,7 @@ ifeq ($(OS),Windows_NT)
     PYTHON := python.exe
     ACTIVATE_VENV := venv\Scripts\activate
 else
-    PYTHON := python
+    PYTHON := python3.14
     ACTIVATE_VENV := source venv/bin/activate
 endif
 PIP := $(PYTHON) -m pip
@@ -27,7 +27,6 @@ all: help
 # initialize local development environment.
 # takes around 5 minutes to complete
 init:
-	make tear-down			# start w a clean environment
 	make pre-commit-init	# install and configure pre-commit
 
 clean:

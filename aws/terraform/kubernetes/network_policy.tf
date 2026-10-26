@@ -27,6 +27,11 @@
 locals {
   db_port    = 3306 # Default port for MariaDB
   cache_port = 6379 # Default port for Redis
+  app_port   = 8000 # the app's containerPort (helm/charts/smarter/values.yaml)
+
+  # the namespace of the Traefik ingress controller (../kubernetes_ingress/main.tf),
+  # the only caller outside the application's namespace.
+  ingress_namespace = "traefik"
 }
 
 #------------------------------------------------------------------------------
@@ -99,14 +104,18 @@ resource "kubernetes_network_policy_v1" "default_deny_all" {
 
 
 # ------------------------------------------------------------------------------
-# Network policy to allow all ingress traffic to application group pods from
-# any pod in the same namespace. This is necessary to enable communication
-# between worker pods and other components within the namespace, while still
-# restricting ingress from outside the namespace. The policy selects pods by
-# the application-group label and permits all ingress from any namespace peer.
-# This is often required for proper operation of distributed workloads,
-# background jobs, or horizontally scaled services that need to communicate
-# with each other. All other ingress is still denied by the default-deny policy.
+# Network policy that admits ingress traffic to application group pods from two
+# sources only:
+#
+# - any pod in the same namespace, which the workers, beat, the init job and the
+#   bastion need to reach each other.
+# - the Traefik ingress controller, on the app's port only, which is how every
+#   request from the internet arrives.
+#
+# A namespace_selector {} with no labels would match every namespace in the
+# cluster, so the same-namespace rule is a pod_selector {} with no namespace
+# selector, which Kubernetes limits to the policy's own namespace. All other
+# ingress is still denied by the default-deny policy.
 # ------------------------------------------------------------------------------
 resource "kubernetes_network_policy_v1" "smarter_application_group_ingress" {
   count = var.enable_enhanced_security ? 1 : 0
@@ -125,10 +134,25 @@ resource "kubernetes_network_policy_v1" "smarter_application_group_ingress" {
 
     policy_types = ["Ingress"]
 
+    # every pod in this namespace
     ingress {
-      # allow ALL traffic from same namespace (this fixes workers)
       from {
-        namespace_selector {}
+        pod_selector {}
+      }
+    }
+
+    # the Traefik ingress controller, on the app's port only
+    ingress {
+      from {
+        namespace_selector {
+          match_labels = {
+            "kubernetes.io/metadata.name" = local.ingress_namespace
+          }
+        }
+      }
+      ports {
+        protocol = "TCP"
+        port     = local.app_port
       }
     }
   }

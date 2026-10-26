@@ -61,6 +61,10 @@ output "s3_bucket_name" {
   value = local.s3_bucket_name
 }
 
+output "s3_backup_bucket_name" {
+  value = local.s3_backup_bucket_name
+}
+
 output "issuer_platform_manifest" {
   value = local.issuer_platform_manifest
 }
