@@ -18,10 +18,10 @@ resource "kubernetes_storage_class_v1" "gp3" {
   }
   storage_provisioner = "kubernetes.io/aws-ebs"
   parameters = {
-    type = "gp3"
+    type   = "gp3"
     fsType = "ext4"
   }
-  reclaim_policy        = "Delete"
-  volume_binding_mode   = "WaitForFirstConsumer"
+  reclaim_policy         = "Delete"
+  volume_binding_mode    = "WaitForFirstConsumer"
   allow_volume_expansion = true
 }

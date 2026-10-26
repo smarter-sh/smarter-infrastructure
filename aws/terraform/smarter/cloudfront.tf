@@ -11,8 +11,8 @@
 # create an environment-specific cloudfront distribution
 
 locals {
-  s3_bucket_domain          = "${local.s3_bucket_name}.s3.${var.aws_region}.amazonaws.com"
-  cdn_environment_platform_domain           = "cdn.${local.environment_platform_domain}"
+  s3_bucket_domain                = "${local.s3_bucket_name}.s3.${var.aws_region}.amazonaws.com"
+  cdn_environment_platform_domain = "cdn.${local.environment_platform_domain}"
 }
 
 # see ./route53.tf for creation of aws_route53_zone.environment_platform_domain.id
@@ -42,7 +42,7 @@ resource "aws_cloudfront_response_headers_policy" "cors" {
       items = ["GET", "HEAD", "OPTIONS"]
     }
     access_control_allow_credentials = false
-    origin_override = true
+    origin_override                  = true
   }
 }
 
@@ -75,8 +75,8 @@ module "cdn_environment_platform_domain" {
     query_string    = true
 
     # Legacy cache key and origin request settings
-    cache_policy_id           = null
-    origin_request_policy_id  = null
+    cache_policy_id          = null
+    origin_request_policy_id = null
 
     forwarded_values = {
       query_string = true
@@ -100,8 +100,8 @@ module "cdn_environment_platform_domain" {
       compress        = true
       query_string    = true
 
-      cache_policy_id           = null
-      origin_request_policy_id  = null
+      cache_policy_id          = null
+      origin_request_policy_id = null
 
       forwarded_values = {
         query_string = true

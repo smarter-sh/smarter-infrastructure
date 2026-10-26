@@ -24,7 +24,7 @@ resource "kubernetes_manifest" "platform_ingress" {
     domain                = local.environment_platform_domain
     environment_namespace = local.environment_namespace
     platform_domain       = "${var.platform_subdomain}.${var.root_domain}"
-    platform_api_domain            = var.platform_api_domain
+    platform_api_domain   = var.platform_api_domain
   }))
 
   depends_on = [
@@ -41,7 +41,7 @@ resource "kubernetes_manifest" "api_ingress" {
     domain                = local.environment_api_domain
     environment_namespace = local.environment_namespace
     platform_domain       = "${var.platform_subdomain}.${var.root_domain}"
-    platform_api_domain            = var.platform_api_domain
+    platform_api_domain   = var.platform_api_domain
   }))
 
   depends_on = [
@@ -54,7 +54,7 @@ resource "kubernetes_manifest" "traefik-middleware-cors" {
     app_name              = local.platform_name
     environment_namespace = local.environment_namespace
     platform_domain       = local.environment_platform_domain
-    platform_api_domain            = local.environment_api_domain
+    platform_api_domain   = local.environment_api_domain
   }))
 
   depends_on = [
@@ -68,7 +68,7 @@ resource "kubernetes_manifest" "traefik-middleware-http-redirect" {
     app_name              = local.platform_name
     environment_namespace = local.environment_namespace
     platform_domain       = local.environment_platform_domain
-    platform_api_domain            = local.environment_api_domain
+    platform_api_domain   = local.environment_api_domain
   }))
 
   depends_on = [

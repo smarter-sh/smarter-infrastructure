@@ -46,7 +46,7 @@ analyze:
 	cloc . --exclude-ext=svg,json,zip --fullpath --not-match-d=smarter/smarter/static/assets/ --vcs=git
 
 pre-commit-init:
-	$(PYTHON) -m venv venv && \
+	$(PYTHON) -m venv --clear venv && \
 	$(ACTIVATE_VENV) && \
 	$(PIP) install --upgrade pip && \
 	$(PIP) install pre-commit && \

@@ -15,16 +15,16 @@ module "environment_storage" {
 
   bucket                   = local.s3_bucket_name
   block_public_acls        = false
-  block_public_policy     = false
-  ignore_public_acls      = false
-  restrict_public_buckets = false
+  block_public_policy      = false
+  ignore_public_acls       = false
+  restrict_public_buckets  = false
   acl                      = "public-read"
   control_object_ownership = true
   object_ownership         = "BucketOwnerPreferred"
   tags                     = local.tags
 
   attach_policy = true
-  policy = data.aws_iam_policy_document.public_ui_chat.json
+  policy        = data.aws_iam_policy_document.public_ui_chat.json
 
   versioning = {
     enabled = false

@@ -12,12 +12,12 @@
 #------------------------------------------------------------------------------
 
 data "aws_eks_cluster" "eks" {
-  name = var.cluster_name
+  name   = var.cluster_name
   region = var.aws_region
 }
 
 data "aws_eks_cluster_auth" "eks" {
-  name = var.cluster_name
+  name   = var.cluster_name
   region = var.aws_region
 }
 

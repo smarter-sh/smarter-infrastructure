@@ -35,7 +35,7 @@ data "aws_route53_zone" "root_domain" {
 # marketing site DNS A record
 # -----------------------------------------------------------------------------
 data "aws_route53_zone" "marketing_site" {
-  name    = local.environment_marketing_domain
+  name = local.environment_marketing_domain
 }
 
 # -----------------------------------------------------------------------------
@@ -62,10 +62,10 @@ resource "aws_route53_record" "environment_platform_domain" {
   name    = local.environment_platform_domain
   type    = "A"
   alias {
-      name = data.aws_lb.traefik.dns_name
-      zone_id = data.aws_lb.traefik.zone_id
-      evaluate_target_health = true
-    }
+    name                   = data.aws_lb.traefik.dns_name
+    zone_id                = data.aws_lb.traefik.zone_id
+    evaluate_target_health = true
+  }
 }
 
 # -----------------------------------------------------------------------------
@@ -89,10 +89,10 @@ resource "aws_route53_record" "environment_api_domain" {
   name    = local.environment_api_domain
   type    = "A"
   alias {
-      name = data.aws_lb.traefik.dns_name
-      zone_id = data.aws_lb.traefik.zone_id
-      evaluate_target_health = true
-    }
+    name                   = data.aws_lb.traefik.dns_name
+    zone_id                = data.aws_lb.traefik.zone_id
+    evaluate_target_health = true
+  }
 }
 
 
