@@ -23,3 +23,8 @@ variable "cluster_name" {
 variable "aws_region" {
   type = string
 }
+
+variable "ecr_pull_through_cache" {
+  description = "The ECR pull-through cache's registry paths, by upstream: the kubernetes module's ecr_pull_through_cache output."
+  type        = map(string)
+}

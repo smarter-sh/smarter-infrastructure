@@ -35,3 +35,8 @@ variable "tags" {
 variable "cluster_name" {
   type = string
 }
+
+variable "ecr_pull_through_cache" {
+  description = "The ECR pull-through cache's registry paths, by upstream: the kubernetes module's ecr_pull_through_cache output."
+  type        = map(string)
+}

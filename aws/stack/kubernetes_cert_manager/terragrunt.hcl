@@ -46,6 +46,22 @@ dependency "vpc" {
   }
 }
 
+dependency "kubernetes" {
+  config_path = "../kubernetes"
+
+  # Configure mock outputs for the `validate` and `init` commands that are returned when there are no outputs available (e.g the
+  # module hasn't been applied yet.
+  mock_outputs_allowed_terraform_commands = ["init", "validate", "destroy"]
+  mock_outputs = {
+    ecr_pull_through_cache = {
+      "docker-hub" = "fake-registry/docker-hub"
+      "quay"       = "fake-registry/quay"
+      "k8s"        = "fake-registry/k8s"
+      "ecr-public" = "fake-registry/ecr-public"
+    }
+  }
+}
+
 dependency "kubernetes_ingress" {
   config_path = "../kubernetes_ingress"
 
@@ -81,4 +97,5 @@ inputs = {
   services_subdomain     = local.services_subdomain
   tags                   = local.tags
   cluster_name           = local.cluster_name
+  ecr_pull_through_cache = dependency.kubernetes.outputs.ecr_pull_through_cache
 }

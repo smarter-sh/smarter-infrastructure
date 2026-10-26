@@ -20,21 +20,23 @@
 #   helm show values traefik/traefik
 #------------------------------------------------------------------------------
 locals {
-  templatefile_traefik_values = templatefile("${path.module}/templates/traefik-values.yaml.tpl", {})
+  templatefile_traefik_values = templatefile("${path.module}/templates/traefik-values.yaml.tpl", {
+    docker_hub_registry = var.ecr_pull_through_cache["docker-hub"]
+  })
   namespace = "traefik"
   tags = merge(
     var.tags,
     {
-      "smarter"    = "true"
+      "smarter" = "true"
     }
   )
 }
 
 resource "helm_release" "traefik_crds" {
-  name       = "traefik-crds"
-  chart      = "traefik-crds"
-  repository = "https://traefik.github.io/charts"
-  namespace  = local.namespace
+  name             = "traefik-crds"
+  chart            = "traefik-crds"
+  repository       = "https://traefik.github.io/charts"
+  namespace        = local.namespace
   create_namespace = true
 }
 
@@ -42,12 +44,12 @@ resource "helm_release" "traefik" {
   name             = "traefik"
   namespace        = local.namespace
   create_namespace = true
-  chart      = "traefik"
-  repository = "https://traefik.github.io/charts"
+  chart            = "traefik"
+  repository       = "https://traefik.github.io/charts"
 
   values = [
     local.templatefile_traefik_values
   ]
 
-  depends_on = [ helm_release.traefik_crds ]
+  depends_on = [helm_release.traefik_crds]
 }

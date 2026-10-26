@@ -1,1 +1,5 @@
 schedule: "0 * * * *"
+
+# pulled through the ECR pull-through cache for registry.k8s.io
+image:
+  repository: ${k8s_registry}/descheduler/descheduler

@@ -18,8 +18,9 @@
 
 locals {
   templatefile_cert_manager_values = templatefile("${path.module}/manifests/cert-manager-values.yaml.tpl", {
-    role_arn  = module.cert_manager_irsa.iam_role_arn
-    namespace = var.cert_manager_namespace
+    role_arn      = module.cert_manager_irsa.iam_role_arn
+    namespace     = var.cert_manager_namespace
+    quay_registry = var.ecr_pull_through_cache["quay"]
   })
 
   tags = var.tags
