@@ -54,3 +54,40 @@ resource "aws_s3_bucket_public_access_block" "this" {
   ignore_public_acls      = false
   restrict_public_buckets = false
 }
+
+
+# Database backups get their own private bucket. The environment bucket above is
+# public-read, because it serves the chat widget and static assets through
+# CloudFront, so nothing private can be stored there. The deploy points the
+# chart's backup CronJob (databaseScheduledBackup.s3Uri) at this bucket.
+module "backup_storage" {
+  source  = "terraform-aws-modules/s3-bucket/aws"
+  version = "~> 4.10"
+
+  bucket = local.s3_backup_bucket_name
+
+  block_public_acls       = true
+  block_public_policy     = true
+  ignore_public_acls      = true
+  restrict_public_buckets = true
+
+  control_object_ownership = true
+  object_ownership         = "BucketOwnerEnforced"
+
+  # refuse any request that isn't made over TLS
+  attach_deny_insecure_transport_policy = true
+
+  server_side_encryption_configuration = {
+    rule = {
+      apply_server_side_encryption_by_default = {
+        sse_algorithm = "AES256"
+      }
+    }
+  }
+
+  versioning = {
+    enabled = true
+  }
+
+  tags = local.tags
+}
