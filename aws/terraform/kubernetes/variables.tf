@@ -87,10 +87,6 @@ variable "map_roles" {
   default = []
 }
 
-variable "bastion_iam_arn" {
-  type = string
-}
-
 variable "kms_key_owners" {
   type    = list(any)
   default = []
@@ -127,7 +123,7 @@ variable "arm64_group_desired_size" {
 }
 
 variable "iam_admin_user_arn" {
-    type = string
+  type = string
 }
 
 variable "eks_node_group_instance_types" {

@@ -13,7 +13,6 @@
 #        see https://registry.terraform.io/terraform/terraform-aws-modules/vpc/aws/latest
 #------------------------------------------------------------------------------
 locals {
-  bastion_public_key_path = var.bastion_public_key_path
   tags = merge(
     var.tags,
     {
@@ -22,17 +21,6 @@ locals {
   )
 
 }
-
-data "aws_ami" "amazon_linux" {
-  most_recent = true
-  owners      = ["amazon"]
-
-  filter {
-    name   = "name"
-    values = ["amzn2-ami-hvm-*-x86_64-gp2"]
-  }
-}
-
 
 module "vpc" {
   source                 = "terraform-aws-modules/vpc/aws"
@@ -75,83 +63,5 @@ resource "aws_vpc_endpoint" "s3" {
     module.vpc.private_route_table_ids,
     module.vpc.intra_route_table_ids,
   )
-  tags = merge(local.tags, {"Name" = "${var.name}-s3"})
-}
-
-resource "aws_security_group" "bastion" {
-  name        = "${var.name}-bastion-sg"
-  description = "Security group for bastion host"
-  vpc_id      = module.vpc.vpc_id
-
-  ingress {
-    from_port   = 22
-    to_port     = 22
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  tags = merge(local.tags, {"Name" = "${var.name}-bastion-sg"})
-}
-
-
-resource "aws_key_pair" "bastion" {
-  key_name   = "bastion"
-  public_key = file(local.bastion_public_key_path)
-
-  tags = merge(local.tags, {"Name" = "bastion"})
-}
-resource "aws_instance" "bastion" {
-  # ami           = data.aws_ami.amazon_linux.id
-  ami           = "ami-0dd624c7f457c3741"
-  instance_type = "t3.micro"
-  subnet_id     = module.vpc.public_subnets[0]
-  key_name      = "bastion"
-  iam_instance_profile = aws_iam_instance_profile.ssm.name
-  vpc_security_group_ids = [aws_security_group.bastion.id]
-  tags = merge(local.tags, {"Name" = "bastion"})
-
-  root_block_device {
-    volume_size = 40
-    volume_type = "gp3"
-    delete_on_termination = true
-    tags = merge(local.tags, {"Name" = "bastion-root"})
-  }
-
-  lifecycle {
-    prevent_destroy = true
-  }
-}
-
-
-resource "aws_eip" "bastion" {
-  region = var.aws_region
-  instance = aws_instance.bastion.id
-  tags = merge({
-    Name = "bastion"
-    "smarter/cluster_name" = var.cluster_name
-  }, local.tags)
-}
-
-resource "aws_iam_role" "ssm" {
-  name = "ssm-role"
-
-  assume_role_policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [{
-      Effect = "Allow"
-      Principal = { Service = "ec2.amazonaws.com" }
-      Action = "sts:AssumeRole"
-    }]
-  })
-  tags = local.tags
-}
-
-resource "aws_iam_role_policy_attachment" "ssm" {
-  role       = aws_iam_role.ssm.name
-  policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
-}
-
-resource "aws_iam_instance_profile" "ssm" {
-  role = aws_iam_role.ssm.name
-  tags = local.tags
+  tags = merge(local.tags, { "Name" = "${var.name}-s3" })
 }
