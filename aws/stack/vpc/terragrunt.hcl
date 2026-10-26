@@ -12,7 +12,6 @@ locals {
   global_vars = read_terragrunt_config(find_in_parent_folders("global.hcl"))
 
   # Extract out common variables for reuse
-  bastion_public_key_path = local.global_vars.locals.bastion_public_key_path
   root_domain             = local.global_vars.locals.root_domain
   cluster_name            = local.global_vars.locals.cluster_name
   services_subdomain      = local.global_vars.locals.services_subdomain
@@ -52,7 +51,6 @@ inputs = merge(
   local.global_vars.locals,
  {
   cluster_name            = local.cluster_name
-  bastion_public_key_path = local.bastion_public_key_path
   aws_region              = local.aws_region
   name                    = "${local.resource_name}"
   cidr                    = "192.168.0.0/20"

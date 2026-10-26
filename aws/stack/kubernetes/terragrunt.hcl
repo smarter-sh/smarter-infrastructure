@@ -30,13 +30,6 @@ locals {
   eks_node_group_instance_types = local.stack_vars.locals.eks_node_group_instance_types
   enable_enhanced_security      = local.stack_vars.locals.enable_enhanced_security
 
-  # mcdaniel: FIX NOTE
-  # we need to make a hard decision about whether or not we need to create a
-  # bastion server for each cluster, or if we can get by with one bastion
-  # server that has access to all clusters.
-  # bastion_iam_arn            = "arn:aws:iam::${local.aws_account_id}:user/system/bastion-user/${local.namespace}-bastion"
-  bastion_iam_arn            = "arn:aws:iam::090511222473:user/system/bastion-user/apps-hosting-service-bastion"
-  bastion_iam_username       = "${local.namespace}-bastion"
 
   tags = merge(
     local.stack_vars.locals.tags,
@@ -94,7 +87,6 @@ inputs = {
   vpc_id                     = dependency.vpc.outputs.vpc_id
   kubernetes_cluster_version = local.kubernetes_cluster_version
   eks_create_kms_key         = local.eks_create_kms_key
-  bastion_iam_arn            = local.bastion_iam_arn
   tags                       = local.tags
   eks_node_group_instance_types = local.eks_node_group_instance_types
 
@@ -110,7 +102,6 @@ inputs = {
   # ADD MORE CLUSTER ADMIN USER IAM ACCOUNTS TO THE AWS KMS KEY OWNER LIST:
   # -------------------------------------------------------------------------
   kms_key_owners = [
-    "${local.bastion_iam_arn}",
     "${local.iam_admin_user_arn}",
     "arn:aws:iam::090511222473:user/kfuka",
   ]
