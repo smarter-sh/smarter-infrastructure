@@ -14,3 +14,7 @@ extraArgs:
   balance-similar-node-groups: true
   skip-nodes-with-local-storage: false
   skip-nodes-with-system-pods: false
+
+# pulled through the ECR pull-through cache for registry.k8s.io
+image:
+  repository: ${image_repository}

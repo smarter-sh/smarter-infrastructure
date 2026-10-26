@@ -1,3 +1,9 @@
+# pulled through the ECR pull-through cache for Docker Hub. Docker Hub's official
+# images live under library/.
+image:
+  registry: ${docker_hub_registry}
+  repository: library/traefik
+
 
 ports:
   web:

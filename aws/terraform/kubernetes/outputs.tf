@@ -31,7 +31,7 @@ output "oidc_provider_arn" {
 }
 
 output "kms_key_arn" {
-  value = module.eks.kms_key_arn
+  value       = module.eks.kms_key_arn
   description = "ARN of the KMS key used for EKS secrets encryption"
 }
 
@@ -49,6 +49,13 @@ output "cluster_autoscaler_role_arn" {
 }
 
 output "enable_enhanced_security" {
-  value = var.enable_enhanced_security
+  value       = var.enable_enhanced_security
   description = "Whether or not enhanced security features are enabled for the EKS cluster"
+}
+
+# ECR pull-through cache: repository prefix => registry path, e.g.
+# quay => <account>.dkr.ecr.<region>.amazonaws.com/quay. Helm values use these
+# in place of the upstream registry.
+output "ecr_pull_through_cache" {
+  value = local.ecr_pull_through_cache
 }

@@ -31,11 +31,16 @@ variable "tags" {
 }
 
 variable "aws_region" {
-    description = "AWS region to deploy to."
-    type        = string
+  description = "AWS region to deploy to."
+  type        = string
 }
 
 variable "cluster_name" {
-    description = "Name of the EKS cluster to create."
-    type        = string
+  description = "Name of the EKS cluster to create."
+  type        = string
+}
+
+variable "ecr_pull_through_cache" {
+  description = "The ECR pull-through cache's registry paths, by upstream: the kubernetes module's ecr_pull_through_cache output."
+  type        = map(string)
 }

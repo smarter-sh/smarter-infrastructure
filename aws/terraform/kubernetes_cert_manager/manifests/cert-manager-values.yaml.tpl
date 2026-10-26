@@ -1,3 +1,6 @@
+# pulled through the ECR pull-through cache for quay.io: every cert-manager image
+# becomes <quay_registry>/jetstack/<image>.
+imageRegistry: ${quay_registry}
 crds:
   enabled: true
 serviceAccount:

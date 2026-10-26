@@ -23,12 +23,14 @@
 locals {
   descheduler_namespace = "descheduler"
 
-  templatefile_descheduler_values = templatefile("${path.module}/yml/descheduler-values.yaml", {})
+  templatefile_descheduler_values = templatefile("${path.module}/yml/descheduler-values.yaml", {
+    k8s_registry = var.ecr_pull_through_cache["k8s"]
+  })
 
   tags = merge(
     var.tags,
     {
-      "smarter"    = "true"
+      "smarter" = "true"
     }
   )
 }

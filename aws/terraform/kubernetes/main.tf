@@ -31,17 +31,33 @@ locals {
   docker_username = lookup(local.env_vars, "DOCKER_USERNAME", "")
   docker_pat      = lookup(local.env_vars, "DOCKER_PAT", "")
 
-  autoscaler_role = "${var.cluster_name}-cluster-autoscaler"
+  # ECR pull-through cache: ECR repository prefix => upstream registry. An image
+  # such as quay.io/jetstack/cert-manager-controller is pulled as
+  # <ecr_registry>/quay/jetstack/cert-manager-controller, and a Docker Hub
+  # official image such as traefik as <ecr_registry>/docker-hub/library/traefik.
+  # ECR fetches each image from upstream on its first pull, and refreshes a tag at
+  # most once every 24 hours.
+  ecr_registry = "${data.aws_caller_identity.current.account_id}.dkr.ecr.${data.aws_region.current.region}.amazonaws.com"
+  ecr_pull_through_cache_upstreams = {
+    "docker-hub" = "registry-1.docker.io"
+    "quay"       = "quay.io"
+    "k8s"        = "registry.k8s.io"
+    "ecr-public" = "public.ecr.aws"
+  }
+  ecr_pull_through_cache = { for prefix, upstream in local.ecr_pull_through_cache_upstreams : prefix => "${local.ecr_registry}/${prefix}" }
+
+  autoscaler_role             = "${var.cluster_name}-cluster-autoscaler"
   cluster_autoscaler_role_arn = module.cluster_autoscaler_irsa_role.iam_role_arn
   templatefile_cluster_autoscaler = templatefile("${path.module}/config/cluster-autoscaler.yaml.tpl", {
-    cluster_name  = var.cluster_name
-    region = data.aws_region.current.id
+    cluster_name        = var.cluster_name
+    region              = data.aws_region.current.id
     autoscaler_role_arn = local.cluster_autoscaler_role_arn
+    image_repository    = "${local.ecr_pull_through_cache["k8s"]}/autoscaling/cluster-autoscaler"
   })
 
   # Used by Karpenter config to determine correct partition (i.e. - `aws`, `aws-gov`, `aws-cn`, etc.)
   partition = data.aws_partition.current.partition
-  tags = var.tags
+  tags      = var.tags
 
   node_security_group_enable_recommended_rules = var.enable_enhanced_security ? false : true
   node_security_group_additional_rules = var.enable_enhanced_security ? {
@@ -63,23 +79,23 @@ locals {
     # this is potentially duplicative of the above rule, but it allows traffic
     # from other security groups in the same VPC
     ingress_all_from_elb_sg = {
-      description   = "${var.platform_name}: All traffic from ELB SG"
-      protocol      = "-1"
-      from_port     = 0
-      to_port       = 0
-      type          = "ingress"
-      cidr_blocks              = [data.aws_vpc.smarter_vpc.cidr_block]
+      description = "${var.platform_name}: All traffic from ELB SG"
+      protocol    = "-1"
+      from_port   = 0
+      to_port     = 0
+      type        = "ingress"
+      cidr_blocks = [data.aws_vpc.smarter_vpc.cidr_block]
     }
 
     # TCP port forwarding for NLB/LoadBalancer services
     # for receiving external traffic from the Traefik Ingress Controller NLB
     ingress_nlb_tcp_30283 = {
-      description   = "${var.platform_name}: NLB client port 30283"
-      protocol      = "tcp"
-      from_port     = 30000
-      to_port       = 32767
-      type          = "ingress"
-      cidr_blocks   = ["0.0.0.0/0"]
+      description = "${var.platform_name}: NLB client port 30283"
+      protocol    = "tcp"
+      from_port   = 30000
+      to_port     = 32767
+      type        = "ingress"
+      cidr_blocks = ["0.0.0.0/0"]
     }
 
     # ICMP rule for fragmentation required. This rule allows your nodes to
@@ -88,40 +104,40 @@ locals {
     # those using large packets or VPNs) may break or experience connectivity
     # issues.
     ingress_icmp_frag_required = {
-      description   = "${var.platform_name}: ICMP fragmentation required, and DF flag set"
-      protocol      = "icmp"
-      from_port     = 3
-      to_port       = 4
-      type          = "ingress"
-      cidr_blocks   = ["0.0.0.0/0"]
+      description = "${var.platform_name}: ICMP fragmentation required, and DF flag set"
+      protocol    = "icmp"
+      from_port   = 3
+      to_port     = 4
+      type        = "ingress"
+      cidr_blocks = ["0.0.0.0/0"]
     }
 
     # Cluster API to node kubelets (TCP 10250 from cluster SG)
     ingress_cluster_api_kubelet = {
-      description   = "${var.platform_name}: Cluster API to node kubelets"
-      protocol      = "tcp"
-      from_port     = 10250
-      to_port       = 10250
-      type          = "ingress"
-      cidr_blocks              = [data.aws_vpc.smarter_vpc.cidr_block]
+      description = "${var.platform_name}: Cluster API to node kubelets"
+      protocol    = "tcp"
+      from_port   = 10250
+      to_port     = 10250
+      type        = "ingress"
+      cidr_blocks = [data.aws_vpc.smarter_vpc.cidr_block]
     }
 
     # Node to node CoreDNS (TCP/UDP 53 from node SG)
     ingress_node_to_node_dns_tcp = {
-      description   = "${var.platform_name}: Node to node CoreDNS TCP"
-      protocol      = "tcp"
-      from_port     = 53
-      to_port       = 53
-      type          = "ingress"
-      cidr_blocks              = [data.aws_vpc.smarter_vpc.cidr_block]
+      description = "${var.platform_name}: Node to node CoreDNS TCP"
+      protocol    = "tcp"
+      from_port   = 53
+      to_port     = 53
+      type        = "ingress"
+      cidr_blocks = [data.aws_vpc.smarter_vpc.cidr_block]
     }
     ingress_node_to_node_dns_udp = {
-      description   = "${var.platform_name}: Node to node CoreDNS UDP"
-      protocol      = "udp"
-      from_port     = 53
-      to_port       = 53
-      type          = "ingress"
-      cidr_blocks              = [data.aws_vpc.smarter_vpc.cidr_block]
+      description = "${var.platform_name}: Node to node CoreDNS UDP"
+      protocol    = "udp"
+      from_port   = 53
+      to_port     = 53
+      type        = "ingress"
+      cidr_blocks = [data.aws_vpc.smarter_vpc.cidr_block]
     }
 
     # -------------------------------
@@ -131,11 +147,11 @@ locals {
     # Internal node-to-node communication on all ports to within VPC CIDR
     egress_node_to_node = {
       description = "${var.platform_name}: Node to node communication within VPC"
-      protocol  = "-1"
-      from_port = 0
-      to_port   = 0
-      type      = "egress"
-      self      = true
+      protocol    = "-1"
+      from_port   = 0
+      to_port     = 0
+      type        = "egress"
+      self        = true
     }
 
     # http responses to the outside world (e.g. for external DNS, cert manager, etc.)
@@ -205,12 +221,12 @@ locals {
     }
 
     egress_ephemeral = {
-    description = "${var.platform_name}: Allow ephemeral response traffic"
-    protocol    = "tcp"
-    from_port   = 1024
-    to_port     = 65535
-    type        = "egress"
-    cidr_blocks = ["0.0.0.0/0"]
+      description = "${var.platform_name}: Allow ephemeral response traffic"
+      protocol    = "tcp"
+      from_port   = 1024
+      to_port     = 65535
+      type        = "egress"
+      cidr_blocks = ["0.0.0.0/0"]
     }
 
     # -------------------------------
@@ -230,30 +246,30 @@ locals {
 }
 
 module "eks" {
-  source                          = "terraform-aws-modules/eks/aws"
-  version                         = "~> 21"
-  endpoint_private_access         = true
-  endpoint_public_access          = true
-  create_cloudwatch_log_group     = false
-  enable_irsa                     = true
-  create_iam_role                 = true
+  source                                   = "terraform-aws-modules/eks/aws"
+  version                                  = "~> 21"
+  endpoint_private_access                  = true
+  endpoint_public_access                   = true
+  create_cloudwatch_log_group              = false
+  enable_irsa                              = true
+  create_iam_role                          = true
   enable_cluster_creator_admin_permissions = true
-  authentication_mode             = "API_AND_CONFIG_MAP"
-  cloudwatch_log_group_class      = "INFREQUENT_ACCESS"
+  authentication_mode                      = "API_AND_CONFIG_MAP"
+  cloudwatch_log_group_class               = "INFREQUENT_ACCESS"
 
-  name                            = var.cluster_name
-  kubernetes_version              = var.kubernetes_cluster_version
-  vpc_id                          = var.vpc_id
-  subnet_ids                      = var.private_subnets
-  control_plane_subnet_ids        = var.private_subnets
-  tags = local.tags
+  name                     = var.cluster_name
+  kubernetes_version       = var.kubernetes_cluster_version
+  vpc_id                   = var.vpc_id
+  subnet_ids               = var.private_subnets
+  control_plane_subnet_ids = var.private_subnets
+  tags                     = local.tags
 
   compute_config = {
-   enabled = false
+    enabled = false
   }
 
   node_security_group_enable_recommended_rules = local.node_security_group_enable_recommended_rules
-  node_security_group_additional_rules = local.node_security_group_additional_rules
+  node_security_group_additional_rules         = local.node_security_group_additional_rules
 
 
   # NOTE:
@@ -269,26 +285,6 @@ module "eks" {
   #
   # audit your AWS EKS KMS key access by running:
   # aws kms get-key-policy --key-id ADD-YOUR-KEY-ID-HERE --region us-east-2 --policy-name default --output text
-  #
-  # add the bastion IAM user to aws-auth.mapUsers so that
-  # kubectl and k9s work from inside the bastion server by default.
-  #
-  # Cluster access entry
-  # access_entries = {
-  #   bastion = {
-  #     kubernetes_groups = []
-  #     principal_arn     = var.bastion_iam_arn
-
-  #     policy_associations = {
-  #       admin = {
-  #         policy_arn = "arn:${local.partition}:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy"
-  #         access_scope = {
-  #           type = "cluster"
-  #         }
-  #       }
-  #     }
-  #   }
-  # }
   # ---------------------------------------------------------------------------
 
 
@@ -296,14 +292,14 @@ module "eks" {
   # adding unnecessary configuration details. The default settings work well
   # for most use cases.
   addons = {
-      coredns                = {}
-      eks-pod-identity-agent = {
-        before_compute = true
-      }
-      kube-proxy             = {}
-      vpc-cni                = {
-        before_compute = true
-      }
+    coredns = {}
+    eks-pod-identity-agent = {
+      before_compute = true
+    }
+    kube-proxy = {}
+    vpc-cni = {
+      before_compute = true
+    }
     aws-ebs-csi-driver = {
       service_account_role_arn = aws_iam_role.AmazonEKS_EBS_CSI_DriverRole.arn
     }
@@ -313,14 +309,14 @@ module "eks" {
 
   eks_managed_node_groups = {
     smarter = {
-      capacity_type     = "SPOT"
-      enable_monitoring = false
+      capacity_type             = "SPOT"
+      enable_monitoring         = false
       cluster_enabled_log_types = []
-      min_size          = var.eks_node_group_min_size
-      max_size          = var.eks_node_group_max_size
-      desired_size      = var.eks_node_group_min_size
-      instance_types    = var.eks_node_group_instance_types
-      subnet_ids        = var.private_subnets
+      min_size                  = var.eks_node_group_min_size
+      max_size                  = var.eks_node_group_max_size
+      desired_size              = var.eks_node_group_min_size
+      instance_types            = var.eks_node_group_instance_types
+      subnet_ids                = var.private_subnets
 
 
       node_repair_config = {
@@ -331,28 +327,10 @@ module "eks" {
       }
 
 
-      # Configure containerd to transparently redirect Docker Hub to ECR pull-through cache
-      # Pods continue using docker.io/image:tag - no manifest changes needed
-      pre_bootstrap_user_data = <<-EOT
-        #!/bin/bash
-        set -e
-
-        # Configure containerd registry mirror for docker.io
-        mkdir -p /etc/containerd/certs.d/docker.io
-        cat > /etc/containerd/certs.d/docker.io/hosts.toml <<'EOF'
-server = "https://registry-1.docker.io"
-
-[host."https://${data.aws_caller_identity.current.account_id}.dkr.ecr.${data.aws_region.current.region}.amazonaws.com/docker-hub"]
-  capabilities = ["pull", "resolve"]
-
-[host."https://registry-1.docker.io"]
-  capabilities = ["pull", "resolve"]
-EOF
-      EOT
 
       iam_role_additional_policies = {
-        AmazonEKSWorkerNodePolicy         = "arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy"
-        AmazonEKS_CNI_Policy              = "arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy"
+        AmazonEKSWorkerNodePolicy          = "arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy"
+        AmazonEKS_CNI_Policy               = "arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy"
         AmazonEC2ContainerRegistryReadOnly = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
 
         # Required by EBS CSI Add-on
@@ -388,14 +366,14 @@ EOF
       )
     }
     wordpress = {
-      capacity_type               = "SPOT"
-      enable_monitoring           = false
-      cluster_enabled_log_types   = []
-      min_size                    = 2
-      max_size                    = 5
-      desired_size                = 3
-      instance_types              = var.eks_node_group_instance_types
-      subnet_ids                  = [var.private_subnets[0]]
+      capacity_type             = "SPOT"
+      enable_monitoring         = false
+      cluster_enabled_log_types = []
+      min_size                  = 2
+      max_size                  = 5
+      desired_size              = 3
+      instance_types            = var.eks_node_group_instance_types
+      subnet_ids                = [var.private_subnets[0]]
 
       node_repair_config = {
         enabled = true
@@ -465,7 +443,7 @@ module "cluster_autoscaler_irsa_role" {
   source  = "terraform-aws-modules/iam/aws//modules/iam-role-for-service-accounts-eks"
   version = "5.28.0"
 
-  role_name = local.autoscaler_role
+  role_name                        = local.autoscaler_role
   cluster_autoscaler_cluster_names = [var.cluster_name]
   attach_cluster_autoscaler_policy = true
 
@@ -509,6 +487,18 @@ resource "aws_iam_policy" "ecr_pull_through_cache" {
           "ecr:BatchGetImage"
         ]
         Resource = "*"
+      },
+      {
+        # the first pull of an image creates its repository in the cache and
+        # imports it from the upstream registry.
+        Effect = "Allow"
+        Action = [
+          "ecr:BatchImportUpstreamImage",
+          "ecr:CreateRepository"
+        ]
+        Resource = [for prefix in keys(local.ecr_pull_through_cache_upstreams) :
+          "arn:${local.partition}:ecr:${data.aws_region.current.region}:${data.aws_caller_identity.current.account_id}:repository/${prefix}/*"
+        ]
       }
     ]
   })
@@ -532,10 +522,58 @@ resource "aws_secretsmanager_secret_version" "dockerhub_credentials" {
   })
 }
 
-resource "aws_ecr_pull_through_cache_rule" "dockerhub" {
-  ecr_repository_prefix = substr("${var.cluster_name}-docker-${var.unique_id}", 0, 30)
-  upstream_registry_url = "registry-1.docker.io"
-  credential_arn        = aws_secretsmanager_secret.dockerhub_credentials.arn
+# One rule per upstream registry. Only Docker Hub needs credentials. The other
+# three serve anonymous pulls.
+#
+# The rule's prefix is fixed, not derived from the cluster name, because the
+# Helm values of every image that pulls through the cache name it.
+resource "aws_ecr_pull_through_cache_rule" "upstream" {
+  for_each = local.ecr_pull_through_cache_upstreams
+
+  ecr_repository_prefix = each.key
+  upstream_registry_url = each.value
+  credential_arn        = each.key == "docker-hub" ? aws_secretsmanager_secret.dockerhub_credentials.arn : null
+}
+
+# Every repository that a first pull creates in the cache gets this lifecycle
+# policy, so the cache holds only the images the cluster runs: untagged images
+# expire after a day, and each repository keeps its five newest images. ECR storage
+# is $0.10 per GB-month. Layer downloads from ECR are served from S3, which the
+# VPC's S3 gateway endpoint carries for free, so pulling through the cache costs
+# less than pulling from the upstream registries through the NAT gateway.
+resource "aws_ecr_repository_creation_template" "pull_through_cache" {
+  for_each = local.ecr_pull_through_cache_upstreams
+
+  prefix               = each.key
+  description          = "ECR pull-through cache for ${each.value}"
+  applied_for          = ["PULL_THROUGH_CACHE"]
+  image_tag_mutability = "MUTABLE"
+
+  lifecycle_policy = jsonencode({
+    rules = [
+      {
+        rulePriority = 1
+        description  = "Expire untagged images after one day"
+        selection = {
+          tagStatus   = "untagged"
+          countType   = "sinceImagePushed"
+          countUnit   = "days"
+          countNumber = 1
+        }
+        action = { type = "expire" }
+      },
+      {
+        rulePriority = 2
+        description  = "Keep the five newest images"
+        selection = {
+          tagStatus   = "any"
+          countType   = "imageCountMoreThan"
+          countNumber = 5
+        }
+        action = { type = "expire" }
+      }
+    ]
+  })
 }
 
 
@@ -545,7 +583,7 @@ resource "aws_ecr_pull_through_cache_rule" "dockerhub" {
 resource "aws_iam_policy" "MANUAL_route53_update_records" {
   name        = "eks-route53-cert-manager-${var.cluster_name}"
   description = "Allow cert-manager on EKS nodes to manage Route53 DNS records"
-  policy      = jsonencode({
+  policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
       {
@@ -586,8 +624,8 @@ resource "aws_iam_user_policy" "cluster_admin_assume_role" {
     Version = "2012-10-17",
     Statement = [
       {
-        Effect = "Allow",
-        Action = "sts:AssumeRole",
+        Effect   = "Allow",
+        Action   = "sts:AssumeRole",
         Resource = module.eks.cluster_iam_role_arn
       }
     ]

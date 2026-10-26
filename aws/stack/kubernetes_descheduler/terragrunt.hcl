@@ -54,6 +54,12 @@ dependency "kubernetes" {
     service_node_group_iam_role_name = "fake-karpenter-node-group-iam-role-name"
     service_node_group_iam_role_arn  = "fake-karpenter-node-group-iam-role-arn"
     oidc_provider_arn                = "fakse-oidc-provider-arn"
+    ecr_pull_through_cache = {
+      "docker-hub" = "fake-registry/docker-hub"
+      "quay"       = "fake-registry/quay"
+      "k8s"        = "fake-registry/k8s"
+      "ecr-public" = "fake-registry/ecr-public"
+    }
   }
 
 }
@@ -80,4 +86,5 @@ inputs = {
   cluster_name    = local.cluster_name
   aws_region      = local.aws_region
   tags            = local.tags
+  ecr_pull_through_cache = dependency.kubernetes.outputs.ecr_pull_through_cache
 }
