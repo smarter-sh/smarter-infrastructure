@@ -5,8 +5,10 @@
 # date: Mar-2026
 #
 # usage: setup Kubernetes network policies for smarter application group.
-# This file provisions Calico as the CNI provider and sets up a set of Kubernetes
-# network policies to tightly control pod-to-pod communication within the cluster.
+# This file installs Calico in policy-only mode, to enforce Kubernetes network
+# policies, and sets up a set of those policies to tightly control pod-to-pod
+# communication within the cluster. The AWS VPC CNI remains the cluster's network
+# plugin and still assigns every pod its IP address.
 # A collection of kubernetes_network_policy_v1 resources are defined that
 # dictate the kinds of traffic that can both enter and leave the various kinds
 # of pods within the application group.
@@ -48,32 +50,47 @@ locals {
 # - Can be used with or without BGP, and supports multiple cloud and on-prem
 # environments
 #
-# In this configuration, Calico is deployed as the CNI provider to enable
-# advanced network policy enforcement and secure pod-to-pod communication within
-# the Kubernetes cluster.
+# On EKS, Calico runs in policy-only mode: the AWS VPC CNI (the aws-node
+# daemonset) stays the CNI plugin and the IPAM, so pods keep their VPC addresses,
+# and Calico's Felix agent only enforces network policy, with iptables rules on
+# each node. kubernetesProvider and cni.type state this explicitly; the operator
+# would otherwise infer the same values from EKS and the aws-node daemonset.
+#
+# Because the VPC CNI does the networking, the IP pool is not used to assign pod
+# addresses, and there is no overlay between nodes (encapsulation = "None"). The
+# values below match the Installation the operator reports on the running
+# cluster. Note that encapsulation is a field of each IP pool, not of
+# calicoNetwork: placed on calicoNetwork it is silently pruned by the API server.
+#
+# The chart is pinned so that a new environment gets the same Calico as the
+# running ones. Upgrade it deliberately: https://docs.tigera.io/calico/latest/operations/upgrading/
 #------------------------------------------------------------------------------
 resource "helm_release" "calico" {
   count            = var.enable_enhanced_security ? 1 : 0
   name             = "calico"
   repository       = "https://docs.tigera.io/calico/charts"
   chart            = "tigera-operator"
+  version          = "v3.31.4"
   namespace        = "tigera-operator"
   create_namespace = true
 
   values = [
     yamlencode({
       installation = {
+        kubernetesProvider = "EKS"
+        cni = {
+          type = "AmazonVPC"
+        }
         calicoNetwork = {
           bgp = "Disabled"
 
-          encapsulation = "VXLANCrossSubnet"
-
           ipPools = [
             {
-              blockSize    = 26
-              cidr         = data.aws_vpc.smarter_vpc.cidr_block
-              natOutgoing  = "Enabled"
-              nodeSelector = "all()"
+              blockSize     = 26
+              cidr          = data.aws_vpc.smarter_vpc.cidr_block
+              encapsulation = "None"
+              natOutgoing   = "Enabled"
+              nodeSelector  = "all()"
             }
           ]
         }
@@ -537,7 +554,7 @@ resource "kubernetes_network_policy_v1" "smarter_application_group_egress" {
       }
     }
 
-    # Allow ports 80 and 443 for ApiPlugins and get_weather function.
+    # Allow port 80 for ApiPlugins and the get_weather function.
     egress {
       to {
         ip_block {
@@ -549,17 +566,7 @@ resource "kubernetes_network_policy_v1" "smarter_application_group_egress" {
         port     = 80
       }
     }
-    egress {
-      to {
-        ip_block {
-          cidr = "0.0.0.0/0"
-        }
-      }
-      ports {
-        protocol = "TCP"
-        port     = 443
-      }
-    }
+    # TCP 443 for ApiPlugins is covered by the HTTPS rule above.
   }
 }
 
@@ -612,19 +619,8 @@ resource "kubernetes_network_policy_v1" "smarter_bastion_egress" {
   }
 }
 
-#------------------------------------------------------------------------------
-# Allow Calico VXLAN traffic between nodes
-#------------------------------------------------------------------------------
-resource "aws_security_group_rule" "node_to_node_vxlan" {
-  count                    = var.enable_enhanced_security ? 1 : 0
-  description              = "Calico VXLAN"
-  type                     = "ingress"
-  from_port                = 4789
-  to_port                  = 4789
-  protocol                 = "udp"
-  security_group_id        = module.eks.node_security_group_id
-  source_security_group_id = module.eks.node_security_group_id
-}
+# No rule for Calico VXLAN (UDP 4789): in policy-only mode the VPC CNI carries
+# pod traffic between nodes and Calico uses no overlay.
 
 #------------------------------------------------------------------------------
 # Allow kubelet API between nodes
