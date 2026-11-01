@@ -52,6 +52,11 @@ dependency "kubernetes" {
   # Configure mock outputs for the `validate` and `init` commands that are returned when there are no outputs available (e.g the
   # module hasn't been applied yet.
   mock_outputs_allowed_terraform_commands = ["init", "validate", "destroy"]
+  # Merge these mocks into the real outputs when the kubernetes stack's state lacks one,
+  # e.g. ecr_pull_through_cache before the stack that adds it is applied. Without this,
+  # mocks are used only when the stack has no outputs at all, and init fails with
+  # "This object does not have an attribute named ...". Real outputs win.
+  mock_outputs_merge_strategy_with_state = "shallow"
   mock_outputs = {
     ecr_pull_through_cache = {
       "docker-hub" = "fake-registry/docker-hub"
