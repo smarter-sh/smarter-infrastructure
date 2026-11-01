@@ -19,6 +19,10 @@ locals {
     root_domain                = get_env("ROOT_DOMAIN", "smarter.sh")
     mysql_root_username        = get_env("MYSQL_ROOT_USERNAME", "SET-ME-IN-DOT-ENV")
     mysql_root_password        = get_env("MYSQL_ROOT_PASSWORD", "SET-ME-IN-DOT-ENV")
+    # Docker Hub login for the ECR pull-through cache (kubernetes stack). Empty
+    # defaults, so the kubernetes module's precondition catches a missing value.
+    docker_username            = get_env("DOCKER_USERNAME", "")
+    docker_pat                 = get_env("DOCKER_PAT", "")
     unique_id                  = get_env("UNIQUE_ID", "123456789012")
     cost_code                  = get_env("COST_CODE", "smarter")
 

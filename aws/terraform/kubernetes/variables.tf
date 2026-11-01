@@ -15,6 +15,19 @@ variable "aws_account_id" {
   type = string
 }
 
+variable "docker_username" {
+  description = "Docker Hub username, for the ECR pull-through cache's docker-hub rule. From DOCKER_USERNAME in .env"
+  type        = string
+  default     = ""
+}
+
+variable "docker_pat" {
+  description = "Docker Hub personal access token, for the ECR pull-through cache's docker-hub rule. From DOCKER_PAT in .env"
+  type        = string
+  default     = ""
+  sensitive   = true
+}
+
 variable "shared_resource_identifier" {
   type = string
 }

@@ -23,14 +23,6 @@ data "aws_vpc" "smarter_vpc" {
 
 
 locals {
-  env_file = try(file("${path.module}/../../../../.env"), "")
-  env_vars = { for line in split("\n", local.env_file) :
-    split("=", line)[0] => split("=", line)[1]
-    if length(regexall("^[A-Z_]+=.+", line)) > 0
-  }
-  docker_username = lookup(local.env_vars, "DOCKER_USERNAME", "")
-  docker_pat      = lookup(local.env_vars, "DOCKER_PAT", "")
-
   # ECR pull-through cache: ECR repository prefix => upstream registry. An image
   # such as quay.io/jetstack/cert-manager-controller is pulled as
   # <ecr_registry>/quay/jetstack/cert-manager-controller, and a Docker Hub
@@ -393,6 +385,14 @@ module "eks" {
         }
       }
 
+      # Cluster add-ons such as Traefik also run on these nodes. Without this
+      # policy a node can pull images already in the ECR pull-through cache, but
+      # not the first pull of a new one, which ECR reports as "not found".
+      # Attaching a policy to the node role doesn't replace the node group.
+      iam_role_additional_policies = {
+        ECRPullThroughCache = aws_iam_policy.ecr_pull_through_cache.arn
+      }
+
       labels = {
         node-group = "wordpress"
       }
@@ -514,12 +514,22 @@ resource "aws_secretsmanager_secret" "dockerhub_credentials" {
   tags = local.tags
 }
 
+# The docker-hub pull-through rule logs in to Docker Hub with this secret. With
+# an empty username or token, ECR can't reach Docker Hub and answers every pull
+# with "not found", so the plan refuses to write empty values.
 resource "aws_secretsmanager_secret_version" "dockerhub_credentials" {
   secret_id = aws_secretsmanager_secret.dockerhub_credentials.id
   secret_string = jsonencode({
-    username    = local.docker_username
-    accessToken = local.docker_pat
+    username    = var.docker_username
+    accessToken = var.docker_pat
   })
+
+  lifecycle {
+    precondition {
+      condition     = var.docker_username != "" && var.docker_pat != ""
+      error_message = "DOCKER_USERNAME and DOCKER_PAT are empty. Set them in .env and export it (set -a; source .env; set +a) before running terragrunt."
+    }
+  }
 }
 
 # One rule per upstream registry. Only Docker Hub needs credentials. The other
