@@ -102,12 +102,10 @@ inputs = {
   # ADD MORE CLUSTER ADMIN USER IAM ACCOUNTS TO THE AWS KMS KEY OWNER LIST:
   # -------------------------------------------------------------------------
   kms_key_owners = [
-    "${local.iam_admin_user_arn}",
-    "arn:aws:iam::090511222473:user/kfuka",
+    "${local.iam_admin_user_arn}"
   ]
   cluster_admin_users = [
-    "${local.iam_admin_user_arn}",
-    "arn:aws:iam::090511222473:user/kfuka",
+    "${local.iam_admin_user_arn}"
   ]
 
 }
