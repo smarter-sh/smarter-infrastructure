@@ -22,7 +22,9 @@ provider "kubernetes" {
   }
 }
 
-# Required by Karpenter and metrics-server
+# Installs the cluster's Helm releases: cluster-autoscaler and Calico
+# (tigera-operator). metrics-server is installed by an environment, see
+# ../smarter/metrics-server.tf
 provider "helm" {
   kubernetes = {
     host                   = module.eks.cluster_endpoint

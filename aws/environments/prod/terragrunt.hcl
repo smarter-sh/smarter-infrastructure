@@ -34,5 +34,8 @@ inputs = merge(
     platform_name         = local.platform_name
     environment           = local.environment
     environment_name      = local.environment_name
+
+    # metrics-server is cluster-wide; prod installs it for every environment
+    install_metrics_server = true
   }
 )

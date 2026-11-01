@@ -68,6 +68,12 @@ variable "environment_name" {
   type        = string
 }
 
+variable "install_metrics_server" {
+  description = "install metrics-server, which the cluster's HPAs need. One per cluster: set true in exactly one environment that shares it"
+  type        = bool
+  default     = false
+}
+
 variable "cluster_name" {
   description = "name of the existing EKS cluster"
   type        = string
