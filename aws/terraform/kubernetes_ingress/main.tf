@@ -38,6 +38,11 @@ resource "helm_release" "traefik_crds" {
   repository       = "https://traefik.github.io/charts"
   namespace        = local.namespace
   create_namespace = true
+
+  # Pinned to what runs. 1.18.0 doesn't fit in Helm's release record, a Secret
+  # limited to 1 MiB, so upgrading to it fails with "Too long". The chart is
+  # deprecated upstream; newer CRDs ship with the traefik chart itself.
+  version = "1.14.0"
 }
 
 resource "helm_release" "traefik" {
@@ -46,6 +51,11 @@ resource "helm_release" "traefik" {
   create_namespace = true
   chart            = "traefik"
   repository       = "https://traefik.github.io/charts"
+  # Pinned: unpinned, an apply installs whatever was published that day. That
+  # is how 39.0.7 (Traefik v3.6.12) became 42.2.0 (v3.7.16) without anyone
+  # choosing it, on CRDs from traefik-crds 1.14.0. Pinned to 39.0.7, which
+  # matches those CRDs. Upgrade deliberately, together with the CRDs.
+  version = "39.0.7"
 
   values = [
     local.templatefile_traefik_values
