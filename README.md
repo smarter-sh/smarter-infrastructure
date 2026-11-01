@@ -162,14 +162,12 @@ practice is to use an alpha-numeric value that carries some meaning for the
 installation. For example, a datestamp like 'eval' or 'live'. This value
 becomes a global tag that is added to all AWS resources.
 
-`DOCKER_USERNAME` & `DOCKER_PAT`: (Required). These are propagated to EC2
-instances when they are created. These credentials are used for authenticating
-to DockerHub Api. Authenticating to DockerHub exponentially increases the
-number of requests that you can make before throttling is triggered. Moreover,
-this project also sets up a Docker caching mechanism via AWS Elastic Container
-Registry which additionally significantly reduce Api requests to Dockerhub. This
-not only significantly speeds up deployments, but also significantly reduces the
-risk of DockerHub throttling your Api requests.
+`DOCKER_USERNAME` & `DOCKER_PAT`: (Required). The kubernetes stack stores these
+in AWS Secrets Manager for the AWS Elastic Container Registry pull-through cache,
+which logs in to Docker Hub with them. Images such as Traefik's are pulled
+through this cache, which speeds up deployments and avoids Docker Hub's rate
+limits. Without them the cache can't reach Docker Hub and every such pull fails
+with "not found", so `terragrunt plan` refuses to run with either one empty.
 
 ## Usage
 
@@ -177,16 +175,21 @@ Build the Kubernetes Cluster
 
 ```console
 cd aws/stack/
-terragrunt run-all init
-terragrunt run-all apply
+terragrunt run --all init
+terragrunt run --all plan
+terragrunt run --all apply
 ```
+
+`--all` runs the command in every stack below the current folder (vpc, kubernetes,
+then the add-ons), in dependency order. It replaces `run-all`, which Terragrunt 1.0
+removed.
 
 Build a Smarter Environment
 
 ```console
 cd aws/environments/prod
-terragrunt run-all init
-terragrunt run-all apply
+terragrunt init
+terragrunt apply
 ```
 
 Configure kubectl for use in your local development environment
