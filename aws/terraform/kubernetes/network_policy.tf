@@ -31,6 +31,10 @@ locals {
   cache_port = 6379 # Default port for Redis
   app_port   = 8000 # the app's containerPort (helm/charts/smarter/values.yaml)
 
+  # Loki's ports (the smarter Helm chart's loki subchart, loki.server in its values)
+  loki_http_port = 3100
+  loki_grpc_port = 9095
+
   # the namespace of the Traefik ingress controller (../kubernetes_ingress/main.tf),
   # the only caller outside the application's namespace.
   ingress_namespace = "traefik"
@@ -419,6 +423,7 @@ resource "kubernetes_network_policy_v1" "redis_egress" {
 # denied by default. This policy enables:
 #   - MariaDB: Allow TCP 3306 to MariaDB pods in the same namespace
 #   - Redis: Allow TCP 6379 to Redis pods in the same namespace
+#   - Loki: Allow TCP 3100 and 9095 to Loki pods in the same namespace
 #   - DNS: Allow UDP/TCP 53 to kube-system namespace (DNS resolution)
 #   - External MySQL: Allow TCP 3306 to any external IP (remote DBs)
 #
@@ -469,6 +474,28 @@ resource "kubernetes_network_policy_v1" "smarter_application_group_egress" {
       ports {
         protocol = "TCP"
         port     = 6379
+      }
+    }
+
+    # pod-level access to Loki, which stores the pods' logs (the smarter Helm chart's
+    # loki subchart): Alloy pushes to it and the app's MCP Server queries it on
+    # loki_http_port, and Loki calls its own compactor on loki_grpc_port.
+    egress {
+      to {
+        pod_selector {
+          match_labels = {
+            "app.kubernetes.io/name"     = "loki"
+            "app.kubernetes.io/instance" = var.platform_name
+          }
+        }
+      }
+      ports {
+        protocol = "TCP"
+        port     = local.loki_http_port
+      }
+      ports {
+        protocol = "TCP"
+        port     = local.loki_grpc_port
       }
     }
 
