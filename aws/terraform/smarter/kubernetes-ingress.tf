@@ -14,17 +14,12 @@
 # The Smarter application pod(s) and service. See the Helm chart
 # at https://github.com/smarter-sh/smarter/blob/main/helm/charts/smarter/templates/deployment_app.yaml#L10
 #
-# More specifically, the 'service_name' of this template needs to match the name of the Service that the
-# Helm chart creates for the api: <appName>-api, e.g. smarter-api. The chart renamed it from <appName>, and
-# runs both Services for one release (app.legacyName.enabled), so that this change can be applied first.
-locals {
-  api_service_name = "${local.platform_name}-api"
-}
-
+# More specifically, the 'service_name' of this template needs to match the deployment app's metadata.app
+# field.
 resource "kubernetes_manifest" "platform_ingress" {
   manifest = yamldecode(templatefile("${path.module}/templates/ingress.yaml.tpl", {
     app_name              = local.platform_name
-    service_name          = local.api_service_name
+    service_name          = local.platform_name
     cluster_issuer        = local.environment_platform_domain
     domain                = local.environment_platform_domain
     environment_namespace = local.environment_namespace
@@ -41,7 +36,7 @@ resource "kubernetes_manifest" "platform_ingress" {
 resource "kubernetes_manifest" "api_ingress" {
   manifest = yamldecode(templatefile("${path.module}/templates/ingress.yaml.tpl", {
     app_name              = local.platform_name
-    service_name          = local.api_service_name
+    service_name          = local.platform_name
     cluster_issuer        = local.environment_api_domain
     domain                = local.environment_api_domain
     environment_namespace = local.environment_namespace
@@ -86,7 +81,6 @@ resource "kubernetes_manifest" "traefik-middleware-http-redirect" {
 resource "kubernetes_manifest" "traefik-service-sessions" {
   manifest = yamldecode(templatefile("${path.module}/templates/traefik-service-sessions.yaml.tpl", {
     app_name              = local.platform_name
-    service_name          = local.api_service_name
     environment_namespace = local.environment_namespace
   }))
 
