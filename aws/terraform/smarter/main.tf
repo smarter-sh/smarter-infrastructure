@@ -33,6 +33,8 @@ locals {
   # alpha.platform.example.com or local.example.com
   s3_backup_bucket_name = "backups.${local.s3_bucket_name}"
   # backups.alpha.platform.example.com: private, see s3.tf
+  s3_exports_bucket_name = "exports.${local.s3_bucket_name}"
+  # exports.alpha.platform.example.com: private, users' data exports, see s3.tf
 
   tags = merge(
     var.tags,
