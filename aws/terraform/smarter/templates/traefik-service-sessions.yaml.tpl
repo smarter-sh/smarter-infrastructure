@@ -10,10 +10,11 @@
 #
 # Template Variables:
 #   - ${environment_namespace}: Namespace and cookie name prefix.
+#   - ${service_name}: Name of the api's Kubernetes service, e.g. smarter-api.
 #
 # Usage:
 #   - Reference this TraefikService in your IngressRoute definitions
-#     to enable sticky sessions for the 'smarter' service on port 8000.
+#     to enable sticky sessions for the api's service on port 8000.
 #   - Adjust service name, port, or cookie settings as needed.
 #
 # For more information, see:
@@ -30,7 +31,7 @@ metadata:
 spec:
   weighted:
     services:
-      - name: smarter
+      - name: ${service_name}
         port: 8000
     sticky:
       cookie:
