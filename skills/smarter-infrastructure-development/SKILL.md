@@ -47,7 +47,7 @@ one EKS cluster are shared by every environment. Each environment (`alpha`,
 | `kubernetes_ingress`      | Traefik and its CRDs, and the DNS records that point at its load balancer                                                                                                                                    |
 | `kubernetes_cert_manager` | cert-manager and its IRSA role for Route53 DNS-01 challenges                                                                                                                                                 |
 | `kubernetes_descheduler`  | The descheduler                                                                                                                                                                                              |
-| `smarter`                 | One environment: namespace, Route53 zones and records, ACM, CloudFront, S3 (public assets and private backups), ECR repo, SES and its SMTP user, Kubernetes secrets, ingresses, issuers, Traefik middlewares |
+| `smarter`                 | One environment: namespace, Route53 zones and records, ACM, CloudFront, S3 (public assets, private backups, private data exports), ECR repo, SES and its SMTP user, Kubernetes secrets, ingresses, issuers, Traefik middlewares |
 
 ## Dependencies and apply order
 
