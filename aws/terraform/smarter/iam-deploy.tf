@@ -95,13 +95,69 @@ resource "aws_iam_user_policy_attachment" "deploy" {
 # smarter deploy workflow sets the Helm chart's serviceAccount.createClusterRole
 # to false, so the chart creates only namespaced resources, and helm upgrade
 # needs no more. The cluster-wide ClusterRole is created by kubernetes-rbac.tf.
+#
+# The access policy alone is not enough to deploy the chart: when Helm creates
+# or updates a Role or RoleBinding, Kubernetes requires the deployer to hold
+# every permission in it through RBAC, or to have the RBAC verbs escalate and
+# bind. Permissions from an EKS access policy don't count. So the access entry
+# also puts the user in a Kubernetes group, which the Role below gives escalate
+# and bind on Roles and RoleBindings, in this namespace only.
+locals {
+  deploy_kubernetes_group = "smarter-deploy:${local.environment_namespace}"
+}
+
 resource "aws_eks_access_entry" "deploy" {
   count = local.is_local_environment ? 0 : 1
 
-  cluster_name  = var.cluster_name
-  principal_arn = aws_iam_user.deploy[0].arn
-  type          = "STANDARD"
-  tags          = local.tags
+  cluster_name      = var.cluster_name
+  principal_arn     = aws_iam_user.deploy[0].arn
+  type              = "STANDARD"
+  kubernetes_groups = [local.deploy_kubernetes_group]
+  tags              = local.tags
+}
+
+resource "kubernetes_role_v1" "deploy_rbac" {
+  count = local.is_local_environment ? 0 : 1
+
+  metadata {
+    name      = "smarter-deploy-rbac"
+    namespace = local.environment_namespace
+    labels = {
+      "app.kubernetes.io/name"              = "smarter"
+      "app.kubernetes.io/application-group" = "smarter"
+    }
+  }
+
+  rule {
+    api_groups = ["rbac.authorization.k8s.io"]
+    resources  = ["roles", "rolebindings"]
+    verbs      = ["escalate", "bind"]
+  }
+}
+
+resource "kubernetes_role_binding_v1" "deploy_rbac" {
+  count = local.is_local_environment ? 0 : 1
+
+  metadata {
+    name      = "smarter-deploy-rbac"
+    namespace = local.environment_namespace
+    labels = {
+      "app.kubernetes.io/name"              = "smarter"
+      "app.kubernetes.io/application-group" = "smarter"
+    }
+  }
+
+  role_ref {
+    api_group = "rbac.authorization.k8s.io"
+    kind      = "Role"
+    name      = kubernetes_role_v1.deploy_rbac[0].metadata[0].name
+  }
+
+  subject {
+    api_group = "rbac.authorization.k8s.io"
+    kind      = "Group"
+    name      = local.deploy_kubernetes_group
+  }
 }
 
 resource "aws_eks_access_policy_association" "deploy" {
