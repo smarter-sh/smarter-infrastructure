@@ -57,7 +57,14 @@ resource "aws_route53_record" "environment_platform_domain_ns" {
 data "aws_lb" "traefik" {
   name = local.traefik_lb_name
 }
+# The local environment's A records (local.<root domain> and its api host) are
+# not managed here: they alias a CloudFront distribution for local testing,
+# which isn't managed in this repository, on purpose. Smarter's
+# verify_dns_configuration leaves them as they are. Managing them here would
+# point them at Traefik.
 resource "aws_route53_record" "environment_platform_domain" {
+  count = local.is_local_environment ? 0 : 1
+
   zone_id = aws_route53_zone.environment_platform_domain.zone_id
   name    = local.environment_platform_domain
   type    = "A"
@@ -84,7 +91,10 @@ resource "aws_route53_record" "environment_api_domain_ns_parent" {
   records = aws_route53_zone.environment_api_domain.name_servers
 }
 
+# Not in the local environment, see environment_platform_domain above.
 resource "aws_route53_record" "environment_api_domain" {
+  count = local.is_local_environment ? 0 : 1
+
   zone_id = aws_route53_zone.environment_api_domain.zone_id
   name    = local.environment_api_domain
   type    = "A"
