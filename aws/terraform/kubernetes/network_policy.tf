@@ -18,8 +18,11 @@
 #   (identified by specific labels) to connect on their respective ports.
 # - Enforce a default-deny ingress policy for MariaDB, Redis, and the application group
 #   in the production namespace, blocking all traffic except what is explicitly allowed.
-# - Limit egress from application group pods to only the required database ports and
-#   destinations, reducing the risk of lateral movement or data exfiltration.
+# - Limit egress from application group pods to the ports they use, which reduces the
+#   risk of lateral movement inside the cluster. It is not an exfiltration control:
+#   the pods may reach any internet address on 443, as API plugins, MCP clients, web
+#   search and LLM providers at custom endpoints need, and on 80, 587 and 3306. See
+#   "Supply-Chain Security" in the Smarter docs (docs.smarter.sh).
 #   These policies provide fine-grained, dynamic, and label-based network segmentation
 #   at the pod level, which cannot be achieved with cloud provider security groups alone.
 #   They help ensure that only intended services can communicate, improving the security
@@ -425,10 +428,16 @@ resource "kubernetes_network_policy_v1" "redis_egress" {
 #   - Redis: Allow TCP 6379 to Redis pods in the same namespace
 #   - Loki: Allow TCP 3100 and 9095 to Loki pods in the same namespace
 #   - DNS: Allow UDP/TCP 53 to kube-system namespace (DNS resolution)
-#   - External MySQL: Allow TCP 3306 to any external IP (remote DBs)
+#   - HTTPS: Allow TCP 443 to any external IP (LLM providers, AWS, API plugins,
+#     MCP clients, web search)
+#   - External MySQL: Allow TCP 3306 to any external IP (SQL plugins' databases)
+#   - SMTP: Allow TCP 587 to any external IP (AWS SES)
+#   - HTTP: Allow TCP 80 to any external IP (API plugins on plain HTTP)
 #
-# Each egress rule is narrowly scoped to minimize risk and restrict outbound
-# connections to only what is necessary for the application group to function.
+# The in-cluster rules are scoped to their pods. The four internet rules are
+# scoped by port only, because those features call hosts that a manifest author
+# or the LLM chooses. Closing 80 and 3306 here needs the features that use them
+# moved to a worker of their own first.
 # ------------------------------------------------------------------------------
 resource "kubernetes_network_policy_v1" "smarter_application_group_egress" {
   count = var.enable_enhanced_security ? 1 : 0
@@ -555,20 +564,11 @@ resource "kubernetes_network_policy_v1" "smarter_application_group_egress" {
       }
     }
 
-    # Allow SMTP (AWS SES) - port 465 (SMTPS)
-    egress {
-      to {
-        ip_block {
-          cidr = "0.0.0.0/0"
-        }
-      }
-      ports {
-        protocol = "TCP"
-        port     = 465
-      }
-    }
-
-    # Allow SMTP (AWS SES) - port 587 (Submission)
+    # Allow SMTP (AWS SES) - port 587 (Submission, with STARTTLS). The only SMTP
+    # port Smarter uses: each environment's aws-ses-config Secret
+    # (../smarter/kubernetes-ses.tf) sets SMTP_PORT 587 and SMTP_USE_TLS. Port 465
+    # (SMTPS) is closed: an open port that nothing uses is only a way out for a
+    # compromised dependency.
     egress {
       to {
         ip_block {
