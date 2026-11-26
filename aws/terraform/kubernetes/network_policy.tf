@@ -41,6 +41,23 @@ locals {
   # the namespace of the Traefik ingress controller (../kubernetes_ingress/main.tf),
   # the only caller outside the application's namespace.
   ingress_namespace = "traefik"
+
+  # the application-group of the tool worker's pods (the smarter Helm chart's workerTools,
+  # templates/deployment-worker-tools.yaml). It is not var.platform_name, so that none of the
+  # platform's policies apply to them: see smarter_tools_egress.
+  tools_group = "${var.platform_name}-tools"
+
+  # the addresses that the tool worker may not reach on the internet ports: the VPC, with every
+  # node, pod and the private EKS endpoint, the other private ranges, and link-local, with the
+  # instance metadata service, which hands out the node's IAM role.
+  tools_private_cidrs = [
+    data.aws_vpc.smarter_vpc.cidr_block,
+    "10.0.0.0/8",
+    "172.16.0.0/12",
+    "192.168.0.0/16",
+    "100.64.0.0/10",
+    "169.254.0.0/16",
+  ]
 }
 
 #------------------------------------------------------------------------------
@@ -224,6 +241,22 @@ resource "kubernetes_network_policy_v1" "smarter_mariadb_allow_backend" {
       }
     }
 
+    # the tool worker, for SQL plugins whose connection is this MariaDB, e.g. Stackademy's.
+    # It has no credentials of its own: each SQL call brings its connection's.
+    ingress {
+      from {
+        pod_selector {
+          match_labels = {
+            "app.kubernetes.io/application-group" = local.tools_group
+          }
+        }
+      }
+      ports {
+        protocol = "TCP"
+        port     = local.db_port
+      }
+    }
+
   }
 }
 
@@ -258,6 +291,23 @@ resource "kubernetes_network_policy_v1" "smarter_redis_allow_backend" {
         pod_selector {
           match_labels = {
             "app.kubernetes.io/application-group" = var.platform_name
+          }
+        }
+      }
+
+      ports {
+        protocol = "TCP"
+        port     = local.cache_port
+      }
+    }
+
+    # the tool worker, which takes its tasks from the Celery broker, returns their results
+    # to the result backend, and reads extension archives from the cache.
+    ingress {
+      from {
+        pod_selector {
+          match_labels = {
+            "app.kubernetes.io/application-group" = local.tools_group
           }
         }
       }
@@ -436,8 +486,10 @@ resource "kubernetes_network_policy_v1" "redis_egress" {
 #
 # The in-cluster rules are scoped to their pods. The four internet rules are
 # scoped by port only, because those features call hosts that a manifest author
-# or the LLM chooses. Closing 80 and 3306 here needs the features that use them
-# moved to a worker of their own first.
+# or the LLM chooses. Those features now run in the tool worker
+# (smarter_tools_egress) where the chart's workerTools is enabled; once it is, in
+# every environment, 80 and 3306 can be closed here, and 443 narrowed (ADR-038,
+# phase 3).
 # ------------------------------------------------------------------------------
 resource "kubernetes_network_policy_v1" "smarter_application_group_egress" {
   count = var.enable_enhanced_security ? 1 : 0
@@ -594,6 +646,107 @@ resource "kubernetes_network_policy_v1" "smarter_application_group_egress" {
       }
     }
     # TCP 443 for ApiPlugins is covered by the HTTPS rule above.
+  }
+}
+
+# ------------------------------------------------------------------------------
+# Network policy for the egress of the tool worker (ADR-038), the pods whose
+# application-group is local.tools_group. It executes the tool calls that the
+# app resolves: API, SQL and MCP calls, extension tools and web search page
+# fetches, to hosts that manifest authors, extension authors and the LLM choose.
+# It may reach:
+#   - Redis: TCP 6379, the Celery broker, the result backend and the cache
+#   - MariaDB: TCP 3306, for SQL plugins whose connection is the platform's MariaDB
+#   - DNS: UDP/TCP 53 to kube-system
+#   - the internet: TCP 443, 80 and 3306, except local.tools_private_cidrs
+#
+# Nothing else: not the app, the other workers, Loki, the EKS api, the nodes or
+# the instance metadata service. No ingress policy admits any traffic to these
+# pods, so default-deny-all denies all of it: nothing calls the tool worker.
+# ------------------------------------------------------------------------------
+resource "kubernetes_network_policy_v1" "smarter_tools_egress" {
+  count = var.enable_enhanced_security ? 1 : 0
+  metadata {
+    name      = "smarter-tools-egress"
+    namespace = var.namespace
+  }
+  spec {
+    pod_selector {
+      match_labels = {
+        "app.kubernetes.io/application-group" = local.tools_group
+      }
+    }
+
+    policy_types = ["Egress"]
+
+    egress {
+      to {
+        pod_selector {
+          match_labels = {
+            "app.kubernetes.io/name"     = "redis"
+            "app.kubernetes.io/instance" = var.platform_name
+          }
+        }
+      }
+      ports {
+        protocol = "TCP"
+        port     = local.cache_port
+      }
+    }
+
+    egress {
+      to {
+        pod_selector {
+          match_labels = {
+            "app.kubernetes.io/name"     = "mariadb"
+            "app.kubernetes.io/instance" = var.platform_name
+          }
+        }
+      }
+      ports {
+        protocol = "TCP"
+        port     = local.db_port
+      }
+    }
+
+    egress {
+      to {
+        namespace_selector {
+          match_labels = {
+            "kubernetes.io/metadata.name" = "kube-system"
+          }
+        }
+      }
+      ports {
+        protocol = "UDP"
+        port     = 53
+      }
+      ports {
+        protocol = "TCP"
+        port     = 53
+      }
+    }
+
+    egress {
+      to {
+        ip_block {
+          cidr   = "0.0.0.0/0"
+          except = local.tools_private_cidrs
+        }
+      }
+      ports {
+        protocol = "TCP"
+        port     = 443
+      }
+      ports {
+        protocol = "TCP"
+        port     = 80
+      }
+      ports {
+        protocol = "TCP"
+        port     = local.db_port
+      }
+    }
   }
 }
 
